@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([JabatanSeeder::class, UnitKerjaSeeder::class]);
+        $this->call([SettingSeeder::class, JabatanSeeder::class, UnitKerjaSeeder::class]);
 
         if ($email = env('INITIAL_ADMIN_EMAIL')) {
             $nip = env('INITIAL_ADMIN_NIP');

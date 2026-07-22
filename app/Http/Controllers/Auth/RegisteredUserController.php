@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
+use App\Services\RegistrationSettings;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class RegisteredUserController extends Controller
     public function create()
     {
         return view('auth.register', [
-            'allowStaffRegistration' => config('registration.allow_staff'),
+            'allowStaffRegistration' => RegistrationSettings::isStaffEnabled(),
         ]);
     }
 
@@ -32,7 +33,7 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $allowedRoles = config('registration.allow_staff')
+        $allowedRoles = RegistrationSettings::isStaffEnabled()
             ? ['admin', 'pegawai', 'umum']
             : ['umum'];
 
