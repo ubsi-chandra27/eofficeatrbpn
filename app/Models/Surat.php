@@ -44,6 +44,9 @@ class Surat extends Model
         'status',
         'catatan_admin',
 
+        'jabatan_pimpinan_id',
+        'nama_pimpinan',
+
     ];
 
     protected $casts = [
@@ -127,6 +130,11 @@ public function disposisiTujuans()
         };
     }
 
+
+    public function jabatanPimpinan()
+{
+    return $this->belongsTo(Jabatan::class,'jabatan_pimpinan_id');
+}
     /**
      * Label status
      */

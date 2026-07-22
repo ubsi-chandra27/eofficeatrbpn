@@ -4,97 +4,35 @@
 
 @section('content')
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<div class="container-fluid">
 
-<style>
-
-.page-title{
-    font-size:26px;
-    font-weight:700;
-    color:#0d6efd;
-}
-
-.card-custom{
-    border:none;
-    border-radius:15px;
-    overflow:hidden;
-    box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
-
-.card-header-custom{
-    background:#0d6efd;
-    color:#fff;
-    padding:18px 25px;
-}
-
-.card-header-custom h5{
-    margin:0;
-    font-weight:700;
-}
-
-.form-label{
-    font-weight:600;
-    color:#495057;
-}
-
-.form-control,
-.form-select{
-    min-height:46px;
-    border-radius:10px;
-}
-
-textarea.form-control{
-    min-height:140px;
-}
-
-.required{
-    color:red;
-}
-
-.section-title{
-    font-size:22px;
-    font-weight:700;
-    color:#0d6efd;
-    margin-bottom:25px;
-}
-
-.info-box{
-    background:#f8f9fa;
-    border-left:4px solid #0d6efd;
-    padding:15px;
-    border-radius:8px;
-    margin-bottom:20px;
-}
-
-</style>
-
-<div class="container-fluid py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    {{-- ===========================
+        HEADER
+    ============================ --}}
+    <div class="page-header fade-up">
 
         <div>
 
-            <h2 class="page-title">
+            <h2>
 
-                <i class="bi bi-pencil-square"></i>
+                <i class="bi bi-pencil-square text-warning me-2"></i>
 
                 Edit Surat Keluar
 
             </h2>
 
-            <small class="text-muted">
+            <p class="text-muted mb-0">
 
-                Perbarui data surat keluar beserta tujuan disposisinya.
+                Perbarui data surat keluar sebelum diproses.
 
-            </small>
+            </p>
 
         </div>
 
-        <a href="{{ route('pegawai.surat.keluar') }}"
-           class="btn btn-secondary">
+        <a href="{{ route('pegawai.surat-keluar.index') }}"
+           class="btn btn-outline-secondary">
 
-            <i class="bi bi-arrow-left"></i>
+            <i class="bi bi-arrow-left me-2"></i>
 
             Kembali
 
@@ -102,23 +40,22 @@ textarea.form-control{
 
     </div>
 
-    @if(session('success'))
 
-        <div class="alert alert-success">
 
-            {{ session('success') }}
+    {{-- ===========================
+        VALIDASI
+    ============================ --}}
+    @if ($errors->any())
 
-        </div>
+        <div class="alert alert-danger shadow-sm">
 
-    @endif
+            <h6>
 
-    @if($errors->any())
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-        <div class="alert alert-danger">
+                Terjadi Kesalahan
 
-            <strong>Terjadi Kesalahan</strong>
-
-            <hr>
+            </h6>
 
             <ul class="mb-0">
 
@@ -134,500 +71,524 @@ textarea.form-control{
 
     @endif
 
-    <div class="card card-custom">
 
-        <div class="card-header-custom">
 
-            <h5>
+    {{-- ===========================
+        FORM
+    ============================ --}}
+    <div class="form-card fade-up">
 
-                <i class="bi bi-envelope-paper-fill"></i>
+        <form
+            action="{{ route('pegawai.surat-keluar.update',$surat->id) }}"
+            method="POST"
+            enctype="multipart/form-data">
 
-                FORM EDIT SURAT KELUAR
+            @csrf
+            @method('PUT')
 
-            </h5>
+            <div class="row g-4">
 
-        </div>
+                {{-- Nomor Surat --}}
+                <div class="col-md-6">
 
-        <div class="card-body p-4">
+                    <label class="form-label fw-semibold">
 
-            <form action="{{ route('pegawai.surat.update',$surat->id) }}"
-                  method="POST"
-                  enctype="multipart/form-data">
+                        Nomor Surat
 
-                @csrf
-                @method('PUT')
+                    </label>
 
-                <input
-                    type="hidden"
-                    name="jenis_surat"
-                    value="keluar">
-
-                <div class="info-box">
-
-                    <i class="bi bi-info-circle-fill text-primary"></i>
-
-                    Silakan ubah data surat keluar di bawah ini. Semua perubahan akan langsung memperbarui data surat.
+                    <input
+                        type="text"
+                        name="nomor_surat"
+                        class="form-control"
+                        value="{{ old('nomor_surat',$surat->nomor_surat) }}"
+                        required>
 
                 </div>
 
-                <div class="row">
 
-                    <div class="col-md-6 mb-3">
 
-                        <label class="form-label">
+                {{-- Tanggal Surat --}}
+                <div class="col-md-6">
 
-                            Nomor Surat
+                    <label class="form-label fw-semibold">
 
-                            <span class="required">*</span>
+                        Tanggal Surat
 
-                        </label>
+                    </label>
 
-                        <input
-                            type="text"
-                            name="nomor_surat"
-                            class="form-control"
-                            value="{{ old('nomor_surat',$surat->nomor_surat) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Tanggal Surat
-
-                            <span class="required">*</span>
-
-                        </label>
-
-                        <input
-                            type="date"
-                            name="tanggal_surat"
-                            class="form-control"
-                            value="{{ old('tanggal_surat', \Carbon\Carbon::parse($surat->tanggal_surat)->format('Y-m-d')) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Tujuan Surat
-
-                            <span class="required">*</span>
-
-                        </label>
-
-                        <input
-                            type="text"
-                            name="tujuan_surat"
-                            class="form-control"
-                            value="{{ old('tujuan_surat',$surat->tujuan_surat) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Metode Pengiriman
-
-                        </label>
-
-                        <select
-                            name="metode"
-                            class="form-select">
-
-                            <option value="">Pilih</option>
-
-                            <option value="Email"
-                            {{ old('metode',$surat->metode)=='Email' ? 'selected' : '' }}>
-                                Email
-                            </option>
-
-                            <option value="Kurir"
-                            {{ old('metode',$surat->metode)=='Kurir' ? 'selected' : '' }}>
-                                Kurir
-                            </option>
-
-                            <option value="Loket"
-                            {{ old('metode',$surat->metode)=='Loket' ? 'selected' : '' }}>
-                                Loket
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                                        <div class="col-md-12 mb-3">
-
-                        <label class="form-label">
-                            Judul Surat
-                            <span class="required">*</span>
-                        </label>
-
-                        <input
-                            type="text"
-                            name="judul_surat"
-                            class="form-control"
-                            value="{{ old('judul_surat',$surat->judul_surat) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Perihal
-
-                        </label>
-
-                        <input
-                            type="text"
-                            name="perihal"
-                            class="form-control"
-                            value="{{ old('perihal',$surat->perihal) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Kode Surat
-
-                        </label>
-
-                        <input
-                            type="text"
-                            name="kode_surat"
-                            class="form-control"
-                            value="{{ old('kode_surat',$surat->kode_surat) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Nomor Agenda
-
-                        </label>
-
-                        <input
-                            type="text"
-                            name="nomor_agenda"
-                            class="form-control"
-                            value="{{ old('nomor_agenda',$surat->nomor_agenda) }}">
-
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-
-                        <label class="form-label">
-
-                            Prioritas
-
-                        </label>
-
-                        <select
-                            name="is_priority"
-                            class="form-select">
-
-                            <option value="0"
-                                {{ old('is_priority',$surat->is_priority)==0 ? 'selected' : '' }}>
-                                Normal
-                            </option>
-
-                            <option value="1"
-                                {{ old('is_priority',$surat->is_priority)==1 ? 'selected' : '' }}>
-                                Prioritas
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-12 mb-4">
-
-                        <label class="form-label">
-
-                            Deskripsi Surat
-
-                        </label>
-
-                        <textarea
-                            name="deskripsi"
-                            rows="5"
-                            class="form-control"
-                            placeholder="Masukkan isi atau deskripsi surat...">{{ old('deskripsi',$surat->deskripsi) }}</textarea>
-
-                    </div>
+                    <input
+                        type="date"
+                        name="tanggal_surat"
+                        class="form-control"
+                        value="{{ old('tanggal_surat',$surat->tanggal_surat) }}"
+                        required>
 
                 </div>
 
-                <hr class="my-4">
 
-                <h4 class="section-title">
 
-                    <i class="bi bi-diagram-3-fill"></i>
+                {{-- Perihal --}}
+                <div class="col-md-12">
 
-                    Tujuan Surat
+                    <label class="form-label fw-semibold">
 
-                    </h5>
+                        Perihal
 
-                    {{-- Kirim Kepada --}}
-                    <div class="col-md-12 mb-4">
+                    </label>
 
-                        <label class="form-label">
+                    <input
+                        type="text"
+                        name="perihal"
+                        class="form-control"
+                        value="{{ old('perihal',$surat->perihal) }}"
+                        required>
 
-                            Kirim Kepada Pegawai
+                </div>
+                                {{-- ===========================
+                    TUJUAN SURAT
+                ============================ --}}
+                <div class="col-md-6">
 
-                            <span class="required">*</span>
+                    <label class="form-label fw-semibold">
 
-                        </label>
+                        Tujuan Surat
 
-                        <select
-                            name="pegawai_tujuan"
-                            id="pegawai_tujuan"
-                            class="form-select select-pegawai"
-                            required>
+                    </label>
 
-                            <option value="">
-                                Pilih Pegawai Tujuan
+                    <input
+                        type="text"
+                        name="tujuan_surat"
+                        class="form-control"
+                        value="{{ old('tujuan_surat',$surat->tujuan_surat) }}"
+                        placeholder="Masukkan tujuan surat">
+
+                </div>
+
+
+                {{-- ===========================
+                    JABATAN PIMPINAN
+                ============================ --}}
+                <div class="col-md-6">
+
+                    <label class="form-label fw-semibold">
+
+                        Jabatan Pimpinan
+
+                    </label>
+
+                    <select
+                        name="jabatan_pimpinan_id"
+                        id="jabatan_pimpinan"
+                        class="form-select">
+
+                        <option value="">
+
+                            -- Pilih Jabatan --
+
+                        </option>
+
+                        @foreach($jabatans as $jabatan)
+
+                            <option
+                                value="{{ $jabatan->id }}"
+                                data-nama="{{ $jabatan->nama_pimpinan ?? '' }}"
+                                {{ old('jabatan_pimpinan_id',$surat->jabatan_pimpinan_id)==$jabatan->id ? 'selected' : '' }}>
+
+                                {{ $jabatan->nama }}
+
                             </option>
 
-                            @foreach($unitKerja as $unit)
+                        @endforeach
 
-                                @if($unit->pegawai->count())
+                    </select>
 
-                                    <optgroup label="📂 {{ $unit->nama }}">
+                </div>
 
-                                        @foreach($unit->pegawai->sortBy('nama') as $pegawai)
 
-                                            <option
-                                                value="{{ $pegawai->id }}"
-                                                data-unit="{{ $unit->nama }}"
-                                                data-jabatan="{{ $pegawai->jabatan->nama ?? '-' }}"
-                                                {{ old('pegawai_tujuan')==$pegawai->id ? 'selected' : '' }}>
 
-                                                {{ $pegawai->nama }}
-                                                — {{ $pegawai->jabatan->nama ?? '-' }}
+                {{-- ===========================
+                    NAMA PIMPINAN
+                ============================ --}}
+                <div class="col-md-6">
 
-                                            </option>
+                    <label class="form-label fw-semibold">
 
-                                        @endforeach
+                        Nama Pimpinan
 
-                                    </optgroup>
+                    </label>
 
-                                @endif
+                    <input
+                        type="text"
+                        id="nama_pimpinan"
+                        name="nama_pimpinan"
+                        class="form-control"
+                        value="{{ old('nama_pimpinan',$surat->nama_pimpinan) }}"
+                        readonly>
 
-                            @endforeach
+                </div>
 
-                        </select>
 
-                        <small class="text-muted">
 
-                            Cari berdasarkan nama pegawai atau pilih berdasarkan unit kerja.
+                {{-- ===========================
+                    PENGIRIM
+                ============================ --}}
+                <div class="col-md-6">
 
-                        </small>
+                    <label class="form-label fw-semibold">
 
-                    </div>
+                        Pengirim
 
-                    {{-- Tembusan --}}
-                    <div class="col-md-12 mb-4">
+                    </label>
 
-                        <label class="form-label">
+                    <input
+                        type="text"
+                        class="form-control"
+                        value="{{ Auth::user()->name }}"
+                        readonly>
 
-                            Tembusan
+                </div>
 
-                        </label>
 
-                        <select
-                            name="tembusan[]"
-                            class="form-select select-pegawai"
-                            multiple>
 
-                            @foreach($unitKerja as $unit)
+                {{-- ===========================
+                    STATUS
+                ============================ --}}
+                <div class="col-md-6">
 
-                                @if($unit->pegawai->count())
+                    <label class="form-label fw-semibold">
 
-                                    <optgroup label="📂 {{ $unit->nama }}">
+                        Status Surat
 
-                                        @foreach($unit->pegawai->sortBy('nama') as $pegawai)
+                    </label>
 
-                                            <option
-                                                value="{{ $pegawai->id }}">
+                    <input
+                        type="text"
+                        class="form-control"
+                        value="{{ $surat->status }}"
+                        readonly>
 
-                                                {{ $pegawai->nama }}
-                                                — {{ $pegawai->jabatan->nama ?? '-' }}
+                </div>
 
-                                            </option>
 
-                                        @endforeach
 
-                                    </optgroup>
+                {{-- ===========================
+                    DESKRIPSI
+                ============================ --}}
+                <div class="col-md-12">
 
-                                @endif
+                    <label class="form-label fw-semibold">
 
-                            @endforeach
+                        Isi / Deskripsi Surat
 
-                        </select>
+                    </label>
 
-                        <small class="text-muted">
+                    <textarea
+                        name="deskripsi"
+                        rows="8"
+                        class="form-control"
+                        placeholder="Tuliskan isi surat...">{{ old('deskripsi',$surat->deskripsi) }}</textarea>
 
-                            Opsional. Pilih lebih dari satu pegawai sebagai tembusan.
+                </div>
 
-                        </small>
 
-                    </div>
 
-                    {{-- Catatan --}}
-                    <div class="col-md-12 mb-4">
+                {{-- ===========================
+                    FILE LAMA
+                ============================ --}}
+                <div class="col-md-12">
 
-                        <label class="form-label">
+                    <label class="form-label fw-semibold">
 
-                            Catatan Tambahan
+                        Lampiran Saat Ini
 
-                        </label>
+                    </label>
 
-                        <textarea
-                            name="catatan_admin"
-                            rows="3"
-                            class="form-control"
-                            placeholder="Catatan untuk penerima surat...">{{ old('catatan_admin') }}</textarea>
+                    @if($surat->file_path)
 
-                    </div>
+                        <div class="alert alert-light border d-flex justify-content-between align-items-center">
 
-                    {{-- Upload Dokumen --}}
-                    <div class="col-md-12 mb-4">
+                            <div>
 
-                        <label class="form-label">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>
 
-                            Upload Dokumen Surat
+                                {{ basename($surat->file_path) }}
 
-                        </label>
+                            </div>
 
-                        <input
-                            type="file"
-                            name="dokumen"
-                            id="dokumen"
-                            class="form-control"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <a
+                                href="{{ asset('storage/'.$surat->file_path) }}"
+                                target="_blank"
+                                class="btn btn-sm btn-outline-primary">
 
-                        <small class="text-muted">
+                                <i class="bi bi-eye-fill me-1"></i>
 
-                            Format: PDF, DOC, DOCX, JPG, PNG (Maks. 5 MB)
+                                Lihat File
 
-                        </small>
-
-                        <div
-                            id="preview-file"
-                            class="alert alert-info mt-3 d-none">
+                            </a>
 
                         </div>
 
-                    </div>
+                    @else
 
-                                        <hr>
+                        <div class="alert alert-warning mb-0">
 
-                    <div class="d-flex justify-content-end gap-2">
+                            Belum ada lampiran.
 
-                        <a href="{{ route('pegawai.surat.keluar') }}"
-                           class="btn btn-secondary">
+                        </div>
 
-                            <i class="bi bi-arrow-left-circle"></i>
+                    @endif
 
-                            Kembali
+                </div>
 
-                        </a>
 
-                        <button
-                            type="reset"
-                            class="btn btn-warning text-white">
 
-                            <i class="bi bi-arrow-counterclockwise"></i>
+                {{-- ===========================
+                    UPLOAD FILE BARU
+                ============================ --}}
+                <div class="col-md-12">
 
-                            Reset
+                    <label class="form-label fw-semibold">
 
-                        </button>
+                        Ganti Lampiran (Opsional)
 
-                        <button
-                            type="submit"
-                            class="btn btn-primary">
+                    </label>
 
-                            <i class="bi bi-send-fill"></i>
+                    <input
+                        type="file"
+                        name="file_path"
+                        class="form-control"
+                        accept=".pdf,.doc,.docx">
 
-                            Kirim Surat
+                    <small class="text-muted">
 
-                        </button>
+                        Kosongkan apabila tidak ingin mengganti file.
 
-                    </div>
+                    </small>
 
-                </form>
+                </div>
 
             </div>
 
-        </div>
+            <hr class="my-4">
+
+                        {{-- ===========================
+                BUTTON
+            ============================ --}}
+            <div class="d-flex justify-content-between mt-4">
+
+                <a href="{{ route('pegawai.surat-keluar.index') }}"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Kembali
+
+                </a>
+
+                <div class="d-flex gap-2">
+
+                    <button
+                        type="reset"
+                        class="btn btn-warning">
+
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+
+                        Reset
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        <i class="bi bi-save-fill me-2"></i>
+
+                        Update Surat
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
 
     </div>
 
+</div>
+
 @endsection
+
 
 @push('scripts')
 
 <script>
 
-$(document).ready(function(){
+document.addEventListener('DOMContentLoaded',function(){
 
-    $('.select-pegawai').select2({
+    const jabatan =
+        document.getElementById('jabatan_pimpinan');
 
-        width:'100%',
+    const pimpinan =
+        document.getElementById('nama_pimpinan');
 
-        placeholder:'Cari nama pegawai atau jabatan...',
+    function isiPimpinan(){
 
-        allowClear:true,
+        let selected =
+            jabatan.options[jabatan.selectedIndex];
 
-        closeOnSelect:true
+        pimpinan.value =
+            selected.dataset.nama ?? '';
 
-    });
+    }
 
-    $('#dokumen').on('change',function(){
+    isiPimpinan();
 
-        let file=this.files[0];
-
-        if(file){
-
-            $('#preview-file')
-                .removeClass('d-none')
-                .html(
-
-                    '<i class="bi bi-file-earmark-text-fill text-primary"></i> '
-
-                    +'<strong>'+file.name+'</strong>'
-
-                    +'<br><small>Ukuran : '
-
-                    +(file.size/1024/1024).toFixed(2)
-
-                    +' MB</small>'
-
-                );
-
-        }else{
-
-            $('#preview-file')
-
-                .addClass('d-none')
-
-                .html('');
-
-        }
-
-    });
+    jabatan.addEventListener(
+        'change',
+        isiPimpinan
+    );
 
 });
 
 </script>
+
+@endpush
+
+
+@push('styles')
+
+<style>
+
+.form-card{
+
+    background:#fff;
+
+    border-radius:22px;
+
+    padding:35px;
+
+    box-shadow:0 10px 35px rgba(0,0,0,.05);
+
+    border:1px solid #edf2f7;
+
+    animation:fadeUp .4s ease;
+
+}
+
+.form-label{
+
+    font-weight:600;
+
+    color:#334155;
+
+    margin-bottom:8px;
+
+}
+
+.form-control,
+.form-select{
+
+    border-radius:12px;
+
+    border:1px solid #dbe2ea;
+
+    min-height:48px;
+
+    transition:.25s;
+
+}
+
+.form-control:focus,
+.form-select:focus{
+
+    border-color:#2563EB;
+
+    box-shadow:0 0 0 .2rem rgba(37,99,235,.15);
+
+}
+
+textarea.form-control{
+
+    min-height:180px;
+
+}
+
+.btn{
+
+    border-radius:12px;
+
+    padding:10px 22px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.btn:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.alert{
+
+    border-radius:14px;
+
+}
+
+.fade-up{
+
+    animation:fadeUp .4s ease;
+
+}
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+        transform:translateY(15px);
+
+    }
+
+    to{
+
+        opacity:1;
+        transform:translateY(0);
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .d-flex.justify-content-between{
+
+        flex-direction:column;
+
+        gap:15px;
+
+    }
+
+    .d-flex.gap-2{
+
+        width:100%;
+
+        flex-direction:column;
+
+    }
+
+    .btn{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
 
 @endpush
