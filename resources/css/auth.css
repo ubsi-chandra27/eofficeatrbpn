@@ -1,0 +1,492 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    color: #17233b;
+    background: #eef4fa;
+}
+
+/* ==================== Layout ==================== */
+.auth-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 30px;
+}
+
+.auth-shell {
+    width: min(1120px, 100%);
+    display: grid;
+    grid-template-columns: 42% 58%;
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 65px rgba(15, 76, 129, .14);
+}
+
+/* ==================== Brand Side ==================== */
+.auth-brand {
+    position: relative;
+    padding: 54px 46px;
+    background: linear-gradient(145deg, #0f4c81, #1769aa);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.auth-brand::before,
+.auth-brand::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .07);
+}
+
+.auth-brand::before {
+    width: 260px;
+    height: 260px;
+    right: -115px;
+    top: -90px;
+}
+
+.auth-brand::after {
+    width: 180px;
+    height: 180px;
+    left: -80px;
+    bottom: -60px;
+}
+
+.brand-name {
+    position: relative;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    margin: 0;
+}
+
+.brand-subtitle {
+    position: relative;
+    color: rgba(255, 255, 255, .78);
+    margin-top: 5px;
+}
+
+.brand-content {
+    position: relative;
+    margin-block: 65px;
+}
+
+.brand-content h2 {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 16px;
+}
+
+.brand-content p {
+    color: rgba(255, 255, 255, .78);
+    line-height: 1.8;
+}
+
+.brand-features {
+    position: relative;
+    display: grid;
+    gap: 13px;
+    margin-top: 28px;
+}
+
+.brand-feature {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 14px;
+}
+
+.brand-feature i {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .14);
+    font-size: 14px;
+}
+
+.brand-footer {
+    position: relative;
+    font-size: 12px;
+    color: rgba(255, 255, 255, .65);
+}
+
+/* ==================== Form Content ==================== */
+.auth-content {
+    padding: 50px 58px;
+    display: flex;
+    align-items: center;
+}
+
+.auth-content-inner {
+    width: 100%;
+    max-width: 570px;
+    margin: auto;
+}
+
+.auth-heading {
+    margin-bottom: 28px;
+}
+
+.auth-heading h1 {
+    font-size: 34px;
+    font-weight: 700;
+    margin: 0 0 7px;
+}
+
+.auth-heading p {
+    color: #718096;
+    margin: 0;
+    font-size: 15px;
+}
+
+/* ==================== Role Selection ==================== */
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.role-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.role-option:hover {
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    background: #eff6ff;
+}
+
+.role-option.active {
+    border-color: #0f4c81;
+    color: #0f4c81;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, .12);
+}
+
+.role-option i {
+    font-size: 18px;
+}
+
+/* ==================== Form Controls ==================== */
+.form-label {
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 7px;
+    font-size: 14px;
+}
+
+.mb-4 { margin-bottom: 20px !important; }
+.mb-3 { margin-bottom: 16px !important; }
+.mb-2 { margin-bottom: 12px !important; }
+.my-4 { margin-top: 20px !important; margin-bottom: 20px !important; }
+
+.auth-input {
+    position: relative;
+}
+
+.auth-input > i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    z-index: 2;
+    font-size: 16px;
+}
+
+.auth-input .form-control {
+    height: 50px;
+    padding: 10px 44px;
+    border: 1px solid #dbe2e8;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #17233b;
+    background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.auth-input .form-control:focus {
+    border-color: #0f4c81;
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, .1);
+    outline: none;
+}
+
+.auth-input .form-control::placeholder {
+    color: #94a3b8;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 2;
+    line-height: 1;
+}
+
+.password-toggle:hover {
+    color: #475569;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #475569;
+}
+
+.form-check-input {
+    width: 16px;
+    height: 16px;
+    accent-color: #0f4c81;
+    cursor: pointer;
+}
+
+/* ==================== Buttons & Links ==================== */
+.btn-auth {
+    height: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.auth-switch a {
+    color: #0f4c81;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+/* ==================== Alerts ==================== */
+.alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-danger {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert i {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* ==================== Validation ==================== */
+.invalid-feedback {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #dc2626;
+}
+
+.text-danger {
+    color: #dc2626 !important;
+}
+
+.text-danger.small {
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.is-invalid {
+    border-color: #dc2626 !important;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .12) !important;
+}
+
+/* ==================== Notes ==================== */
+.public-note {
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #1e40af;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+}
+
+.public-note i {
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ==================== Loading State ==================== */
+.spinner-border-sm {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 900px) {
+    .auth-page {
+        padding: 0;
+        align-items: start;
+    }
+
+    .auth-shell {
+        min-height: 100vh;
+        grid-template-columns: 1fr;
+    }
+
+    .auth-brand {
+        display: none;
+    }
+
+    .auth-content {
+        padding: 40px 28px;
+    }
+}
+
+@media (max-width: 560px) {
+    .auth-page {
+        padding: 0;
+        background: #fff;
+    }
+
+    .auth-shell {
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+    }
+
+    .auth-content {
+        padding: 30px 22px;
+    }
+
+    .auth-heading h1 {
+        font-size: 26px;
+    }
+
+    .role-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .role-option {
+        min-height: 68px;
+    }
+}
+
+/* ==================== Register Page Overrides ==================== */
+#registerForm .role-grid {
+    gap: 12px;
+}
+
+#registerForm .role-option {
+    min-height: 76px;
+    flex-direction: row;
+    font-size: 15px;
+    gap: 9px;
+}
+
+#registerForm .role-option i {
+    font-size: 19px;
+}
+
+#registerForm .form-label {
+    margin-bottom: 6px;
+}
+
+#registerForm .auth-input .form-control {
+    height: 47px;
+}
+
+#registerForm .public-note {
+    margin-block: 16px !important;
+    padding: 11px 14px;
+}
+
+@media (max-width: 900px) {
+    #registerForm .role-option {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 560px) {
+    .auth-content {
+        padding: 24px 20px;
+    }
+
+    .auth-heading h1 {
+        font-size: 26px;
+    }
+
+    .auth-heading p {
+        margin-bottom: 16px;
+    }
+
+    #registerForm .role-option {
+        min-height: 68px;
+        flex-direction: column;
+        gap: 3px;
+    }
+}

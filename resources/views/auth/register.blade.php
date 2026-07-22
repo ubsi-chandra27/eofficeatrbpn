@@ -1,23 +1,5 @@
 @extends('layouts.auth')
 @section('title','Daftar Akun')
-@push('styles')
-<style>
-    .auth-page{align-items:start;padding-block:24px}
-    .auth-shell{min-height:min(900px,calc(100vh - 48px))}
-    .auth-content{padding:34px 50px;align-items:flex-start}
-    .auth-content-inner{max-width:620px}
-    .auth-heading h1{font-size:30px}
-    .auth-heading p{margin-bottom:20px}
-    #registerForm .role-grid{gap:12px}
-    #registerForm .role-option{min-height:76px;flex-direction:row;font-size:15px;gap:9px}
-    #registerForm .role-option i{font-size:19px}
-    #registerForm .form-label{margin-bottom:6px}
-    #registerForm .auth-input .form-control{height:47px}
-    #registerForm .public-note{margin-block:16px!important;padding:11px 14px}
-    @media(max-width:900px){.auth-page{padding:0}.auth-shell{min-height:100vh}.auth-content{padding:30px 28px}.auth-content-inner{max-width:680px}}
-    @media(max-width:560px){.auth-content{padding:24px 20px}.auth-heading h1{font-size:26px}#registerForm .role-option{min-height:68px;flex-direction:column;gap:3px}.auth-heading p{margin-bottom:16px}}
-</style>
-@endpush
 @section('content')
 <div class="auth-heading"><h1>Daftar Akun</h1><p>Lengkapi identitas dan pilih jenis akun yang akan dibuat.</p></div>
 @if($errors->any())<div class="alert alert-danger"><i class="bi bi-exclamation-circle me-1"></i>Periksa kembali data pendaftaran.</div>@endif

@@ -13,8 +13,7 @@ class SuratSeeder extends Seeder
      */
     public function run(): void
     {
-        // Hapus seluruh data lama
-        Surat::query()->delete();
+        Surat::withTrashed()->forceDelete();
 
         $user = User::first();
 
@@ -126,19 +125,6 @@ class SuratSeeder extends Seeder
             ],
 
         ];
-
-        [
-    'user_id'=>4,
-    'jenis_surat'=>'keluar',
-    'nomor_surat'=>'005/SK/VII/2026',
-    'tanggal_surat'=>'2026-07-10',
-    'tanggal_kirim'=>'2026-07-11',
-    'tanggal_keluar'=>'2026-07-12',
-    'tujuan_surat'=>'Kantor Wilayah Jawa Barat',
-    'penandatangan'=>'Kepala Kantor',
-    'perihal'=>'Undangan Rapat',
-    'status'=>'selesai'
-];
 
         foreach ($data as $surat) {
             Surat::create($surat);

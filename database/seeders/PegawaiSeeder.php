@@ -11,7 +11,7 @@ class PegawaiSeeder extends Seeder
 {
     public function run(): void
     {
-        Pegawai::query()->delete();
+        Pegawai::withTrashed()->forceDelete();
 
         $kepalaKantor = Jabatan::where('nama', 'Kepala Kantor')->first();
         $sekretaris   = Jabatan::where('nama', 'Sekretaris')->first();
@@ -29,7 +29,6 @@ class PegawaiSeeder extends Seeder
             [
                 'nip' => '198801010001',
                 'nama' => 'Budi Santoso',
-                'jabatan' => 'Kepala Kantor',
                 'email' => 'budi@atrbpn.com',
                 'no_hp' => '081234567890',
                 'alamat' => 'Jakarta',
@@ -41,7 +40,6 @@ class PegawaiSeeder extends Seeder
             [
                 'nip' => '198801010002',
                 'nama' => 'Siti Aminah',
-                'jabatan' => 'Sekretaris',
                 'email' => 'siti@atrbpn.com',
                 'no_hp' => '081234567891',
                 'alamat' => 'Bandung',
@@ -53,7 +51,6 @@ class PegawaiSeeder extends Seeder
             [
                 'nip' => '198801010003',
                 'nama' => 'Ahmad Fauzi',
-                'jabatan' => 'Analis Pertanahan',
                 'email' => 'ahmad@atrbpn.com',
                 'no_hp' => '081234567892',
                 'alamat' => 'Bogor',
@@ -65,7 +62,6 @@ class PegawaiSeeder extends Seeder
             [
                 'nip' => '198801010004',
                 'nama' => 'Dewi Lestari',
-                'jabatan' => 'Staf Administrasi',
                 'email' => 'dewi@atrbpn.com',
                 'no_hp' => '081234567893',
                 'alamat' => 'Depok',
@@ -77,7 +73,6 @@ class PegawaiSeeder extends Seeder
             [
                 'nip' => '198801010005',
                 'nama' => 'Rudi Hartono',
-                'jabatan' => 'Kepala Subbagian',
                 'email' => 'rudi@atrbpn.com',
                 'no_hp' => '081234567894',
                 'alamat' => 'Bekasi',

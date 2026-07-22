@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Disposisi;
+use App\Models\Surat;
+use App\Models\User;
 
 class DisposisiSeeder extends Seeder
 {
@@ -12,28 +14,36 @@ class DisposisiSeeder extends Seeder
      */
     public function run(): void
     {
-        Disposisi::query()->delete();
+        Disposisi::withTrashed()->forceDelete();
+
+        $surat = Surat::first();
+        $pengirim = User::where('role', '!=', 'umum')->first();
+
+        if (!$surat || !$pengirim) {
+            $this->command->error('Data surat atau pengguna tidak ditemukan.');
+            return;
+        }
 
         $data = [
             [
-                'surat_id' => 1,
-                'pengirim_id' => 2,
+                'surat_id' => $surat->id,
+                'pengirim_id' => $pengirim->id,
                 'catatan' => 'Segera diproses oleh bagian tata usaha.',
-                'prioritas' => 'tinggi',
+                'prioritas' => 'Tinggi',
                 'tanggal_disposisi' => now(),
             ],
             [
-                'surat_id' => 2,
-                'pengirim_id' => 2,
+                'surat_id' => $surat->id,
+                'pengirim_id' => $pengirim->id,
                 'catatan' => 'Pelajari isi surat dan buat balasan.',
-                'prioritas' => 'sedang',
+                'prioritas' => 'Sedang',
                 'tanggal_disposisi' => now()->subDay(),
             ],
             [
-                'surat_id' => 3,
-                'pengirim_id' => 2,
+                'surat_id' => $surat->id,
+                'pengirim_id' => $pengirim->id,
                 'catatan' => 'Arsipkan setelah selesai.',
-                'prioritas' => 'rendah',
+                'prioritas' => 'Rendah',
                 'tanggal_disposisi' => now()->subDays(2),
             ],
         ];
