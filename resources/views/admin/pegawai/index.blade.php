@@ -18,7 +18,7 @@
 
         <p class="text-muted mb-0">
 
-            Kelola seluruh data pegawai ATR/BPN
+            Kelola seluruh data pegawai dan keterhubungan akun login.
 
         </p>
 

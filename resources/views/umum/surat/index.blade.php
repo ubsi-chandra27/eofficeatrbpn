@@ -1,0 +1,44 @@
+@extends('layouts.umum')
+@section('title','Pengajuan Saya')
+@section('content')
+<div class="submission-page">
+    <div class="submission-header"><div><h2><i class="bi bi-envelope-paper-fill text-primary me-2"></i>Pengajuan Saya</h2><p>Pantau seluruh pengajuan, catatan admin, dan perkembangan prosesnya.</p></div><a href="{{ route('umum.surat.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Buat Pengajuan</a></div>
+    @if(session('success'))<div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
+
+    <div class="submission-stats">
+        @foreach([['Total',$stats['total'],'bi-files','primary'],['Diajukan',$stats['diajukan'],'bi-hourglass-split','warning'],['Diproses',$stats['diproses'],'bi-arrow-repeat','info'],['Perlu Perbaikan',$stats['perbaikan'],'bi-exclamation-triangle','danger'],['Selesai',$stats['selesai'],'bi-check-circle','success']] as [$label,$value,$icon,$color])
+            <div><span class="stat-icon text-{{ $color }} bg-{{ $color }}-subtle"><i class="bi {{ $icon }}"></i></span><section><strong>{{ $value }}</strong><small>{{ $label }}</small></section></div>
+        @endforeach
+    </div>
+
+    <div class="submission-card">
+        <form method="GET" class="submission-filter">
+            <div class="search-field"><i class="bi bi-search"></i><input name="keyword" value="{{ request('keyword') }}" placeholder="Cari nomor, kategori, atau pokok pengajuan..."></div>
+            <select name="kategori" class="form-select"><option value="">Semua kategori</option>@foreach(['Permohonan Informasi','Permohonan Dokumen','Penyampaian Surat','Pengaduan','Lainnya'] as $category)<option value="{{ $category }}" @selected(request('kategori')===$category)>{{ $category }}</option>@endforeach</select>
+            <select name="status" class="form-select"><option value="">Semua status</option><option value="diajukan" @selected(request('status')==='diajukan')>Diajukan</option><option value="diproses" @selected(request('status')==='diproses')>Diproses</option><option value="perbaikan" @selected(request('status')==='perbaikan')>Perlu Perbaikan</option><option value="selesai" @selected(request('status')==='selesai')>Selesai</option></select>
+            <button class="btn btn-primary" title="Terapkan filter"><i class="bi bi-funnel me-1"></i>Filter</button>
+            @if(request()->hasAny(['keyword','kategori','status']))<a href="{{ route('umum.surat.index') }}" class="btn btn-outline-secondary" title="Hapus filter"><i class="bi bi-x-lg"></i></a>@endif
+        </form>
+
+        <div class="table-responsive"><table class="table align-middle mb-0 submission-table"><thead><tr><th width="55">No</th><th>Nomor Pengajuan</th><th>Kategori &amp; Pokok Pengajuan</th><th>Diajukan</th><th>Diperbarui</th><th>Status/Catatan</th><th class="text-end">Aksi</th></tr></thead><tbody>
+        @forelse($surats as $surat)
+            <tr class="{{ in_array($surat->status,['dikembalikan','ditolak']) ? 'needs-revision' : '' }}">
+                <td class="text-muted">{{ $surats->firstItem()+$loop->index }}</td>
+                <td><strong class="submission-number">{{ $surat->nomor_surat }}</strong>@if($surat->file_path)<small class="attachment-mark"><i class="bi bi-paperclip"></i>Ada lampiran</small>@endif</td>
+                <td><span class="category-label">{{ $surat->kategori_pengajuan ?? 'Pengajuan Umum' }}</span><strong class="subject-text">{{ $surat->perihal }}</strong></td>
+                <td><span>{{ optional($surat->tanggal_surat)->format('d M Y') }}</span><small>{{ $surat->created_at?->format('H:i') }} WIB</small></td>
+                <td><span>{{ $surat->updated_at?->format('d M Y') }}</span><small>{{ $surat->updated_at?->diffForHumans() }}</small></td>
+                <td><span class="badge rounded-pill bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span>@if($surat->catatan_admin)<small class="admin-note" title="{{ $surat->catatan_admin }}"><i class="bi bi-chat-left-text"></i>{{ $surat->catatan_admin }}</small>@endif</td>
+                <td><div class="submission-actions"><a href="{{ route('umum.surat.show',$surat->id) }}" class="view" title="Lihat detail"><i class="bi bi-eye"></i></a>@if(in_array($surat->status,['menunggu','dikembalikan','ditolak']))<a href="{{ route('umum.surat.edit',$surat->id) }}" class="edit" title="Perbaiki pengajuan"><i class="bi bi-pencil-square"></i></a>@endif</div></td>
+            </tr>
+        @empty
+            <tr><td colspan="7"><div class="empty-submission"><i class="bi bi-inbox"></i><h5>{{ request()->hasAny(['keyword','kategori','status']) ? 'Pengajuan tidak ditemukan' : 'Belum ada pengajuan' }}</h5><p>{{ request()->hasAny(['keyword','kategori','status']) ? 'Ubah atau hapus filter untuk melihat data lainnya.' : 'Pengajuan yang Anda kirim akan tampil dan dapat dipantau di halaman ini.' }}</p>@if(request()->hasAny(['keyword','kategori','status']))<a href="{{ route('umum.surat.index') }}" class="btn btn-outline-primary btn-sm">Hapus Filter</a>@endif</div></td></tr>
+        @endforelse
+        </tbody></table></div>
+        <div class="submission-footer"><span>Menampilkan {{ $surats->firstItem() ?? 0 }}&ndash;{{ $surats->lastItem() ?? 0 }} dari {{ $surats->total() }} pengajuan</span>{{ $surats->links() }}</div>
+    </div>
+</div>
+@endsection
+@push('styles')<style>
+.submission-page{max-width:1400px;margin:auto}.submission-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px}.submission-header h2{font-weight:700;margin:0}.submission-header p{color:#718096;margin:5px 0 0}.submission-header .btn{border-radius:11px;padding:10px 18px}.submission-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:17px}.submission-stats>div{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #e5eaf0;border-radius:14px}.stat-icon{width:39px;height:39px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto}.submission-stats strong,.submission-stats small{display:block}.submission-stats strong{font-size:21px}.submission-stats small{font-size:11px;color:#718096}.submission-card{background:#fff;border:1px solid #e5eaf0;border-radius:17px;overflow:hidden;box-shadow:0 8px 25px rgba(39,61,89,.04)}.submission-filter{display:grid;grid-template-columns:minmax(260px,1fr) 210px 175px auto auto;gap:9px;padding:18px;border-bottom:1px solid #edf1f5}.search-field{position:relative}.search-field i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#8491a3}.submission-filter input,.submission-filter .form-select{width:100%;height:44px;border:1px solid #dbe2ea;border-radius:10px;font-size:13px}.submission-filter input{padding:9px 13px 9px 40px}.submission-table th{background:#f8fafc;padding:13px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#526174;white-space:nowrap}.submission-table td{padding:13px 12px;font-size:12px;border-color:#edf1f5}.submission-table td span,.submission-table td small{display:block}.submission-number{font-size:12px;color:#24324a}.attachment-mark{color:#1769aa;margin-top:4px}.category-label{font-size:10px;color:#1769aa;font-weight:600;margin-bottom:3px}.subject-text{display:block;max-width:290px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.submission-table td>small{font-size:10px;color:#8491a3;margin-top:2px}.needs-revision{background:#fffafa}.admin-note{max-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b45309!important;margin-top:6px!important}.admin-note i{margin-right:5px}.submission-actions{display:flex;justify-content:flex-end;gap:6px}.submission-actions a{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;text-decoration:none}.submission-actions .view{background:#e0f2fe;color:#0369a1}.submission-actions .edit{background:#fef3c7;color:#b45309}.empty-submission{text-align:center;padding:46px 20px;color:#8491a3}.empty-submission>i{font-size:42px}.empty-submission h5{font-weight:700;color:#526174;margin:9px 0 4px}.empty-submission p{font-size:12px;margin-bottom:12px}.submission-footer{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-top:1px solid #edf1f5;color:#718096;font-size:12px}.submission-footer .pagination{margin:0}@media(max-width:1100px){.submission-stats{grid-template-columns:repeat(3,1fr)}.submission-filter{grid-template-columns:1fr 1fr 1fr}.search-field{grid-column:1/-1}}@media(max-width:700px){.submission-header{align-items:flex-start;flex-direction:column}.submission-header .btn{width:100%}.submission-stats{grid-template-columns:repeat(2,1fr)}.submission-filter{grid-template-columns:1fr}.search-field{grid-column:auto}.submission-footer{flex-direction:column;gap:10px}}
+</style>@endpush

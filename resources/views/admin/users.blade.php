@@ -1,65 +1,18 @@
-<x-sidebar-layout>
-    <div class="py-2">
-        <div class="max-w-7xl mx-auto">
-            <div class="bg-white p-6 shadow-sm rounded-lg">
-                <h2 class="text-xl font-bold mb-4">Manajemen User</h2>
-
-                @if(session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="p-3 border">Nama</th>
-                            <th class="p-3 border">Email</th>
-                            <th class="p-3 border">Role</th>
-                            <th class="p-3 border text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users as $user)
-                        <tr>
-                            <td class="p-3 border">{{ $user->name }}</td>
-                            <td class="p-3 border">{{ $user->email }}</td>
-                            
-                            <td class="p-3 border">
-                                <form action="{{ route('admin.users.updateRole', $user->id) }}" method="POST">
-                                    @csrf @method('PATCH')
-                                    <select name="role" onchange="this.form.submit()" class="border-gray-300 rounded-md shadow-sm">
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role->name }}" {{ $user->isRole($role->name) ? 'selected' : '' }}>
-                                                {{ ucfirst($role->name) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </form>
-                            </td>
-
-                            <td class="p-3 border text-center">
-                                <div class="flex flex-col gap-2 items-center">
-                                    {{-- Form Reset Password --}}
-                                    <form action="{{ route('admin.users.resetPassword', $user->id) }}" method="POST" class="flex flex-col gap-1 w-full max-w-[160px]">
-                                        @csrf @method('PATCH')
-                                        <input type="password" name="password" placeholder="Pass Baru" required class="text-xs p-1 border rounded">
-                                        <input type="password" name="password_confirmation" placeholder="Konf. Pass" required class="text-xs p-1 border rounded">
-                                        <button type="submit" class="bg-yellow-500 text-white text-xs px-2 py-1 rounded hover:bg-yellow-600">Reset Pass</button>
-                                    </form>
-
-                                    {{-- Form Hapus --}}
-                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?')" class="mt-2">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 font-bold text-sm">Hapus User</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</x-sidebar-layout>
+@extends('layouts.admin')
+@section('title', 'Manajemen Pengguna')
+@section('content')
+<div class="page-header"><div><h2><i class="bi bi-people-fill text-primary me-2"></i>Manajemen Pengguna</h2><p class="text-muted mb-0">Kelola NIP, role, password, dan status akun.</p></div></div>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Nama</th><th>Email</th><th>NIP Login</th><th>Role</th><th width="300">Keamanan Akun</th></tr></thead><tbody>
+@foreach($users as $user)
+<tr><td><b>{{ $user->name }}</b>@if($user->id===auth()->id()) <span class="badge bg-primary">Anda</span>@endif</td><td>{{ $user->email }}</td><td>
+@if($user->role !== 'umum')<form action="{{ route('admin.users.updateNip',$user->id) }}" method="POST" class="d-flex gap-1">@csrf @method('PATCH')<input name="nip" value="{{ $user->nip }}" class="form-control form-control-sm" placeholder="Belum ada NIP" required><button class="btn btn-sm btn-outline-primary" title="Simpan NIP"><i class="bi bi-check-lg"></i></button></form>@else<span class="text-muted">—</span>@endif
+</td><td>
+@if($user->id===auth()->id())<span class="badge bg-secondary">{{ ucfirst($user->role) }}</span>@else
+<form action="{{ route('admin.users.updateRole',$user->id) }}" method="POST">@csrf @method('PATCH')<select name="role" class="form-select" onchange="this.form.submit()">@foreach($roles as $role)<option value="{{ $role->name }}" @selected($user->role===$role->name)>{{ ucfirst($role->name) }}</option>@endforeach</select></form>@endif
+</td><td><div class="d-flex gap-2 align-items-start">@if($user->id!==auth()->id())
+<form action="{{ route('admin.users.resetPassword',$user->id) }}" method="POST" class="d-flex gap-2 flex-grow-1">@csrf @method('PATCH')<div><input type="password" name="password" class="form-control form-control-sm" placeholder="Password baru" required minlength="8"><input type="password" name="password_confirmation" class="form-control form-control-sm mt-1" placeholder="Konfirmasi" required></div><button class="btn btn-warning btn-sm">Reset</button></form>
+<form action="{{ route('admin.users.destroy',$user->id) }}" method="POST" onsubmit="return confirm('Nonaktifkan akun ini?')">@csrf @method('DELETE')<button class="btn btn-outline-danger btn-sm"><i class="bi bi-person-x"></i></button></form>
+@else<span class="text-muted small">Kelola password sendiri melalui profil.</span>@endif</div></td></tr>
+@endforeach
+</tbody></table></div></div>
+@endsection

@@ -8,13 +8,13 @@
     <div class="sidebar-header">
 
         <img src="{{ asset('images/logo-atr.png') }}"
-             alt="ATR/BPN">
+             alt="Logo E-Office">
 
         <div>
 
             <h5>E-OFFICE</h5>
 
-            <small>ATR / BPN</small>
+            <small>Administrasi Digital</small>
 
         </div>
 

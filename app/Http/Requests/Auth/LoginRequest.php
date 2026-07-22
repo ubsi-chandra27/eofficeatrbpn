@@ -20,7 +20,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'string', 'email'],
+            'identifier' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             // Menambahkan 'umum' ke dalam daftar validasi
             'login_as' => ['required', 'string', 'in:admin,pegawai,umum'],
@@ -30,8 +30,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
+            'identifier.required' => 'Email atau NIP wajib diisi.',
             'password.required' => 'Password wajib diisi.',
             'login_as.required' => 'Pilih jenis akun untuk masuk.',
             'login_as.in'       => 'Jenis akses tidak dikenali.',
@@ -42,14 +41,20 @@ class LoginRequest extends FormRequest
 {
     $this->ensureIsNotRateLimited();
 
-    // DEBUG: Cek apa yang dikirim ke server
-    // dd($this->all()); 
+    $role = $this->string('login_as')->lower()->toString();
+    $identifier = trim((string) $this->input('identifier'));
+    $field = $role === 'umum' ? 'email' : 'nip';
+    $credentials = [
+        $field => $field === 'email' ? Str::lower($identifier) : $identifier,
+        'password' => $this->input('password'),
+        'role' => $this->input('login_as'),
+    ];
 
-    if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+    if (! Auth::attempt($credentials, $this->boolean('remember'))) {
         RateLimiter::hit($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
+            'identifier' => ($role === 'umum' ? 'Email' : 'NIP').', password, atau jenis akun tidak sesuai.',
         ]);
     }
 
@@ -67,12 +72,12 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam ' . ceil($seconds / 60) . ' menit.',
+            'identifier' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam ' . ceil($seconds / 60) . ' menit.',
         ]);
     }
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('identifier')).'|'.$this->ip());
     }
 }

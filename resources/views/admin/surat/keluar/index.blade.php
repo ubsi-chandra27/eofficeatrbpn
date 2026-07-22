@@ -4,6 +4,8 @@
 
 @section('content')
 
+<div class="outgoing-index-page">
+
 <div class="page-header fade-up">
 
     <div>
@@ -18,7 +20,7 @@
 
         <p class="text-muted mb-0">
 
-            Kelola seluruh surat keluar pada sistem E-Office ATR/BPN.
+            Kelola seluruh surat keluar pada sistem administrasi digital.
 
         </p>
 
@@ -50,7 +52,7 @@
 
         <div>
 
-            <h3>{{ $surat->total() }}</h3>
+            <h3>{{ isset($stats) ? $stats->sum() : 0 }}</h3>
 
             <p>Total Surat</p>
 
@@ -68,7 +70,7 @@
 
         <div>
 
-            <h3>{{ $draft }}</h3>
+            <h3>{{ $stats['draft'] ?? 0 }}</h3>
 
             <p>Draft</p>
 
@@ -86,7 +88,7 @@
 
         <div>
 
-            <h3>{{ $terkirim }}</h3>
+            <h3>{{ $stats['terkirim'] ?? 0 }}</h3>
 
             <p>Terkirim</p>
 
@@ -100,8 +102,7 @@
 
     </div>
 
-    
-
+    <div class="stat-card"><div><h3>{{ $stats['diarsipkan'] ?? 0 }}</h3><p>Diarsipkan</p></div>
         <div class="stat-icon bg-primary-soft">
 
             <i class="bi bi-archive-fill"></i>
@@ -139,15 +140,21 @@
         <form
             action="{{ route('admin.surat.keluar.index') }}"
             method="GET"
-            class="table-search">
+            class="outgoing-filters">
 
-            <i class="bi bi-search"></i>
+            <div class="outgoing-search">
+                <i class="bi bi-search"></i>
+                <input type="text" name="keyword" value="{{ request('keyword') }}" placeholder="Cari nomor surat, perihal, atau tujuan...">
+            </div>
 
-            <input
-                type="text"
-                name="keyword"
-                value="{{ request('keyword') }}"
-                placeholder="Cari nomor surat atau tujuan surat...">
+            <select name="status" class="form-select status-filter" onchange="this.form.submit()">
+                <option value="">Semua Status</option>
+                @foreach(['draft' => 'Draft', 'diajukan' => 'Diajukan', 'diverifikasi' => 'Diverifikasi', 'diteruskan_ke_pimpinan' => 'Diteruskan ke Pimpinan', 'terkirim' => 'Terkirim', 'diarsipkan' => 'Diarsipkan'] as $value => $label)
+                    <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="btn btn-success">Filter</button>
 
         </form>
 
@@ -168,8 +175,7 @@
                     <th>Tujuan</th>
 
                     <th>Tanggal</th>
-
-                    
+                    <th>Status</th>
 
                     <th width="180">Aksi</th>
 
@@ -177,7 +183,9 @@
 
             </thead>
 
-                            @forelse($surat as $item)
+            <tbody>
+
+                @forelse($surat as $item)
 
                     <tr>
 
@@ -269,7 +277,10 @@
 
                         </td>
 
-                        
+                        <td>
+                            <span class="badge bg-{{ $item->status_badge }}">{{ $item->status_label }}</span>
+                        </td>
+
 
                         {{-- ======================================= --}}
                         {{-- AKSI --}}
@@ -288,6 +299,7 @@
 
                                 </a>
 
+                                @if($item->status === 'draft')
                                 <a
                                     href="{{ route('admin.surat.keluar.edit',$item->id) }}"
                                     class="btn-edit"
@@ -316,6 +328,7 @@
                                     </button>
 
                                 </form>
+                                @endif
 
                             </div>
 
@@ -403,11 +416,18 @@
 
 </div>
 
+</div>
+
 @endsection
 
 @push('styles')
 
 <style>
+
+.outgoing-index-page{width:100%;max-width:100%;min-width:0}
+.outgoing-index-page .page-header{gap:20px}.outgoing-index-page .page-header>div:first-child{min-width:0}.outgoing-index-page .page-header .btn{white-space:nowrap}
+.outgoing-index-page .table-card{width:100%;max-width:100%;min-width:0;overflow:hidden}.outgoing-index-page .table-toolbar{padding:18px 22px}.outgoing-filters{display:grid;grid-template-columns:minmax(240px,1fr) 230px auto;align-items:center;gap:10px;width:100%;min-width:0}.outgoing-search{position:relative;min-width:0}.outgoing-search i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#8290a3}.outgoing-search input{width:100%;height:48px;padding:10px 14px 10px 43px;border:1px solid #dbe2ea;border-radius:11px;outline:none}.outgoing-search input:focus{border-color:#198754;box-shadow:0 0 0 .18rem rgba(25,135,84,.12)}.outgoing-filters .status-filter{width:100%;height:48px;min-height:48px}.outgoing-filters .choices{width:230px;margin:0}.outgoing-filters .choices[data-type*=select-one] .choices__inner{height:48px!important;min-height:48px!important}.outgoing-filters .btn{height:48px;padding-inline:20px;border-radius:11px}
+.outgoing-index-page .table-responsive{max-width:100%;overflow-x:auto}.outgoing-index-page table{min-width:850px}
 
 .table-avatar{
 
@@ -607,6 +627,8 @@
 
 @media(max-width:768px){
 
+    .outgoing-index-page .page-header{align-items:flex-start;flex-direction:column}.outgoing-index-page .page-header .btn{width:100%}.outgoing-filters{grid-template-columns:1fr}.outgoing-filters .choices{width:100%}.outgoing-filters .btn{width:100%}
+
     .table-footer{
 
         flex-direction:column;
@@ -630,6 +652,7 @@
     }
 
 }
+
 
 </style>
 

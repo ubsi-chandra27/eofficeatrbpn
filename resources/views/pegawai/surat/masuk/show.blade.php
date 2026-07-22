@@ -75,7 +75,7 @@ Tanggal Surat :
 
 <div class="col-md-4 text-md-end">
 
-@if($surat->status=='Draft')
+@if($surat->status=='draft')
 
 <span class="badge bg-secondary px-3 py-2">
 
@@ -83,27 +83,27 @@ Draft
 
 </span>
 
-@elseif($surat->status=='Menunggu')
+@elseif($surat->status=='diajukan')
 
 <span class="badge bg-warning text-dark px-3 py-2">
 
-Menunggu
+Diajukan
 
 </span>
 
-@elseif($surat->status=='Diproses')
+@elseif($surat->status=='diverifikasi')
 
 <span class="badge bg-info px-3 py-2">
 
-Diproses
+Diverifikasi
 
 </span>
 
-@elseif($surat->status=='Selesai')
+@elseif($surat->status=='diteruskan_ke_pimpinan')
 
 <span class="badge bg-success px-3 py-2">
 
-Selesai
+Diteruskan ke Pimpinan
 
 </span>
 
@@ -111,7 +111,7 @@ Selesai
 
 <span class="badge bg-primary px-3 py-2">
 
-{{ $surat->status }}
+{{ $surat->status_label }}
 
 </span>
 
@@ -671,7 +671,7 @@ Kode Surat
 
                     <span class="badge bg-primary">
 
-                        {{ $surat->status }}
+                        {{ $surat->status_label }}
 
                     </span>
 
@@ -704,7 +704,7 @@ Kode Surat
 
             <div class="d-flex gap-2">
 
-                @if($surat->status == 'Draft')
+                @if(in_array($surat->status, ['draft', 'dikembalikan']))
 
                     <a href="{{ route('pegawai.surat-masuk.edit',$surat->id) }}"
                        class="btn btn-warning">

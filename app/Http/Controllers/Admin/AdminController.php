@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 
 use App\Models\User;
+use App\Models\Surat;
+use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
@@ -17,9 +20,25 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function laporan()
+    public function laporan(Request $request)
     {
-        return view('admin.laporan');
+        $query = Surat::with('user:id,name')
+            ->when($request->jenis_surat, fn ($q, $jenis) => $q->where('jenis_surat', $jenis))
+            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
+            ->when($request->tanggal_mulai, fn ($q, $tanggal) => $q->whereDate('tanggal_surat', '>=', $tanggal))
+            ->when($request->tanggal_selesai, fn ($q, $tanggal) => $q->whereDate('tanggal_surat', '<=', $tanggal))
+            ->when($request->keyword, fn ($q, $keyword) => $q->where(function ($sub) use ($keyword) {
+                $sub->where('nomor_surat', 'like', "%{$keyword}%")->orWhere('perihal', 'like', "%{$keyword}%");
+            }));
+
+        $ringkasan = [
+            'total' => (clone $query)->count(),
+            'masuk' => (clone $query)->where('jenis_surat', 'masuk')->count(),
+            'keluar' => (clone $query)->where('jenis_surat', 'keluar')->count(),
+        ];
+        $surat = $query->latest('tanggal_surat')->paginate(20)->withQueryString();
+
+        return view('admin.laporan', compact('surat', 'ringkasan'));
     }
 
     /*
@@ -30,7 +49,12 @@ class AdminController extends Controller
 
     public function settings()
     {
-        return view('admin.settings.index');
+        return view('admin.settings.index', [
+            'jumlahAdmin' => User::where('role', 'admin')->count(),
+            'jumlahPegawai' => Pegawai::count(),
+            'pegawaiTanpaAkun' => Pegawai::whereNull('user_id')->count(),
+            'jumlahSurat' => Surat::count(),
+        ]);
     }
 
     /*
@@ -43,11 +67,9 @@ class AdminController extends Controller
     {
         $users = User::latest()->get();
 
-        $roles = class_exists(Role::class)
-            ? Role::all()
-            : collect();
+        $roles = collect(['admin', 'pegawai', 'umum'])->map(fn ($name) => (object) ['name' => $name]);
 
-        return view('admin.users.index', compact(
+        return view('admin.users', compact(
             'users',
             'roles'
         ));
@@ -62,7 +84,7 @@ class AdminController extends Controller
     public function updateUserRole(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|string'
+            'role' => 'required|in:admin,pegawai,umum'
         ]);
 
         $user = User::findOrFail($id);
@@ -72,6 +94,14 @@ class AdminController extends Controller
                 'error',
                 'Anda tidak dapat mengubah role akun sendiri.'
             );
+        }
+
+        if ($request->role !== 'umum' && blank($user->nip)) {
+            return back()->with('error', 'Isi NIP pengguna terlebih dahulu sebelum mengubahnya menjadi Admin atau Pegawai.');
+        }
+
+        if ($request->role === 'pegawai' && ! $user->pegawai) {
+            return back()->with('error', 'Hubungkan akun dengan Data Pegawai sebelum memberikan role Pegawai.');
         }
 
         /*
@@ -90,14 +120,36 @@ class AdminController extends Controller
         |------------------------------------------------------------
         */
 
-        if (method_exists($user, 'syncRoles')) {
-            $user->syncRoles($request->role);
+        if (method_exists($user, 'syncRoles') && Role::where('name', $request->role)->exists()) {
+            $user->syncRoles([$request->role]);
         }
 
         return back()->with(
             'success',
             'Role berhasil diperbarui.'
         );
+    }
+
+    public function updateUserNip(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->role === 'umum') {
+            return back()->with('error', 'Akun Umum menggunakan email dan tidak memerlukan NIP.');
+        }
+
+        $data = $request->validate([
+            'nip' => [
+                'required', 'string', 'max:50',
+                Rule::unique('users', 'nip')->ignore($user->id),
+                Rule::unique('pegawai', 'nip')->ignore($user->pegawai?->id),
+            ],
+        ]);
+
+        $user->update(['nip' => $data['nip']]);
+        $user->pegawai?->update(['nip' => $data['nip']]);
+
+        return back()->with('success', 'NIP akun berhasil diperbarui.');
     }
 
     /*
@@ -151,6 +203,10 @@ class AdminController extends Controller
                 'Anda tidak dapat menghapus akun sendiri.'
             );
 
+        }
+
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Admin terakhir tidak dapat dihapus.');
         }
 
         $user->delete();

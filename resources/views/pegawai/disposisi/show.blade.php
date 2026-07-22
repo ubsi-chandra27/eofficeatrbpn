@@ -27,7 +27,7 @@
 
         </div>
 
-        <a href="{{ route('pegawai.surat.disposisi.index') }}"
+        <a href="{{ route('pegawai.disposisi.index') }}"
            class="btn btn-secondary">
 
             <i class="bi bi-arrow-left"></i>
@@ -379,7 +379,7 @@
 
             <div class="d-flex justify-content-between flex-wrap gap-2">
 
-                <a href="{{ route('pegawai.surat.disposisi.index') }}"
+                <a href="{{ route('pegawai.disposisi.index') }}"
                    class="btn btn-secondary">
 
                     <i class="bi bi-arrow-left-circle me-1"></i>
@@ -393,7 +393,7 @@
                     @if($disposisi->status == 'Belum Dibaca')
 
                         <form
-                            action="{{ route('pegawai.surat.disposisi.dibaca',$disposisi->id) }}"
+                            action="{{ route('pegawai.disposisi.dibaca',$disposisi->id) }}"
                             method="POST">
 
                             @csrf
@@ -417,7 +417,7 @@
                     @if($disposisi->status != 'Selesai')
 
                         <form
-                            action="{{ route('pegawai.surat.disposisi.selesai',$disposisi->id) }}"
+                            action="{{ route('pegawai.disposisi.selesai',$disposisi->id) }}"
                             method="POST">
 
                             @csrf

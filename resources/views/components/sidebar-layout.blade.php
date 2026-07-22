@@ -26,7 +26,7 @@
 
     <div class="mb-8 font-bold text-xl text-blue-600 px-4">
 
-        Persuratan ATR/BPN
+        Administrasi Digital
 
     </div>
 
@@ -139,12 +139,6 @@
     Disposisi
 
 </x-nav-link>
-
-
-@endif
-
-
-
 
 
         {{-- ================================================= --}}

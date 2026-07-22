@@ -7,7 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Pegawai;
 use App\Models\Jabatan;
 use App\Models\UnitKerja;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AdminPegawaiController extends Controller
 {
@@ -49,24 +53,36 @@ class AdminPegawaiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'nip' => 'required|unique:pegawai,nip',
+        'nip' => 'required|unique:pegawai,nip|unique:users,nip',
         'nama' => 'required|string|max:100',
-        'email' => 'nullable|email',
+        'email' => 'required|email|unique:users,email|unique:pegawai,email',
+        'password' => 'required|string|min:8|confirmed',
         'no_hp' => 'nullable|max:20',
         'alamat' => 'nullable',
         'jabatan_id' => 'required|exists:jabatan,id',
         'unit_kerja_id' => 'required|exists:unit_kerja,id',
         ]);
 
-        Pegawai::create([
-            'nip'             => $request->nip,
-            'nama'            => $request->nama,
-            'email'           => $request->email,
-            'no_hp'           => $request->no_hp,
-            'alamat'          => $request->alamat,
-            'jabatan_id'      => $request->jabatan_id,
-            'unit_kerja_id'   => $request->unit_kerja_id,
-        ]);
+        DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name' => $request->nama,
+                'nip' => $request->nip,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'pegawai',
+            ]);
+
+            Pegawai::create([
+                'user_id' => $user->id,
+                'nip' => $request->nip,
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'no_hp' => $request->no_hp,
+                'alamat' => $request->alamat,
+                'jabatan_id' => $request->jabatan_id,
+                'unit_kerja_id' => $request->unit_kerja_id,
+            ]);
+        });
 
         return redirect()
             ->route('admin.pegawai.index')
@@ -103,24 +119,54 @@ class AdminPegawaiController extends Controller
     public function update(Request $request, Pegawai $pegawai)
     {
         $request->validate([
-            'nip'             => 'required|unique:pegawai,nip,' . $pegawai->id,
             'nama'            => 'required|string|max:100',
-            'email'           => 'nullable|email',
+            'email'           => [
+                'required', 'email',
+                Rule::unique('pegawai', 'email')->ignore($pegawai->id),
+                Rule::unique('users', 'email')->ignore($pegawai->user_id),
+            ],
+            'nip' => [
+                'required',
+                Rule::unique('pegawai', 'nip')->ignore($pegawai->id),
+                Rule::unique('users', 'nip')->ignore($pegawai->user_id),
+            ],
             'no_hp'           => 'nullable|max:20',
             'alamat'          => 'nullable',
             'jabatan_id'      => 'required|exists:jabatan,id',
             'unit_kerja_id'   => 'required|exists:unit_kerja,id',
         ]);
 
-        $pegawai->update([
-            'nip'             => $request->nip,
-            'nama'            => $request->nama,
-            'email'           => $request->email,
-            'no_hp'           => $request->no_hp,
-            'alamat'          => $request->alamat,
-            'jabatan_id'      => $request->jabatan_id,
-            'unit_kerja_id'   => $request->unit_kerja_id,
-        ]);
+        DB::transaction(function () use ($request, $pegawai) {
+            $user = $pegawai->user;
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $request->nama,
+                    'nip' => $request->nip,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->nip),
+                    'role' => 'pegawai',
+                ]);
+            } else {
+                $user->update([
+                    'name' => $request->nama,
+                    'nip' => $request->nip,
+                    'email' => $request->email,
+                    'role' => 'pegawai',
+                ]);
+            }
+
+            $pegawai->update([
+                'user_id' => $user->id,
+                'nip' => $request->nip,
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'no_hp' => $request->no_hp,
+                'alamat' => $request->alamat,
+                'jabatan_id' => $request->jabatan_id,
+                'unit_kerja_id' => $request->unit_kerja_id,
+            ]);
+        });
 
         return redirect()
             ->route('admin.pegawai.index')
@@ -132,7 +178,10 @@ class AdminPegawaiController extends Controller
      */
     public function destroy(Pegawai $pegawai)
     {
-        $pegawai->delete();
+        DB::transaction(function () use ($pegawai) {
+            $pegawai->delete();
+            $pegawai->user?->delete();
+        });
 
         return redirect()
             ->route('admin.pegawai.index')

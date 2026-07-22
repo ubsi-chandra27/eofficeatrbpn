@@ -93,7 +93,7 @@
 
                 <div class="detail-value">
 
-                    {{ $jabatan->kode }}
+                    {{ $jabatan->kode ?: 'Belum ditentukan' }}
 
                 </div>
 
@@ -178,6 +178,24 @@
 
         </div>
 
+    </div>
+
+    <div class="employee-section">
+        <div class="employee-heading">
+            <div><h5>Pegawai pada Jabatan Ini</h5><p>Daftar pegawai yang saat ini menggunakan jabatan tersebut.</p></div>
+            <span class="badge bg-primary">{{ $jabatan->pegawai_count }} Pegawai</span>
+        </div>
+        <div class="employee-list">
+            @forelse($jabatan->pegawai as $pegawai)
+                <a href="{{ route('admin.pegawai.show', $pegawai->id) }}" class="employee-item">
+                    <span class="employee-avatar">{{ strtoupper(substr($pegawai->nama, 0, 1)) }}</span>
+                    <span><strong>{{ $pegawai->nama }}</strong><small>{{ $pegawai->nip ?: 'NIP belum tersedia' }}</small></span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            @empty
+                <div class="text-center text-muted py-4"><i class="bi bi-person-x fs-2 d-block mb-2"></i>Belum ada pegawai pada jabatan ini.</div>
+            @endforelse
+        </div>
     </div>
 
     <div class="detail-footer">
@@ -282,6 +300,8 @@
     justify-content:space-between;
     align-items:center;
 }
+
+.employee-section{padding:0 30px 30px}.employee-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:12px}.employee-heading h5{margin:0;font-weight:700;color:#1e293b}.employee-heading p{margin:3px 0 0;color:#64748b;font-size:13px}.employee-list{border:1px solid #e2e8f0;border-radius:13px;overflow:hidden}.employee-item{display:flex;align-items:center;gap:12px;padding:12px 15px;color:#334155;text-decoration:none;border-bottom:1px solid #edf2f7}.employee-item:last-child{border-bottom:0}.employee-item:hover{background:#f8fafc}.employee-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#edf6ff;color:#0f4c81;font-weight:700}.employee-item>span:nth-child(2){flex:1}.employee-item strong,.employee-item small{display:block}.employee-item small{color:#8491a3;font-size:12px}
 
 .detail-footer .btn{
     min-width:170px;

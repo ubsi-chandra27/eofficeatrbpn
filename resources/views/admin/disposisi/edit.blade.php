@@ -94,6 +94,7 @@
 
                     <select
                         name="surat_id"
+                        required
                         class="form-select @error('surat_id') is-invalid @enderror">
 
                         <option value="">
@@ -140,6 +141,7 @@
                     <select
                         name="pegawai_id[]"
                         multiple
+                        required
                         class="form-select @error('pegawai_id') is-invalid @enderror">
 
                         @foreach($pegawai as $item)
@@ -148,7 +150,7 @@
                                 value="{{ $item->id }}"
                                 {{ in_array($item->id, old('pegawai_id', $pegawaiDipilih)) ? 'selected' : '' }}>
 
-                                {{ $item->nama }}
+                                {{ $item->nama }}{{ $item->jabatan ? ' — '.$item->jabatan->nama : '' }}{{ $item->unitKerja ? ' ('.$item->unitKerja->nama.')' : '' }}
 
                             </option>
 
@@ -158,7 +160,7 @@
 
                     <small class="text-muted">
 
-                        Tekan Ctrl (Windows) atau Cmd (Mac) untuk memilih lebih dari satu pegawai.
+                        Cari nama atau jabatan, lalu pilih satu atau beberapa pegawai penerima.
 
                     </small>
 
@@ -184,6 +186,7 @@
 
                     <select
                         name="prioritas"
+                        required
                         class="form-select @error('prioritas') is-invalid @enderror">
 
                         <option value="">-- Pilih Prioritas --</option>
@@ -238,6 +241,7 @@
                     <input
                         type="date"
                         name="tanggal_disposisi"
+                        required
                         value="{{ old('tanggal_disposisi', optional($disposisi->tanggal_disposisi)->format('Y-m-d')) }}"
                         class="form-control @error('tanggal_disposisi') is-invalid @enderror">
 
@@ -265,6 +269,8 @@
                     <textarea
                         name="catatan"
                         rows="6"
+                        maxlength="2000"
+                        required
                         class="form-control @error('catatan') is-invalid @enderror"
                         placeholder="Masukkan catatan disposisi...">{{ old('catatan',$disposisi->catatan) }}</textarea>
 
@@ -277,6 +283,8 @@
                         </div>
 
                     @enderror
+
+                    <small class="text-muted">Maksimal 2.000 karakter. Status baca penerima lama tidak akan ter-reset.</small>
 
                 </div>
 

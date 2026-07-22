@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Surat extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'surats';
 
@@ -87,23 +88,23 @@ class Surat extends Model
     public function logs()
     {
         return $this->hasMany(LogAktivitas::class, 'surat_id')
-                    ->latest();
+            ->latest();
     }
 
     /**
- * Semua tujuan disposisi surat
- */
-public function disposisiTujuans()
-{
-    return $this->hasManyThrough(
-        DisposisiTujuan::class,
-        Disposisi::class,
-        'surat_id',
-        'disposisi_id',
-        'id',
-        'id'
-    );
-}
+     * Semua tujuan disposisi surat
+     */
+    public function disposisiTujuans()
+    {
+        return $this->hasManyThrough(
+            DisposisiTujuan::class,
+            Disposisi::class,
+            'surat_id',
+            'disposisi_id',
+            'id',
+            'id'
+        );
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -132,9 +133,9 @@ public function disposisiTujuans()
 
 
     public function jabatanPimpinan()
-{
-    return $this->belongsTo(Jabatan::class,'jabatan_pimpinan_id');
-}
+    {
+        return $this->belongsTo(Jabatan::class, 'jabatan_pimpinan_id');
+    }
     /**
      * Label status
      */

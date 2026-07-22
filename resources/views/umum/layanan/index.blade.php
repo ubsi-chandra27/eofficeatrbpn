@@ -1,40 +1,25 @@
-<x-app-layout>
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 text-center">
-                
-                <h1 class="text-2xl font-bold text-yellow-500 mb-4">Mudah Daftar, Mudah Dapatkan Layanan!</h1>
-                
-                <p class="text-gray-600 mb-8">
-                    Ingin mengurus layanan pertanahan dengan cepat dan mudah? Daftarkan diri Anda sekarang dan nikmati akses penuh ke berbagai layanan pertanahan secara online! semua proses kini lebih praktis dan transparan. Dengan beberapa langkah sederhana, Anda dapat mengakses layanan kapan saja dan di mana saja!
-                </p>
+@extends('layouts.umum')
+@section('title','Layanan')
+@section('content')
+<div class="service-page">
+    <div class="service-heading"><span>LAYANAN PENGAJUAN</span><h2>Pilih layanan sesuai kebutuhan Anda</h2><p>Setiap kategori memiliki tujuan dan informasi pendukung yang berbeda.</p></div>
 
-                <div class="flex justify-center mb-6">
-                    <svg class="w-24 h-24 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                </div>
+    @if(!auth()->user()->phone)<div class="alert alert-warning d-flex justify-content-between align-items-center gap-3"><span><i class="bi bi-person-exclamation me-2"></i>Lengkapi nomor kontak pada profil agar form pengajuan terisi otomatis.</span><a href="{{ route('profile.edit') }}" class="btn btn-sm btn-warning">Lengkapi Profil</a></div>@endif
 
-                <div class="relative">
-                    <select name="layanan" class="w-full p-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 appearance-none bg-white cursor-pointer">
-                        <option value="" disabled selected>Pilih Layanan</option>
-                        <option value="jual_beli">Jual Beli</option>
-                        <option value="tukar_menukar">Tukar Menukar</option>
-                        <option value="warisan">Warisan</option>
-                        <option value="lelang">Lelang</option>
-                        <option value="pembagian_hak">Pembagian Hak Bersama</option>
-                        <option value="pemecahan">Pemecahan</option>
-                        <option value="penggabungan">Penggabungan</option>
-                        <option value="konversi">Konversi</option>
-                        <option value="wakaf">Wakaf</option>
-                        <option value="pemberian_hak">Pemberian Hak Milik Perorangan</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+    <div class="service-catalog">
+        @foreach($layanan as $slug => $service)
+        <article class="catalog-card"><div class="catalog-icon"><i class="bi {{ $service['icon'] }}"></i></div><div class="catalog-content"><h4>{{ $service['title'] }}</h4><p>{{ $service['description'] }}</p><strong>Informasi yang perlu disiapkan:</strong><ul>@foreach($service['requirements'] as $requirement)<li>{{ $requirement }}</li>@endforeach</ul></div><a href="{{ route('umum.layanan.show', $slug) }}" class="btn btn-outline-primary">Buka {{ $service['title'] }} <i class="bi bi-arrow-right ms-1"></i></a></article>
+        @endforeach
     </div>
-</x-app-layout>
+
+    <div class="row g-4 mt-1">
+        <div class="col-lg-8"><div class="service-flow"><div class="section-title"><span>ALUR LAYANAN</span><h4>Dari pengajuan hingga selesai</h4></div><div class="flow-steps"><div><b>1</b><span><strong>Isi Form</strong><small>Pilih kategori dan lengkapi uraian.</small></span></div><i class="bi bi-arrow-right"></i><div><b>2</b><span><strong>Verifikasi</strong><small>Admin memeriksa kelengkapan.</small></span></div><i class="bi bi-arrow-right"></i><div><b>3</b><span><strong>Tindak Lanjut</strong><small>Pengajuan diproses atau dikembalikan.</small></span></div><i class="bi bi-arrow-right"></i><div><b>4</b><span><strong>Selesai</strong><small>Hasil tercatat pada histori.</small></span></div></div></div></div>
+        <div class="col-lg-4"><aside class="service-contact"><h5><i class="bi bi-headset me-2"></i>Informasi Layanan</h5><div><small>Jam pelayanan</small><strong>{{ $informasi['jam'] }}</strong></div><div><small>Lampiran</small><strong>PDF, DOC, DOCX, JPG, PNG</strong><span>Maksimal {{ $informasi['maksimal_lampiran'] }} MB</span></div><div><small>Kontak bantuan</small>@if($informasi['email'])<a href="mailto:{{ $informasi['email'] }}">{{ $informasi['email'] }}</a>@endif @if($informasi['telepon'])<a href="tel:{{ preg_replace('/[^0-9+]/','',$informasi['telepon']) }}">{{ $informasi['telepon'] }}</a>@endif @if(!$informasi['email'] && !$informasi['telepon'])<strong>Belum diatur oleh Admin</strong>@endif</div></aside></div>
+    </div>
+
+    <div class="service-shortcuts"><a href="{{ route('umum.surat.index') }}"><i class="bi bi-list-check"></i><span><b>Pantau Pengajuan</b><small>Lihat status dan catatan Admin</small></span><i class="bi bi-chevron-right"></i></a><a href="{{ route('umum.cari.form') }}"><i class="bi bi-search"></i><span><b>Lacak dengan Nomor</b><small>Buka pengajuan menggunakan nomor referensi</small></span><i class="bi bi-chevron-right"></i></a></div>
+</div>
+@endsection
+@push('styles')<style>
+.service-page{max-width:1180px;margin:auto}.service-heading{text-align:center;margin-bottom:27px}.service-heading>span,.section-title>span{font-size:10px;letter-spacing:1.2px;color:#1769aa;font-weight:700}.service-heading h2{font-weight:700;margin:7px 0}.service-heading p{color:#718096}.service-catalog{display:grid;grid-template-columns:repeat(6,1fr);gap:15px}.catalog-card{grid-column:span 2;display:flex;flex-direction:column;background:#fff;border:1px solid #e5eaf0;border-radius:17px;padding:22px;transition:.2s}.catalog-card:nth-child(4),.catalog-card:nth-child(5){grid-column:span 3}.catalog-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(30,55,85,.09)}.catalog-icon{width:45px;height:45px;border-radius:12px;background:#edf6ff;color:#1769aa;display:grid;place-items:center;font-size:20px}.catalog-content{flex:1}.catalog-card h4{font-size:16px;font-weight:700;margin:15px 0 6px}.catalog-card p{font-size:12px;color:#718096;line-height:1.6}.catalog-card strong{font-size:11px}.catalog-card ul{padding-left:17px;margin:7px 0 17px}.catalog-card li{font-size:10px;color:#718096;margin-bottom:3px}.catalog-card .btn{font-size:12px;border-radius:9px}.service-flow,.service-contact{height:100%;background:#fff;border:1px solid #e5eaf0;border-radius:17px;padding:23px}.section-title h4{font-size:18px;font-weight:700;margin:4px 0 18px}.flow-steps{display:flex;align-items:center;justify-content:space-between;gap:8px}.flow-steps>div{display:flex;align-items:center;gap:8px}.flow-steps b{width:28px;height:28px;border-radius:50%;background:#1769aa;color:#fff;display:grid;place-items:center;font-size:11px;flex:0 0 auto}.flow-steps strong,.flow-steps small{display:block}.flow-steps strong{font-size:11px}.flow-steps small{font-size:9px;color:#8491a3}.flow-steps>i{color:#b6c2d0}.service-contact h5{font-weight:700;margin-bottom:14px}.service-contact>div{padding:10px 0;border-bottom:1px solid #edf1f5}.service-contact small,.service-contact strong,.service-contact span,.service-contact a{display:block}.service-contact small{font-size:10px;color:#8491a3;text-transform:uppercase}.service-contact strong,.service-contact a{font-size:12px;color:#334155}.service-contact span{font-size:10px;color:#8491a3}.service-shortcuts{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-top:18px}.service-shortcuts a{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #e5eaf0;border-radius:14px;color:#334155}.service-shortcuts>a>i:first-child{color:#1769aa;font-size:20px}.service-shortcuts span{flex:1}.service-shortcuts b,.service-shortcuts small{display:block}.service-shortcuts b{font-size:12px}.service-shortcuts small{font-size:10px;color:#8491a3}@media(max-width:900px){.service-catalog{grid-template-columns:repeat(2,1fr)}.catalog-card,.catalog-card:nth-child(4),.catalog-card:nth-child(5){grid-column:auto}.flow-steps{align-items:flex-start;flex-direction:column}.flow-steps>i{transform:rotate(90deg);margin-left:8px}}@media(max-width:600px){.service-catalog,.service-shortcuts{grid-template-columns:1fr}.alert{align-items:flex-start!important;flex-direction:column}.alert .btn{width:100%}}
+</style>@endpush

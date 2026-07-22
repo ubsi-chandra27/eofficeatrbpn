@@ -73,81 +73,81 @@
     </div>
 
     <div class="stat-card">
-
+ 
         <div>
-
+ 
             <h3>
-
-                {{ $surat->where('status','Menunggu')->count() }}
-
+ 
+                {{ $menunggu }}
+ 
             </h3>
-
+ 
             <p>
-
-                Menunggu
-
+ 
+                Menunggu Verifikasi
+ 
             </p>
-
+ 
         </div>
-
+ 
         <div class="stat-icon bg-warning-soft">
-
+ 
             <i class="bi bi-hourglass-split"></i>
-
+ 
         </div>
-
+ 
     </div>
-
+ 
     <div class="stat-card">
-
+ 
         <div>
-
+ 
             <h3>
-
-                {{ $surat->where('status','Diproses')->count() }}
-
+ 
+                {{ $disetujui }}
+ 
             </h3>
-
+ 
             <p>
-
-                Diproses
-
+ 
+                Diverifikasi
+ 
             </p>
-
+ 
         </div>
-
-        <div class="stat-icon bg-info-soft">
-
-            <i class="bi bi-arrow-repeat"></i>
-
-        </div>
-
-    </div>
-
-    <div class="stat-card">
-
-        <div>
-
-            <h3>
-
-                {{ $surat->where('status','Selesai')->count() }}
-
-            </h3>
-
-            <p>
-
-                Selesai
-
-            </p>
-
-        </div>
-
+ 
         <div class="stat-icon bg-success-soft">
-
+ 
             <i class="bi bi-check-circle-fill"></i>
-
+ 
         </div>
-
+ 
+    </div>
+ 
+    <div class="stat-card">
+ 
+        <div>
+ 
+            <h3>
+ 
+                {{ $ditolak }}
+ 
+            </h3>
+ 
+            <p>
+ 
+                Dikembalikan
+ 
+            </p>
+ 
+        </div>
+ 
+        <div class="stat-icon bg-danger-soft">
+ 
+            <i class="bi bi-x-circle-fill"></i>
+ 
+        </div>
+ 
     </div>
 
 </div>
@@ -338,55 +338,79 @@
                         {{-- ======================================= --}}
 
                         <td>
-
+ 
                             @switch($item->status)
-
-                                @case('Menunggu')
-
+ 
+                                @case('menunggu')
+ 
                                     <span class="badge bg-warning text-dark">
-
+ 
                                         <i class="bi bi-hourglass-split me-1"></i>
-
+ 
                                         Menunggu
-
+ 
                                     </span>
-
+ 
                                 @break
-
-                                @case('Diproses')
-
-                                    <span class="badge bg-info">
-
-                                        <i class="bi bi-arrow-repeat me-1"></i>
-
-                                        Diproses
-
-                                    </span>
-
-                                @break
-
-                                @case('Selesai')
-
+ 
+                                @case('diverifikasi')
+ 
                                     <span class="badge bg-success">
-
+ 
                                         <i class="bi bi-check-circle-fill me-1"></i>
-
-                                        Selesai
-
+ 
+                                        Diverifikasi
+ 
                                     </span>
-
+ 
                                 @break
-
-                                @default
-
-                                    <span class="badge bg-secondary">
-
-                                        {{ $item->status }}
-
+ 
+                                @case('dikembalikan')
+ 
+                                    <span class="badge bg-danger">
+ 
+                                        <i class="bi bi-x-circle-fill me-1"></i>
+ 
+                                        Dikembalikan
+ 
                                     </span>
-
+ 
+                                @break
+ 
+                                @case('diproses')
+ 
+                                    <span class="badge bg-info">
+ 
+                                        <i class="bi bi-arrow-repeat me-1"></i>
+ 
+                                        Diproses
+ 
+                                    </span>
+ 
+                                @break
+ 
+                                @case('selesai')
+ 
+                                    <span class="badge bg-primary">
+ 
+                                        <i class="bi bi-flag-fill me-1"></i>
+ 
+                                        Selesai
+ 
+                                    </span>
+ 
+                                @break
+ 
+                                @default
+ 
+                                    <span class="badge bg-secondary">
+ 
+                                        {{ $item->status }}
+ 
+                                    </span>
+ 
                             @endswitch
-
+ 
                         </td>
 
                         {{-- ======================================= --}}
@@ -410,10 +434,23 @@
                                     href="{{ route('admin.surat.masuk.edit',$item->id) }}"
                                     class="btn-edit"
                                     title="Edit">
-
+ 
                                     <i class="bi bi-pencil-square"></i>
-
+ 
                                 </a>
+ 
+                                @if($item->status == 'diajukan')
+ 
+                                    <a
+                                        href="{{ route('admin.surat.masuk.show',$item->id) }}"
+                                        class="btn-approve"
+                                        title="Setujui / Tolak">
+ 
+                                        <i class="bi bi-clipboard-check"></i>
+ 
+                                    </a>
+ 
+                                @endif
 
                                 <form
                                     action="{{ route('admin.surat.masuk.destroy',$item->id) }}"
@@ -646,7 +683,23 @@
 
 }
 
-.btn-delete{
+ .btn-approve{
+ 
+     background:#dcfce7;
+ 
+     color:#16a34a;
+ 
+ }
+ 
+ .btn-approve:hover{
+ 
+     background:#16a34a;
+ 
+     color:#fff;
+ 
+ }
+ 
+ .btn-delete{
 
     background:#fee2e2;
 

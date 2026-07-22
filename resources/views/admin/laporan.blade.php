@@ -1,84 +1,17 @@
 @extends('layouts.admin')
-
 @section('title', 'Laporan Surat')
-
 @section('content')
-
-<div class="container-fluid">
-
-    <div class="card shadow">
-
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-
-            <h4 class="mb-0">
-                <i class="fas fa-file-alt"></i>
-                Laporan Surat
-            </h4>
-
-            <a href="#" class="btn btn-light">
-                <i class="fas fa-print"></i>
-                Cetak PDF
-            </a>
-
-        </div>
-
-        <div class="card-body">
-
-            <div class="table-responsive">
-
-                <table class="table table-bordered table-striped">
-
-                    <thead class="table-light">
-
-                        <tr>
-                            <th>No Surat</th>
-                            <th>Perihal</th>
-                            <th>Tanggal Masuk</th>
-                            <th>Tanggal Keluar</th>
-                            <th>Pengirim</th>
-                            <th>Status</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-                            <td>SRT/2026/001</td>
-                            <td>Permohonan Sertifikat Tanah</td>
-                            <td>26/06/2026</td>
-                            <td>28/06/2026</td>
-                            <td>Budi Santoso</td>
-                            <td>
-                                <span class="badge bg-success">
-                                    Selesai
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>SRT/2026/002</td>
-                            <td>Pengajuan Balik Nama</td>
-                            <td>25/06/2026</td>
-                            <td>27/06/2026</td>
-                            <td>Siti Aminah</td>
-                            <td>
-                                <span class="badge bg-warning text-dark">
-                                    Proses
-                                </span>
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
+<div class="page-header"><div><h2><i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>{{ \App\Models\Setting::getValue('report_header', 'Laporan Administrasi Persuratan') }}</h2><p class="text-muted mb-0">Laporan berdasarkan data surat aktual.</p></div><button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer me-1"></i>Cetak</button></div>
+<div class="row g-3 mb-4">@foreach(['Total'=>$ringkasan['total'],'Surat Masuk'=>$ringkasan['masuk'],'Surat Keluar'=>$ringkasan['keluar']] as $label=>$jumlah)<div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted">{{ $label }}</small><h2 class="fw-bold mb-0">{{ $jumlah }}</h2></div></div></div>@endforeach</div>
+<div class="card border-0 shadow-sm mb-4"><div class="card-body"><form method="GET" class="row g-3">
+<div class="col-lg-3"><label class="form-label">Pencarian</label><input class="form-control" name="keyword" value="{{ request('keyword') }}" placeholder="Nomor atau perihal"></div>
+<div class="col-lg-2"><label class="form-label">Jenis</label><select name="jenis_surat" class="form-select"><option value="">Semua</option><option value="masuk" @selected(request('jenis_surat')==='masuk')>Masuk</option><option value="keluar" @selected(request('jenis_surat')==='keluar')>Keluar</option></select></div>
+<div class="col-lg-2"><label class="form-label">Status</label><select name="status" class="form-select"><option value="">Semua</option>@foreach(['draft','diajukan','diverifikasi','dikembalikan','diteruskan_ke_pimpinan','diproses','terkirim','diarsipkan','selesai'] as $status)<option value="{{ $status }}" @selected(request('status')===$status)>{{ ucwords(str_replace('_',' ',$status)) }}</option>@endforeach</select></div>
+<div class="col-lg-2"><label class="form-label">Mulai</label><input type="date" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}" class="form-control"></div><div class="col-lg-2"><label class="form-label">Selesai</label><input type="date" name="tanggal_selesai" value="{{ request('tanggal_selesai') }}" class="form-control"></div><div class="col-lg-1 d-flex align-items-end"><button class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button></div>
+</form></div></div>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>No</th><th>Nomor</th><th>Jenis</th><th>Perihal</th><th>Pembuat</th><th>Tanggal</th><th>Status</th></tr></thead><tbody>
+@forelse($surat as $item)<tr><td>{{ $surat->firstItem()+$loop->index }}</td><td>{{ $item->nomor_surat }}</td><td>{{ ucfirst($item->jenis_surat) }}</td><td>{{ $item->perihal }}</td><td>{{ $item->user->name ?? '-' }}</td><td>{{ optional($item->tanggal_surat)->format('d/m/Y') }}</td><td><span class="badge bg-{{ $item->status_badge }}">{{ $item->status_label }}</span></td></tr>@empty<tr><td colspan="7" class="text-center text-muted py-5">Tidak ada data sesuai filter.</td></tr>@endforelse
+</tbody></table></div><div class="card-footer bg-white">{{ $surat->links() }}</div></div>
+@if(\App\Models\Setting::getValue('report_signer_name'))<div class="report-signature"><span>{{ \App\Models\Setting::getValue('report_signer_title', 'Penanggung Jawab') }}</span><strong>{{ \App\Models\Setting::getValue('report_signer_name') }}</strong></div>@endif
 @endsection
+@push('styles')<style>.report-signature{width:280px;margin:35px 20px 0 auto;text-align:center}.report-signature span,.report-signature strong{display:block}.report-signature strong{margin-top:65px;text-decoration:underline}@media print{.sidebar,.topbar,.page-header .btn,form,.card-footer{display:none!important}.main-wrapper{margin:0!important;width:100%!important}.content{padding:0!important}}</style>@endpush

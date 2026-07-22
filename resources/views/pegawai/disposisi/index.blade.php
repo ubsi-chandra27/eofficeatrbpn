@@ -1,435 +1,76 @@
 @extends('layouts.pegawai')
-
-@section('title','Disposisi Saya')
+@section('title', 'Disposisi')
 
 @section('content')
-
-<div class="container-fluid">
-
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
+<div class="container-fluid employee-page">
+    <div class="page-header">
         <div>
-
-            <h3 class="fw-bold text-primary mb-1">
-
-                <i class="bi bi-inbox-fill me-2"></i>
-
-                Disposisi Saya
-
-            </h3>
-
-            <p class="text-muted mb-0">
-
-                Seluruh disposisi surat yang ditujukan kepada Anda.
-
-            </p>
-
+            <h2><i class="bi bi-send-check-fill text-primary me-2"></i>Disposisi Saya</h2>
+            <p class="text-muted mb-0">Baca instruksi, prioritaskan tugas penting, dan tandai pekerjaan yang selesai.</p>
         </div>
-
-        <span class="badge bg-primary fs-6">
-
-            Total :
-
-            {{ $disposisi->total() }}
-
-        </span>
-
     </div>
 
-    {{-- Alert --}}
-    @if(session('success'))
-
-        <div class="alert alert-success alert-dismissible fade show">
-
-            <i class="bi bi-check-circle-fill me-2"></i>
-
-            {{ session('success') }}
-
-            <button
-                class="btn-close"
-                data-bs-dismiss="alert">
-            </button>
-
-        </div>
-
-    @endif
-
-    @if(session('error'))
-
-        <div class="alert alert-danger alert-dismissible fade show">
-
-            <i class="bi bi-exclamation-circle-fill me-2"></i>
-
-            {{ session('error') }}
-
-            <button
-                class="btn-close"
-                data-bs-dismiss="alert">
-            </button>
-
-        </div>
-
-    @endif
-
-    <div class="card shadow border-0">
-
-        <div class="card-header bg-primary text-white">
-
-            <div class="row align-items-center">
-
-                <div class="col-md-6">
-
-                    <h5 class="mb-0">
-
-                        <i class="bi bi-envelope-paper-fill me-2"></i>
-
-                        Inbox Disposisi
-
-                    </h5>
-
-                </div>
-
-                <div class="col-md-6">
-
-                    <form method="GET"
-                          action="{{ route('pegawai.surat-disposisi.index') }}">
-
-                        <div class="input-group">
-
-                            <input
-                                type="text"
-                                name="keyword"
-                                value="{{ request('keyword') }}"
-                                class="form-control"
-                                placeholder="Cari nomor surat / judul surat">
-
-                            <button
-                                class="btn btn-light">
-
-                                <i class="bi bi-search"></i>
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
+    <div class="metric-grid">
+        @foreach([['Total', $stats['total'], 'bi-files', 'primary'], ['Belum Dibaca', $stats['belum'], 'bi-envelope-exclamation', 'danger'], ['Sudah Dibaca', $stats['dibaca'], 'bi-envelope-open', 'warning'], ['Selesai', $stats['selesai'], 'bi-check-circle', 'success']] as [$label, $value, $icon, $color])
+            <div class="metric-card">
+                <span class="metric-icon bg-{{ $color }}-subtle text-{{ $color }}"><i class="bi {{ $icon }}"></i></span>
+                <div><strong>{{ $value }}</strong><small>{{ $label }}</small></div>
             </div>
+        @endforeach
+    </div>
 
-        </div>
+    <div class="data-card">
+        <form method="GET" class="filter-bar">
+            <div class="search-control"><i class="bi bi-search"></i><input name="keyword" value="{{ request('keyword') }}" placeholder="Cari nomor surat atau perihal"></div>
+            <select name="status">
+                <option value="">Semua status</option>
+                @foreach(['Belum Dibaca', 'Sudah Dibaca', 'Selesai'] as $status)
+                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                @endforeach
+            </select>
+            <button class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Filter</button>
+            @if(request()->hasAny(['keyword', 'status']))
+                <a href="{{ route('pegawai.disposisi.index') }}" class="btn btn-outline-secondary" aria-label="Hapus filter"><i class="bi bi-x-lg"></i></a>
+            @endif
+        </form>
 
-        <div class="card-body p-0">
-
-            <div class="table-responsive">
-
-                <table class="table table-hover table-bordered align-middle mb-0">
-
-                    <thead class="table-light">
-
-                        <tr>
-
-                            <th width="60">
-                                No
-                            </th>
-
-                            <th>
-                                Nomor Surat
-                            </th>
-
-                            <th>
-                                Judul Surat
-                            </th>
-
-                            <th>
-                                Dari
-                            </th>
-
-                            <th>
-                                Prioritas
-                            </th>
-
-                            <th>
-                                Status
-                            </th>
-
-                            <th>
-                                Tanggal
-                            </th>
-
-                            <th width="170">
-                                Aksi
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
+        <div class="table-responsive">
+            <table class="table compact-table mb-0">
+                <thead><tr><th>No</th><th>Surat</th><th>Instruksi</th><th>Pengirim</th><th>Prioritas</th><th>Tanggal</th><th>Status</th><th class="text-end">Aksi</th></tr></thead>
+                <tbody>
                     @forelse($disposisi as $item)
-                    <tr>
-
-    <td>
-
-        {{ $loop->iteration + ($disposisi->firstItem() - 1) }}
-
-    </td>
-
-    <td>
-
-        <span class="fw-semibold">
-
-            {{ $item->disposisi->surat->nomor_surat ?? '-' }}
-
-        </span>
-
-    </td>
-
-    <td>
-
-        <div class="fw-semibold">
-
-            {{ $item->disposisi->surat->judul_surat ?? '-' }}
-
+                        @php
+                            $induk = $item->disposisi;
+                            $surat = $induk?->surat;
+                        @endphp
+                        <tr class="{{ $item->status === 'Belum Dibaca' ? 'table-warning' : '' }}">
+                            <td>{{ $disposisi->firstItem() + $loop->index }}</td>
+                            <td><span class="cell-title">{{ $surat?->nomor_surat ?? '-' }}</span><span class="cell-meta">{{ $surat?->perihal ?? 'Surat tidak tersedia' }}</span></td>
+                            <td><span title="{{ $induk?->catatan }}">{{ Str::limit($induk?->catatan, 55) }}</span></td>
+                            <td>{{ $induk?->pengirim?->name ?? '-' }}</td>
+                            <td><span class="badge bg-{{ $induk?->prioritas === 'Tinggi' ? 'danger' : ($induk?->prioritas === 'Sedang' ? 'warning' : 'secondary') }}">{{ $induk?->prioritas ?? '-' }}</span></td>
+                            <td>{{ $induk?->tanggal_disposisi?->format('d M Y') }}</td>
+                            <td><span class="badge rounded-pill bg-{{ $item->status === 'Selesai' ? 'success' : ($item->status === 'Belum Dibaca' ? 'danger' : 'warning') }}">{{ $item->status }}</span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <a href="{{ route('pegawai.disposisi.show', $item->id) }}" class="btn btn-outline-primary" title="Detail"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('pegawai.disposisi.cetak', $item->id) }}" target="_blank" class="btn btn-outline-secondary" title="Cetak"><i class="bi bi-printer"></i></a>
+                                    @if($item->status !== 'Selesai')
+                                        <form action="{{ route('pegawai.disposisi.selesai', $item->id) }}" method="POST" onsubmit="return confirm('Tandai disposisi selesai?')">
+                                            @csrf @method('PATCH')
+                                            <button class="btn btn-outline-success" title="Selesai"><i class="bi bi-check-lg"></i></button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="8"><div class="empty-state"><i class="bi bi-inbox"></i><h5>Belum ada disposisi</h5><p>Disposisi yang ditujukan kepada Anda akan tampil di sini.</p></div></td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-
-        <small class="text-muted">
-
-            {{ $item->disposisi->surat->perihal ?? '-' }}
-
-        </small>
-
-    </td>
-
-    <td>
-
-        {{ $item->disposisi->pengirim->name ?? '-' }}
-
-    </td>
-
-    <td>
-
-        @if($item->disposisi->prioritas == 'Tinggi')
-
-            <span class="badge bg-danger">
-
-                Tinggi
-
-            </span>
-
-        @elseif($item->disposisi->prioritas == 'Sedang')
-
-            <span class="badge bg-warning text-dark">
-
-                Sedang
-
-            </span>
-
-        @else
-
-            <span class="badge bg-success">
-
-                Rendah
-
-            </span>
-
-        @endif
-
-    </td>
-
-    <td>
-
-        @if($item->status == 'Belum Dibaca')
-
-            <span class="badge bg-warning text-dark">
-
-                <i class="bi bi-envelope me-1"></i>
-
-                Belum Dibaca
-
-            </span>
-
-        @elseif($item->status == 'Sudah Dibaca')
-
-            <span class="badge bg-info">
-
-                <i class="bi bi-eye-fill me-1"></i>
-
-                Sudah Dibaca
-
-            </span>
-
-        @elseif($item->status == 'Selesai')
-
-            <span class="badge bg-success">
-
-                <i class="bi bi-check-circle-fill me-1"></i>
-
-                Selesai
-
-            </span>
-
-        @else
-
-            <span class="badge bg-secondary">
-
-                {{ $item->status }}
-
-            </span>
-
-        @endif
-
-    </td>
-
-    <td>
-
-        {{ optional($item->disposisi->tanggal_disposisi)->format('d-m-Y') }}
-
-    </td>
-
-    <td>
-
-        <div class="btn-group">
-
-            <a href="{{ route('pegawai.surat-disposisi.show',$item->id) }}"
-               class="btn btn-sm btn-primary"
-               title="Lihat">
-
-                <i class="bi bi-eye-fill"></i>
-
-            </a>
-
-            @if($item->status == 'Belum Dibaca')
-
-                <form action="{{ route('pegawai.surat-disposisi.dibaca',$item->id) }}"
-                      method="POST"
-                      class="d-inline">
-
-                    @csrf
-
-                    @method('PATCH')
-
-                    <button
-                        type="submit"
-                        class="btn btn-sm btn-info"
-                        title="Tandai Sudah Dibaca">
-
-                        <i class="bi bi-book-half"></i>
-
-                    </button>
-
-                </form>
-
-            @endif
-
-            @if($item->status != 'Selesai')
-
-                <form action="{{ route('pegawai.surat-disposisi.selesai',$item->id) }}"
-                      method="POST"
-                      class="d-inline">
-
-                    @csrf
-
-                    @method('PATCH')
-
-                    <button
-                        type="submit"
-                        class="btn btn-sm btn-success"
-                        title="Selesaikan"
-                        onclick="return confirm('Tandai disposisi ini sebagai selesai?')">
-
-                        <i class="bi bi-check2-circle"></i>
-
-                    </button>
-
-                </form>
-
-            @endif
-
-        </div>
-
-    </td>
-
-</tr>
-
-@empty
-
-<tr>
-
-    <td colspan="8" class="text-center py-5">
-
-        <i class="bi bi-inbox display-4 text-muted"></i>
-
-        <br><br>
-
-        <strong>
-
-            Belum ada disposisi untuk Anda.
-
-        </strong>
-
-    </td>
-
-</tr>
-
-@endforelse
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-        <div class="card-footer bg-white">
-
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-
-                <div class="text-muted small">
-
-                    Menampilkan
-
-                    <strong>
-
-                        {{ $disposisi->firstItem() ?? 0 }}
-
-                    </strong>
-
-                    -
-
-                    <strong>
-
-                        {{ $disposisi->lastItem() ?? 0 }}
-
-                    </strong>
-
-                    dari
-
-                    <strong>
-
-                        {{ $disposisi->total() }}
-
-                    </strong>
-
-                    data
-
-                </div>
-
-                <div>
-
-                    {{ $disposisi->links() }}
-
-                </div>
-
-            </div>
-
-        </div>
-
+        <div class="data-footer"><span>{{ $disposisi->firstItem() ?? 0 }}&ndash;{{ $disposisi->lastItem() ?? 0 }} dari {{ $disposisi->total() }} disposisi</span>{{ $disposisi->links() }}</div>
     </div>
-
 </div>
-
 @endsection

@@ -3,113 +3,105 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Jabatan;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminJabatanController extends Controller
 {
-    /**
-     * Menampilkan daftar jabatan
-     */
     public function index(Request $request)
     {
-        $search = $request->search;
+        $keyword = trim((string) $request->input('keyword'));
+        $totalJabatan = Jabatan::count();
+        $jabatanTerpakai = Jabatan::has('pegawai')->count();
+        $jabatanKosong = $totalJabatan - $jabatanTerpakai;
 
-        $jabatan = Jabatan::when($search, function ($query) use ($search) {
-                $query->where('nama', 'like', "%{$search}%");
-            })
+        $jabatan = Jabatan::withCount('pegawai')
+            ->when($keyword, fn ($query) => $query->where(function ($sub) use ($keyword) {
+                $sub->where('nama', 'like', "%{$keyword}%")
+                    ->orWhere('kode', 'like', "%{$keyword}%")
+                    ->orWhere('deskripsi', 'like', "%{$keyword}%");
+            }))
             ->orderBy('nama')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('admin.jabatan.index', compact('jabatan'));
+        return view('admin.jabatan.index', compact('jabatan', 'totalJabatan', 'jabatanTerpakai', 'jabatanKosong'));
     }
 
-    /**
-     * Form tambah jabatan
-     */
     public function create()
     {
         return view('admin.jabatan.create');
     }
 
-    /**
-     * Simpan jabatan
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama' => 'required|string|max:255|unique:jabatan,nama',
-        ], [
-            'nama.required' => 'Nama jabatan wajib diisi.',
-            'nama.unique'   => 'Nama jabatan sudah digunakan.',
-        ]);
+        $data = $request->validate($this->rules(), $this->messages());
+        $data['nama'] = trim($data['nama']);
+        $data['kode'] = filled($data['kode'] ?? null) ? strtoupper(trim($data['kode'])) : null;
+        $jabatan = Jabatan::create($data);
+        $this->log('Tambah Jabatan', "Menambahkan jabatan {$jabatan->nama}.");
 
-        Jabatan::create([
-    'kode' => $request->kode,
-    'nama' => $request->nama,
-    'deskripsi' => $request->deskripsi,
-]);
-        return redirect()
-            ->route('admin.jabatan.index')
-            ->with('success', 'Data jabatan berhasil ditambahkan.');
+        return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil ditambahkan.');
     }
 
-    /**
-     * Detail jabatan
-     */
     public function show($id)
     {
-        $jabatan = Jabatan::findOrFail($id);
-
+        $jabatan = Jabatan::withCount('pegawai')->with(['pegawai' => fn ($query) => $query->orderBy('nama')])->findOrFail($id);
         return view('admin.jabatan.show', compact('jabatan'));
     }
 
-    /**
-     * Form edit jabatan
-     */
     public function edit($id)
     {
-        $jabatan = Jabatan::findOrFail($id);
-
-        return view('admin.jabatan.edit', compact('jabatan'));
+        return view('admin.jabatan.edit', ['jabatan' => Jabatan::findOrFail($id)]);
     }
 
-    /**
-     * Update jabatan
-     */
     public function update(Request $request, $id)
     {
         $jabatan = Jabatan::findOrFail($id);
+        $data = $request->validate($this->rules($jabatan->id), $this->messages());
+        $data['nama'] = trim($data['nama']);
+        $data['kode'] = filled($data['kode'] ?? null) ? strtoupper(trim($data['kode'])) : null;
+        $jabatan->update($data);
+        $this->log('Perbarui Jabatan', "Memperbarui jabatan {$jabatan->nama}.");
 
-        $request->validate([
-            'nama' => 'required|string|max:255|unique:jabatan,nama,' . $jabatan->id,
-        ], [
-            'nama.required' => 'Nama jabatan wajib diisi.',
-            'nama.unique'   => 'Nama jabatan sudah digunakan.',
-        ]);
-
-        $jabatan->update([
-    'kode' => $request->kode,
-    'nama' => $request->nama,
-    'deskripsi' => $request->deskripsi,
-]);
-        return redirect()
-            ->route('admin.jabatan.index')
-            ->with('success', 'Data jabatan berhasil diperbarui.');
+        return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil diperbarui.');
     }
 
-    /**
-     * Hapus jabatan
-     */
     public function destroy($id)
     {
-        $jabatan = Jabatan::findOrFail($id);
-
+        $jabatan = Jabatan::withCount('pegawai')->findOrFail($id);
+        if ($jabatan->pegawai_count > 0) {
+            return back()->with('error', "Jabatan masih digunakan oleh {$jabatan->pegawai_count} pegawai dan tidak dapat dihapus.");
+        }
+        $nama = $jabatan->nama;
         $jabatan->delete();
+        $this->log('Hapus Jabatan', "Menghapus jabatan {$nama} yang tidak digunakan.");
 
-        return redirect()
-            ->route('admin.jabatan.index')
-            ->with('success', 'Data jabatan berhasil dihapus.');
+        return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil dihapus.');
+    }
+
+    private function rules(?int $id = null): array
+    {
+        return [
+            'nama' => ['required', 'string', 'max:150', Rule::unique('jabatan', 'nama')->ignore($id)],
+            'kode' => ['nullable', 'string', 'max:30', 'alpha_dash', Rule::unique('jabatan', 'kode')->ignore($id)],
+            'deskripsi' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    private function messages(): array
+    {
+        return [
+            'nama.required' => 'Nama jabatan wajib diisi.', 'nama.unique' => 'Nama jabatan sudah digunakan.',
+            'kode.unique' => 'Kode jabatan sudah digunakan.', 'kode.alpha_dash' => 'Kode hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
+            'deskripsi.max' => 'Deskripsi maksimal 1.000 karakter.',
+        ];
+    }
+
+    private function log(string $action, string $description): void
+    {
+        LogAktivitas::create(['user_id' => auth()->id(), 'action' => $action, 'description' => $description]);
     }
 }

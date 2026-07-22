@@ -22,7 +22,7 @@
 
         <p class="text-muted mb-0">
 
-            Tambahkan data pegawai baru ke sistem E-Office ATR/BPN.
+            Tambahkan data pegawai baru beserta akun loginnya ke sistem.
 
         </p>
 
@@ -196,6 +196,18 @@
 
                     @enderror
 
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label class="form-label">Password Login <span class="text-danger">*</span></label>
+                    <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
+                    @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <small class="text-muted">Minimal 8 karakter.</small>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label class="form-label">Konfirmasi Password <span class="text-danger">*</span></label>
+                    <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
                 </div>
 
                 {{-- ======================== --}}

@@ -51,24 +51,8 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Role yang dipilih pada form login
-        $selectedRole = strtolower(trim($request->login_as));
-
         // Role yang tersimpan di database
         $databaseRole = strtolower(trim($user->role));
-
-        // Pastikan role sesuai
-        if ($databaseRole !== $selectedRole) {
-
-            Auth::logout();
-
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            throw ValidationException::withMessages([
-                'login_as' => 'Role yang dipilih tidak sesuai dengan akun.',
-            ]);
-        }
 
         // Redirect sesuai role
         switch ($databaseRole) {
@@ -90,7 +74,7 @@ class AuthenticatedSessionController extends Controller
                 $request->session()->regenerateToken();
 
                 throw ValidationException::withMessages([
-                    'email' => 'Role pengguna tidak dikenali.',
+                    'identifier' => 'Role pengguna tidak dikenali.',
                 ]);
         }
     }

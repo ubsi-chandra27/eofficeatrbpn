@@ -4,8 +4,6 @@
 
 @section('content')
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <style>
 
@@ -287,18 +285,19 @@
                                 switch(strtolower($surat->status)){
 
                                     case 'menunggu':
+                                    case 'diajukan':
                                         $badge='warning';
                                         break;
 
-                                    case 'diproses':
+                                    case 'diverifikasi':
                                         $badge='primary';
                                         break;
 
-                                    case 'disetujui':
+                                    case 'diteruskan_ke_pimpinan':
                                         $badge='success';
                                         break;
 
-                                    case 'ditolak':
+                                    case 'dikembalikan':
                                         $badge='danger';
                                         break;
 
@@ -312,7 +311,7 @@
 
                             <span class="badge bg-{{ $badge }} badge-status">
 
-                                {{ ucfirst($surat->status ?? '-') }}
+                                {{ $surat->status_label }}
 
                             </span>
 
@@ -644,7 +643,7 @@
 
             <div class="d-flex justify-content-end gap-2">
 
-                <a href="{{ route('pegawai.surat.keluar') }}"
+                <a href="{{ route('pegawai.surat-keluar.index') }}"
                    class="btn btn-secondary">
 
                     <i class="bi bi-arrow-left-circle"></i>
@@ -653,17 +652,31 @@
 
                 </a>
 
-                
+                @if(in_array($surat->status, ['draft', 'dikembalikan', 'Menunggu']))
+                    <a href="{{ route('pegawai.surat-keluar.edit', $surat->id) }}"
+                       class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i>
+                        Edit
+                    </a>
 
-                <a href="{{ route('pegawai.surat.cetak',$surat->id) }}"
-                   target="_blank"
-                   class="btn btn-danger">
+                    <form action="{{ route('pegawai.surat-keluar.kirim', $surat->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Kirim surat ini ke admin?')">
+                            <i class="bi bi-send-fill"></i>
+                            Kirim ke Admin
+                        </button>
+                    </form>
 
-                    <i class="bi bi-printer-fill"></i>
-
-                    Cetak
-
-                </a>
+                    <form action="{{ route('pegawai.surat-keluar.destroy', $surat->id) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin ingin menghapus surat ini?')">
+                            <i class="bi bi-trash"></i>
+                            Hapus
+                        </button>
+                    </form>
+                @endif
 
             </div>
 

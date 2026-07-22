@@ -16,7 +16,12 @@
             <input
                 type="password"
                 name="current_password"
-                class="form-control">
+                class="form-control @error('current_password', 'updatePassword') is-invalid @enderror"
+                required>
+
+            @error('current_password', 'updatePassword')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
 
         </div>
 
@@ -31,7 +36,12 @@
             <input
                 type="password"
                 name="password"
-                class="form-control">
+                class="form-control @error('password', 'updatePassword') is-invalid @enderror"
+                required>
+
+            @error('password', 'updatePassword')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
 
         </div>
 
@@ -46,7 +56,8 @@
             <input
                 type="password"
                 name="password_confirmation"
-                class="form-control">
+                class="form-control"
+                required>
 
         </div>
 

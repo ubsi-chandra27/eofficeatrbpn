@@ -15,39 +15,9 @@
 
         @yield('title','Dashboard')
 
-        | E-Office ATR/BPN
+        | {{ \App\Models\Setting::getValue('app_name', 'E-Office') }}
 
     </title>
-
-    {{-- ========================================================= --}}
-    {{-- Bootstrap --}}
-    {{-- ========================================================= --}}
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
-
-    {{-- ========================================================= --}}
-    {{-- Bootstrap Icons --}}
-    {{-- ========================================================= --}}
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-        rel="stylesheet">
-
-    {{-- ========================================================= --}}
-    {{-- Google Font --}}
-    {{-- ========================================================= --}}
-
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
 
     {{-- ========================================================= --}}
     {{-- Laravel Assets --}}
@@ -64,6 +34,167 @@
 
     <link rel="stylesheet"
           href="{{ asset('css/dashboard-admin.css') }}">
+
+    <style>
+        .main-wrapper {
+            width: calc(100% - var(--sidebar-width));
+            min-width: 0;
+            flex: none;
+        }
+        body.sidebar-collapse .main-wrapper {
+            width: calc(100% - var(--sidebar-collapse));
+        }
+        .content, .content-wrapper { width: 100%; min-width: 0; max-width: 100%; }
+        @media (max-width: 991px) {
+            .main-wrapper, body.sidebar-collapse .main-wrapper {
+                width: 100%;
+            }
+        }
+        /* Sidebar admin: compact, konsisten, dan tetap nyaman digulir. */
+        .sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.24); border-radius: 10px; }
+        .sidebar-logo { min-height: 112px; padding: 22px 20px; }
+        .sidebar-logo .logo-text { min-width: 0; }
+        .sidebar-logo .logo-text h3,
+        .sidebar-logo .logo-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-user { margin: 18px 18px 10px; padding: 15px; border-radius: 16px; }
+        .sidebar-user > div:last-child { min-width: 0; }
+        .sidebar-user h6 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-menu { padding: 0 14px 24px; }
+        .sidebar-menu .menu-title { margin: 21px 12px 9px; font-size: 10px; letter-spacing: 1.25px; }
+        .sidebar-menu a { min-height: 48px; gap: 13px; margin-bottom: 4px; padding: 11px 14px; border-radius: 12px; text-decoration: none; }
+        .sidebar-menu a > span:not(.menu-badge) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-menu a i { width: 22px; font-size: 18px; }
+        .sidebar-menu a.active::before { left: -14px; top: 8px; height: 32px; width: 4px; }
+        .sidebar-menu .menu-badge { margin-left: auto; min-width: 23px; height: 23px; padding: 0 7px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; font-weight: 800; background: #fbbf24; color: #422006; }
+        .sidebar-menu .menu-badge-danger { background: #fecaca; color: #991b1b; }
+        .sidebar-menu a.active .menu-badge { box-shadow: inset 0 0 0 1px rgba(15,76,129,.12); }
+        .sidebar-footer { margin-top: 18px; padding-top: 16px; }
+        .btn-logout { min-height: 46px; padding: 11px 14px; background: rgba(220,53,69,.92); box-shadow: none; }
+        .sidebar.collapsed .sidebar-logo { padding-inline: 12px; }
+        .sidebar.collapsed .sidebar-user { margin-inline: 12px; }
+        .sidebar.collapsed .sidebar-menu { padding-inline: 10px; }
+        .sidebar.collapsed .sidebar-menu a { padding: 12px; }
+        .sidebar.collapsed .sidebar-menu .menu-badge { position: absolute; top: 4px; right: 4px; display: inline-flex; min-width: 18px; height: 18px; padding: 0 5px; font-size: 9px; }
+
+        .topbar { height: auto; min-height: var(--topbar-height); padding-top: 13px; padding-bottom: 13px; }
+        .topbar-left { min-width: 0; }
+        .page-title { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+        .page-title h4 { margin: 0; line-height: 1.18; }
+        .page-title .welcome-text { display: block; margin: 0; color: var(--gray-500); font-size: 13px; line-height: 1.4; white-space: nowrap; }
+        @media (max-width: 1200px) {
+            .page-title h4 { font-size: 21px; }
+            .topbar-date { display: none; }
+        }
+        @media (max-width: 768px) {
+            .topbar { padding-top: 14px; padding-bottom: 14px; }
+            .page-title { gap: 5px; }
+            .page-title .welcome-text { white-space: normal; }
+        }
+
+        .choices { margin-bottom: 0; }
+        .choices__inner {
+            min-height: 48px;
+            padding: 7px 12px;
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .is-focused .choices__inner,
+        .is-open .choices__inner {
+            border-color: #0F4C81;
+            box-shadow: 0 0 0 .2rem rgba(15, 76, 129, .15);
+        }
+        .choices__list--dropdown,
+        .choices__list[aria-expanded] { z-index: 1060; }
+        .choices__list--dropdown .choices__list,
+        .choices__list[aria-expanded] .choices__list {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .choices__input { border-radius: 8px; }
+
+        .choices {
+            width: 100%;
+            font-size: 1rem;
+        }
+        .choices__inner {
+            width: 100%;
+            min-height: 48px !important;
+            height: auto !important;
+            padding: 7px 12px !important;
+            overflow: hidden;
+        }
+        .choices[data-type*="select-one"] .choices__inner {
+            padding-bottom: 7px !important;
+            height: 48px !important;
+            min-height: 48px !important;
+        }
+        .choices__list--single {
+            padding: 5px 28px 5px 2px !important;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .choices__list--multiple {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 0 !important;
+        }
+        .choices__list--multiple .choices__item {
+            display: inline-flex !important;
+            align-items: center;
+            max-width: 100%;
+            min-height: 32px !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 5px 10px !important;
+            border-radius: 8px !important;
+            font-size: .85rem !important;
+            line-height: 1.25 !important;
+            white-space: normal;
+            word-break: break-word;
+        }
+        .choices__list--multiple .choices__button {
+            width: 20px !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            margin: 0 0 0 6px !important;
+            padding: 0 !important;
+            border-left: 0 !important;
+            background-size: 8px !important;
+        }
+        .choices__input {
+            min-width: 120px;
+            min-height: 34px !important;
+            height: 34px !important;
+            margin: 0 !important;
+            padding: 5px 8px !important;
+            background: #f8fafc !important;
+        }
+        .choices__list--dropdown,
+        .choices__list[aria-expanded] {
+            border-radius: 10px;
+            overflow: hidden;
+            max-height: 270px !important;
+        }
+        .choices__list--dropdown .choices__list,
+        .choices__list[aria-expanded] .choices__list {
+            max-height: 220px !important;
+            overflow-y: auto !important;
+        }
+        .choices__list--dropdown .choices__item,
+        .choices__list[aria-expanded] .choices__item {
+            min-height: auto !important;
+            height: auto !important;
+            padding: 10px 14px !important;
+            line-height: 1.35 !important;
+        }
+    </style>
 
     @stack('styles')
 
@@ -97,13 +228,13 @@
 
                 <h3>
 
-                    E-OFFICE
+                    {{ strtoupper(\App\Models\Setting::getValue('app_name', 'E-Office')) }}
 
                 </h3>
 
                 <small>
 
-                    ATR / BPN
+                    {{ \App\Models\Setting::getValue('app_subtitle', 'Administrasi Digital') }}
 
                 </small>
 
@@ -240,6 +371,12 @@
 
                 </span>
 
+                @if(($__mn = \App\Models\Surat::where('jenis_surat','masuk')->where('status','diajukan')->count()) > 0)
+
+                    <span class="menu-badge bg-warning text-dark">{{ $__mn }}</span>
+
+                @endif
+
             </a>
 
             <a
@@ -299,16 +436,42 @@
             @endif
 
             {{-- ===================================================== --}}
-            {{-- AKUN --}}
+            {{-- SISTEM --}}
             {{-- ===================================================== --}}
 
             <span class="menu-title">
 
-                AKUN
+                SISTEM
 
             </span>
 
-            <a href="{{ route('profile.edit') }}">
+            <a href="{{ route('admin.users.index') }}"
+               class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+               title="Manajemen Pengguna">
+
+                <i class="bi bi-people-fill"></i>
+
+                <span>Manajemen Pengguna</span>
+
+                @if(($__ua = \App\Models\Pegawai::whereNull('user_id')->count()) > 0)
+                    <span class="menu-badge menu-badge-danger" title="Pegawai belum memiliki akun">{{ $__ua }}</span>
+                @endif
+
+            </a>
+
+            <a href="{{ route('admin.settings.index') }}"
+               class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
+               title="Pengaturan Sistem">
+
+                <i class="bi bi-gear-fill"></i>
+
+                <span>Pengaturan</span>
+
+            </a>
+
+            <a href="{{ route('profile.edit') }}"
+               class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+               title="Profil Saya">
 
                 <i class="bi bi-person-circle"></i>
 
@@ -384,7 +547,7 @@
 
                     </h4>
 
-                    <small>
+                    <div class="welcome-text">
 
                         Selamat datang kembali,
 
@@ -394,7 +557,7 @@
 
                         </strong>
 
-                    </small>
+                    </div>
 
                 </div>
 
@@ -727,4 +890,36 @@
                 </div>
     </div>
 
-            
+        </main>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('select:not([data-native-select])').forEach((select) => {
+        if (select.dataset.choicesEnhanced === 'true') return;
+        select.dataset.choicesEnhanced = 'true';
+
+        new Choices(select, {
+            searchEnabled: true,
+            searchPlaceholderValue: 'Ketik untuk mencari...',
+            noResultsText: 'Data tidak ditemukan',
+            noChoicesText: 'Tidak ada pilihan',
+            itemSelectText: 'Pilih',
+            shouldSort: false,
+            searchResultLimit: 100,
+            renderChoiceLimit: -1,
+            removeItemButton: select.multiple,
+            allowHTML: false,
+        });
+    });
+});
+</script>
+
+@stack('scripts')
+
+</body>
+</html>
+

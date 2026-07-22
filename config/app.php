@@ -6,8 +6,10 @@ return [
     'debug' => (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),
 
+    'force_https' => env('APP_FORCE_HTTPS', false),
+
     // PERBAIKAN: Ubah timezone ke Asia/Jakarta untuk data lokal yang akurat
-    'timezone' => 'Asia/Jakarta', 
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     'locale' => env('APP_LOCALE', 'id'), // Ubah default ke 'id' (Bahasa Indonesia)
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),

@@ -68,11 +68,11 @@
 
             <h3>
 
-                {{ $disposisi->where('status','pending')->count() }}
+                {{ $statistik['Belum Dibaca'] ?? 0 }}
 
             </h3>
 
-            <p>Pending</p>
+            <p>Belum Dibaca</p>
 
         </div>
 
@@ -90,7 +90,7 @@
 
             <h3>
 
-                {{ $disposisi->where('status','selesai')->count() }}
+                {{ $statistik['Selesai'] ?? 0 }}
 
             </h3>
 

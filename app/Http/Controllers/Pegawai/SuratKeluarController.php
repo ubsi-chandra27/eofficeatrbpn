@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pegawai;
 use App\Http\Controllers\Controller;
 use App\Models\Surat;
 use App\Models\LogAktivitas;
+use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,13 @@ class SuratKeluarController extends Controller
     {
         $query = Surat::where('user_id', Auth::id())
             ->where('jenis_surat', 'keluar');
+        $base = clone $query;
+        $stats = [
+            'total' => (clone $base)->count(),
+            'draft' => (clone $base)->where('status', 'draft')->count(),
+            'diajukan' => (clone $base)->whereIn('status', ['diajukan', 'diverifikasi'])->count(),
+            'selesai' => (clone $base)->whereIn('status', ['terkirim', 'selesai', 'diarsipkan'])->count(),
+        ];
 
         if ($request->filled('keyword')) {
 
@@ -59,7 +67,7 @@ class SuratKeluarController extends Controller
 
         return view(
             'pegawai.surat.keluar.index',
-            compact('surat')
+            compact('surat', 'stats')
         );
     }
 
@@ -72,11 +80,14 @@ class SuratKeluarController extends Controller
 
     public function create()
 {
-    $jabatans = Jabatan::orderBy('nama')->get();
+    $pimpinans = Pegawai::with('jabatan')
+        ->whereNotNull('jabatan_id')
+        ->orderBy('nama')
+        ->get();
 
     return view(
         'pegawai.surat.keluar.create',
-        compact('jabatans')
+        compact('pimpinans')
     );
 }
 
@@ -91,7 +102,7 @@ class SuratKeluarController extends Controller
 
         $request->validate([
 
-            'nomor_surat'          => 'required|unique:surat,nomor_surat',
+            'nomor_surat'          => 'required|unique:surats,nomor_surat',
 
             'tanggal_surat'        => 'required|date',
 
@@ -99,17 +110,29 @@ class SuratKeluarController extends Controller
 
             'tujuan_surat'         => 'required',
 
-            'jabatan_pimpinan_id'  => 'required',
-
-            'nama_pimpinan'        => 'required',
+            'pimpinan_pegawai_id'  => 'required|exists:pegawai,id',
 
             'deskripsi'            => 'nullable',
 
             'file_path'            => 'nullable|mimes:pdf,doc,docx|max:5120',
 
+            'status'               => 'nullable|in:draft,diajukan',
+
+        ], [
+            'pimpinan_pegawai_id.required' => 'Pimpinan atau penandatangan wajib dipilih.',
+            'pimpinan_pegawai_id.exists' => 'Data pimpinan yang dipilih tidak valid.',
+            'tujuan_surat.required' => 'Tujuan instansi wajib diisi.',
         ]);
 
 
+
+        $pimpinan = Pegawai::with('jabatan')->findOrFail($request->pimpinan_pegawai_id);
+
+        if (!$pimpinan->jabatan) {
+            return back()->withInput()->withErrors([
+                'pimpinan_pegawai_id' => 'Pegawai yang dipilih belum memiliki jabatan.',
+            ]);
+        }
 
         $file = null;
 
@@ -141,10 +164,10 @@ class SuratKeluarController extends Controller
             'tujuan_surat' => $request->tujuan_surat,
 
             'jabatan_pimpinan_id'
-                => $request->jabatan_pimpinan_id,
+                => $pimpinan->jabatan_id,
 
             'nama_pimpinan'
-                => $request->nama_pimpinan,
+                => $pimpinan->nama,
 
             'deskripsi'
                 => $request->deskripsi,
@@ -153,7 +176,7 @@ class SuratKeluarController extends Controller
                 => $file,
 
             'status'
-                => 'Menunggu',
+                => $request->input('status', 'draft'),
 
         ]);
 
@@ -190,8 +213,8 @@ class SuratKeluarController extends Controller
 
     public function show($id)
     {
-        $surat = Surat::with('jabatanPimpinan')
-            ->findOrFail($id);
+        $surat = $this->suratKeluarMilikPegawai($id)
+            ->load('jabatanPimpinan');
 
         return view(
             'pegawai.surat.keluar.show',
@@ -208,9 +231,9 @@ class SuratKeluarController extends Controller
 
     public function edit($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluarMilikPegawai($id);
 
-        if ($surat->status != 'Menunggu') {
+        if (!$this->dapatDiubah($surat)) {
 
             return back()
                 ->with(
@@ -220,13 +243,21 @@ class SuratKeluarController extends Controller
 
         }
 
-        $jabatan = Jabatan::orderBy('nama')->get();
+        $pimpinans = Pegawai::with('jabatan')
+            ->whereNotNull('jabatan_id')
+            ->orderBy('nama')
+            ->get();
+
+        $selectedPimpinanId = Pegawai::where('nama', $surat->nama_pimpinan)
+            ->where('jabatan_id', $surat->jabatan_pimpinan_id)
+            ->value('id');
 
         return view(
             'pegawai.surat.keluar.edit',
             compact(
                 'surat',
-                'jabatan'
+                'pimpinans',
+                'selectedPimpinanId'
             )
         );
     }
@@ -244,9 +275,9 @@ class SuratKeluarController extends Controller
     )
     {
 
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluarMilikPegawai($id);
 
-        if ($surat->status != 'Menunggu') {
+        if (!$this->dapatDiubah($surat)) {
 
             return back()
                 ->with(
@@ -259,7 +290,7 @@ class SuratKeluarController extends Controller
         $request->validate([
 
             'nomor_surat'
-                => 'required|unique:surat,nomor_surat,' . $surat->id,
+                => 'required|unique:surats,nomor_surat,' . $surat->id,
 
             'tanggal_surat'
                 => 'required|date',
@@ -270,11 +301,8 @@ class SuratKeluarController extends Controller
             'tujuan_surat'
                 => 'required',
 
-            'jabatan_pimpinan_id'
-                => 'required',
-
-            'nama_pimpinan'
-                => 'required',
+            'pimpinan_pegawai_id'
+                => 'required|exists:pegawai,id',
 
             'deskripsi'
                 => 'nullable',
@@ -282,8 +310,20 @@ class SuratKeluarController extends Controller
             'file_path'
                 => 'nullable|mimes:pdf,doc,docx|max:5120',
 
+        ], [
+            'pimpinan_pegawai_id.required' => 'Pimpinan atau penandatangan wajib dipilih.',
+            'pimpinan_pegawai_id.exists' => 'Data pimpinan yang dipilih tidak valid.',
+            'tujuan_surat.required' => 'Tujuan instansi wajib diisi.',
         ]);
 
+
+        $pimpinan = Pegawai::with('jabatan')->findOrFail($request->pimpinan_pegawai_id);
+
+        if (!$pimpinan->jabatan) {
+            return back()->withInput()->withErrors([
+                'pimpinan_pegawai_id' => 'Pegawai yang dipilih belum memiliki jabatan.',
+            ]);
+        }
 
         if ($request->hasFile('file_path')) {
 
@@ -321,10 +361,10 @@ class SuratKeluarController extends Controller
                 => $request->tujuan_surat,
 
             'jabatan_pimpinan_id'
-                => $request->jabatan_pimpinan_id,
+                => $pimpinan->jabatan_id,
 
             'nama_pimpinan'
-                => $request->nama_pimpinan,
+                => $pimpinan->nama,
 
             'deskripsi'
                 => $request->deskripsi,
@@ -364,9 +404,9 @@ class SuratKeluarController extends Controller
 
     public function destroy($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluarMilikPegawai($id);
 
-        if ($surat->status != 'Menunggu') {
+        if (!$this->dapatDiubah($surat)) {
 
             return back()
                 ->with(
@@ -419,9 +459,9 @@ class SuratKeluarController extends Controller
     public function kirim($id)
     {
 
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluarMilikPegawai($id);
 
-        if ($surat->status != 'Menunggu') {
+        if (!$this->dapatDiubah($surat)) {
 
             return back()
                 ->with(
@@ -433,7 +473,7 @@ class SuratKeluarController extends Controller
 
         $surat->update([
 
-            'status' => 'Diproses'
+            'status' => 'diajukan'
 
         ]);
 
@@ -459,6 +499,19 @@ class SuratKeluarController extends Controller
                 'success',
                 'Surat berhasil dikirim.'
             );
+    }
+
+    private function suratKeluarMilikPegawai(int $id): Surat
+    {
+        return Surat::where('user_id', Auth::id())
+            ->where('jenis_surat', 'keluar')
+            ->findOrFail($id);
+    }
+
+    /** Mendukung status baru dan status lama sebelum normalisasi workflow. */
+    private function dapatDiubah(Surat $surat): bool
+    {
+        return in_array($surat->status, ['draft', 'dikembalikan', 'Menunggu'], true);
     }
 
 }

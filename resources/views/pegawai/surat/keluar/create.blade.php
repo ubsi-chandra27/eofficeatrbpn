@@ -257,29 +257,31 @@
 
                         <label class="form-label">
 
-                            Ditujukan Kepada
+                            Pimpinan / Penandatangan
 
                             <span class="text-danger">*</span>
 
                         </label>
 
                         <select
-                            name="jabatan_tujuan_id"
-                            class="form-select @error('jabatan_tujuan_id') is-invalid @enderror">
+                            name="pimpinan_pegawai_id"
+                            size="6"
+                            required
+                            class="form-select pimpinan-select @error('pimpinan_pegawai_id') is-invalid @enderror">
 
                             <option value="">
 
-                                -- Pilih Jabatan --
+                                -- Pilih nama dan jabatan pimpinan --
 
                             </option>
 
-                            @foreach($jabatans as $jabatan)
+                            @foreach($pimpinans as $pimpinan)
 
                                 <option
-                                    value="{{ $jabatan->id }}"
-                                    {{ old('jabatan_tujuan_id')==$jabatan->id ? 'selected' : '' }}>
+                                    value="{{ $pimpinan->id }}"
+                                    {{ old('pimpinan_pegawai_id')==$pimpinan->id ? 'selected' : '' }}>
 
-                                    {{ $jabatan->nama }}
+                                    {{ $pimpinan->nama }} — {{ $pimpinan->jabatan->nama }}
 
                                 </option>
 
@@ -287,7 +289,9 @@
 
                         </select>
 
-                        @error('jabatan_tujuan_id')
+                        <small class="text-muted">Daftar dapat di-scroll. Nama dan jabatan disimpan otomatis.</small>
+
+                        @error('pimpinan_pegawai_id')
 
                             <div class="invalid-feedback">
 
@@ -314,7 +318,7 @@
                             name="tujuan_surat"
                             class="form-control @error('tujuan_surat') is-invalid @enderror"
                             value="{{ old('tujuan_surat') }}"
-                            placeholder="Contoh : Kantor Wilayah ATR/BPN">
+                            placeholder="Contoh: Kantor Wilayah atau unit tujuan">
 
                         @error('tujuan_surat')
 
@@ -485,7 +489,7 @@
                     <button
                         type="submit"
                         name="status"
-                        value="Draft"
+                        value="draft"
                         class="btn btn-warning">
 
                         <i class="bi bi-save2-fill me-2"></i>
@@ -499,7 +503,7 @@
                     <button
                         type="submit"
                         name="status"
-                        value="Menunggu"
+                        value="diajukan"
                         class="btn btn-primary">
 
                         <i class="bi bi-send-fill me-2"></i>

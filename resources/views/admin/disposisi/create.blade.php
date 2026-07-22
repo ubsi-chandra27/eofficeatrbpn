@@ -132,16 +132,28 @@
 
                         </select>
 
-                        @error('surat_id')
-
-                            <div class="invalid-feedback">
-
-                                {{ $message }}
-
+                        @if($surat->isEmpty())
+                            <div class="alert alert-info mt-2 mb-0 py-2">
+                                Belum ada surat masuk yang siap didisposisikan. Verifikasi surat terlebih dahulu.
                             </div>
+                        @endif
 
+                        @error('surat_id')
+ 
+                            <div class="invalid-feedback">
+ 
+                                {{ $message }}
+ 
+                            </div>
+ 
                         @enderror
-
+ 
+                        <small class="text-muted">
+ 
+                            Hanya surat yang telah diverifikasi atau diteruskan ke pimpinan yang dapat dipilih.
+ 
+                        </small>
+ 
                     </div>
 
                     {{-- Tujuan Disposisi --}}
@@ -157,7 +169,6 @@
                             name="pegawai_id[]"
                             multiple
                             class="form-select @error('pegawai_id') is-invalid @enderror"
-                            style="height:220px;"
                             required>
 
                             @foreach($pegawai as $item)
@@ -166,13 +177,7 @@
                                     value="{{ $item->id }}"
                                     {{ in_array($item->id, old('pegawai_id', [])) ? 'selected' : '' }}>
 
-                                    {{ $item->nama }}
-
-                                    @if($item->jabatan)
-
-                                        - {{ $item->jabatan->nama }}
-
-                                    @endif
+                                    {{ $item->nama }}{{ $item->jabatan ? ' — '.$item->jabatan->nama : '' }}{{ $item->unitKerja ? ' ('.$item->unitKerja->nama.')' : '' }}
 
                                 </option>
 
@@ -182,10 +187,7 @@
 
                         <small class="text-muted">
 
-                            Tekan <strong>Ctrl</strong> (Windows)
-                            atau
-                            <strong>Cmd</strong> (Mac)
-                            untuk memilih lebih dari satu pegawai.
+                            Cari nama atau jabatan, lalu pilih satu atau beberapa pegawai penerima.
 
                         </small>
 
@@ -198,6 +200,12 @@
                             </div>
 
                         @enderror
+
+                        @if($pegawai->isEmpty())
+                            <div class="alert alert-warning mt-2 mb-0 py-2">
+                                Belum ada profil pegawai yang terhubung dengan akun login.
+                            </div>
+                        @endif
 
                     </div>
 
@@ -322,6 +330,8 @@
                         <textarea
                             name="catatan"
                             rows="6"
+                            maxlength="2000"
+                            required
                             class="form-control @error('catatan') is-invalid @enderror"
                             placeholder="Masukkan catatan disposisi...">{{ old('catatan') }}</textarea>
                              @error('catatan')
@@ -333,6 +343,8 @@
                             </div>
 
                         @enderror
+
+                        <small class="text-muted">Maksimal 2.000 karakter. Tuliskan instruksi dan hasil yang diharapkan secara jelas.</small>
 
                     </div>
 
@@ -354,11 +366,12 @@
 
                     <button
                         type="submit"
+                        {{ $surat->isEmpty() || $pegawai->isEmpty() ? 'disabled' : '' }}
                         class="btn btn-primary rounded-pill px-4">
 
                         <i class="bi bi-send-check-fill me-2"></i>
 
-                        Simpan Disposisi
+                        Kirim Disposisi
 
                     </button>
 

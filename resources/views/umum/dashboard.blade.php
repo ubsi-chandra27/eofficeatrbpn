@@ -1,56 +1,100 @@
 @extends('layouts.umum')
-
-@section('title', 'Dashboard Umum')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/dashboard-umum.css') }}">
-@endpush
-
+@section('title','Dashboard')
 @section('content')
+<div class="public-dashboard">
+    <section class="welcome-panel">
+        <span class="welcome-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+        <div><small>RUANG PENGGUNA</small><h2>Selamat datang, {{ auth()->user()->name }}</h2><p>Pantau proses administrasi dan perkembangan surat Anda dari satu halaman.</p></div>
+    </section>
 
-<div class="dashboard-page">
-
-    <div class="container-fluid">
-
-        {{-- ========================================================= --}}
-        {{-- HEADER --}}
-        {{-- ========================================================= --}}
-        @include('umum.dashboard.header')
-
-
-
-        
-
-
-
-        
-
-
-
-        {{-- ========================================================= --}}
-        {{-- INFORMASI ATR/BPN --}}
-        {{-- ========================================================= --}}
-        @include('umum.dashboard.informasi')
-
-
-
-        {{-- ========================================================= --}}
-        {{-- RIWAYAT SURAT --}}
-        {{-- ========================================================= --}}
-        @include('umum.dashboard.riwayat')
-
-
-
-
+    <div class="public-stats">
+        @foreach([['Total Pengajuan',$statistik['total'],'bi-files','primary'],['Menunggu Verifikasi',$statistik['diajukan'],'bi-hourglass-split','warning'],['Sedang Diproses',$statistik['diproses'],'bi-arrow-repeat','info'],['Selesai',$statistik['selesai'],'bi-check-circle','success']] as [$label,$value,$icon,$color])
+            <div class="public-stat"><i class="bi {{ $icon }} text-{{ $color }}"></i><div><strong>{{ $value }}</strong><small>{{ $label }}</small></div></div>
+        @endforeach
     </div>
 
-</div>
+    @if($statistik['perbaikan'])
+        <div class="alert alert-warning d-flex justify-content-between align-items-center"><span><i class="bi bi-exclamation-triangle me-2"></i>Ada <strong>{{ $statistik['perbaikan'] }}</strong> surat yang perlu diperbaiki.</span><a href="{{ route('umum.surat.index',['status'=>'dikembalikan']) }}" class="btn btn-sm btn-warning">Lihat</a></div>
+    @endif
 
+    <section class="service-announcement"><span><i class="bi bi-megaphone-fill"></i></span><div><small>PENGUMUMAN</small><h5>{{ $informasiLayanan['judul_pengumuman'] }}</h5><p>{{ $informasiLayanan['isi_pengumuman'] }}</p></div></section>
+
+    @if($statistik['total'] === 0)
+        <section class="intro-card">
+            <div class="intro-copy"><span class="section-label">MENGENAL E-OFFICE</span><h3>Administrasi surat yang lebih mudah dilacak</h3><p>E-Office adalah ruang kerja persuratan digital untuk mengirim dokumen, memantau pemeriksaan admin, menerima catatan perbaikan, dan menyimpan histori proses secara terstruktur.</p><div class="privacy"><i class="bi bi-shield-check"></i><span>Setiap akun hanya dapat melihat pengajuan dan histori miliknya sendiri.</span></div></div>
+            <div class="flow-box"><h5>Alur Pengajuan</h5><ol><li><b>Lengkapi surat</b><span>Isi informasi dan unggah lampiran.</span></li><li><b>Verifikasi admin</b><span>Data diperiksa dan dapat dikembalikan untuk diperbaiki.</span></li><li><b>Pemrosesan</b><span>Surat yang valid diteruskan sesuai kebutuhan.</span></li><li><b>Selesai</b><span>Status dan histori dapat dilihat melalui Surat Saya.</span></li></ol></div>
+        </section>
+    @else
+        <div class="dashboard-card"><div class="card-heading"><div><h5>Pengajuan Terbaru</h5><small>Lima surat terakhir milik Anda</small></div><a href="{{ route('umum.surat.index') }}">Lihat semua</a></div>@foreach($suratTerbaru as $surat)<a href="{{ route('umum.surat.show',$surat->id) }}" class="letter-row"><i class="bi bi-envelope-paper"></i><span><strong>{{ $surat->perihal }}</strong><small>{{ $surat->nomor_surat }} &middot; {{ optional($surat->tanggal_surat)->format('d M Y') }}</small></span><b class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</b></a>@endforeach</div>
+    @endif
+
+    <section class="dashboard-card activity-table-card">
+        <div class="card-heading"><div><h5>Aktivitas Terbaru</h5><small>Delapan perubahan terbaru pada akun dan pengajuan Anda</small></div></div>
+        <div class="table-responsive"><table class="table activity-table mb-0">
+            <thead><tr><th>Waktu</th><th>Aktivitas</th><th>Nomor Pengajuan</th><th>Keterangan</th><th>Status</th><th class="text-end">Aksi</th></tr></thead>
+            <tbody>@forelse($aktivitas as $log)
+                <tr><td><strong>{{ $log->created_at->translatedFormat('d M Y') }}</strong><small>{{ $log->created_at->format('H:i') }} WIB</small></td><td>{{ $log->action }}</td><td>{{ $log->surat?->nomor_surat ?? '—' }}</td><td>{{ Str::limit($log->description, 65) }}</td><td>@if($log->surat)<span class="badge bg-{{ $log->surat->status_badge }}">{{ $log->surat->status_label }}</span>@else<span class="text-muted">Akun</span>@endif</td><td class="text-end">@if($log->surat)<a href="{{ route('umum.surat.show', $log->surat->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat pengajuan"><i class="bi bi-eye"></i></a>@else<span class="text-muted">—</span>@endif</td></tr>
+            @empty<tr><td colspan="6"><div class="empty-box"><i class="bi bi-clock"></i><span>Belum ada aktivitas pada akun Anda.</span></div></td></tr>@endforelse</tbody>
+        </table></div>
+    </section>
+
+    <section class="organization-info">
+        <div class="organization-heading"><div><span class="section-label">INFORMASI ORGANISASI</span><h4>Kenali pimpinan dan struktur organisasi</h4><p>Informasi ringkas mengenai unsur pimpinan dan susunan organisasi.</p></div></div>
+        <div class="organization-grid">
+            <a href="{{ route('umum.menteri') }}" class="leader-card"><img src="{{ asset('images/menteri.jpg') }}" alt="Foto Menteri"><div><small>PIMPINAN</small><h5>Menteri</h5><span>Lihat profil <i class="bi bi-arrow-right"></i></span></div></a>
+            <a href="{{ route('umum.wakil') }}" class="leader-card"><img src="{{ asset('images/wakil-menteri.jpg') }}" alt="Foto Wakil Menteri"><div><small>WAKIL PIMPINAN</small><h5>Wakil Menteri</h5><span>Lihat profil <i class="bi bi-arrow-right"></i></span></div></a>
+            <a href="{{ route('umum.struktur') }}" class="structure-card"><div class="structure-preview"><img src="{{ asset('images/struktur-organisasi.png') }}" alt="Bagan Struktur Organisasi"></div><div><small>ORGANISASI</small><h5>Struktur Organisasi</h5><p>Lihat susunan unit dan hubungan koordinasi organisasi.</p><span>Lihat struktur <i class="bi bi-arrow-right"></i></span></div></a>
+        </div>
+    </section>
+
+    <section class="vision-mission-section">
+        <div class="vision-card"><span class="section-label">VISI</span><i class="bi bi-eye-fill"></i><h4>Arah pelayanan organisasi</h4><p>Terwujudnya penataan ruang dan pengelolaan pertanahan yang terpercaya dan berstandar dunia dalam melayani masyarakat untuk mendukung Indonesia maju yang berdaulat, mandiri, dan berkepribadian berlandaskan gotong royong.</p></div>
+        <div class="mission-card"><span class="section-label">MISI</span><h4>Komitmen pelayanan</h4><ol><li><b>01</b><span>Menyelenggarakan penataan ruang dan pengelolaan pertanahan yang produktif, berkelanjutan, dan berkeadilan.</span></li><li><b>02</b><span>Menyelenggarakan pelayanan pertanahan dan penataan ruang yang berstandar dunia.</span></li></ol></div>
+    </section>
+
+    <section class="logo-meaning-section">
+        <div class="logo-meaning-heading"><div><span class="section-label">IDENTITAS ORGANISASI</span><h4>Makna lambang kementerian</h4><p>Setiap unsur menggambarkan hubungan antara ruang, tanah, kesejahteraan, dan pelayanan yang berintegritas.</p></div><div class="emblem-preview"><i class="bi bi-globe-asia-australia"></i><span>ATR/BPN</span></div></div>
+        <div class="meaning-grid">
+            <article><i class="bi bi-flower1"></i><div><h6>Empat Butir Padi</h6><p>Kemakmuran dan kesejahteraan melalui empat tujuan pertanahan: kemakmuran, keadilan, keberlanjutan, dan harmoni sosial.</p></div></article>
+            <article><i class="bi bi-globe2"></i><div><h6>Lingkaran Bumi</h6><p>Bumi sebagai sumber penghidupan manusia yang berhubungan langsung dengan tanah, air, dan sumber daya alam.</p></div></article>
+            <article><i class="bi bi-bullseye"></i><div><h6>Sumbu</h6><p>Poros keseimbangan yang mencerminkan landasan konstitusional pengelolaan agraria dan pertanahan.</p></div></article>
+            <article><i class="bi bi-buildings"></i><div><h6>Bangunan dan Pohon</h6><p>Kekuatan, keteguhan, keberlanjutan, dan konsistensi dalam melayani serta menuntaskan kewajiban secara bertanggung jawab.</p></div></article>
+            <article><i class="bi bi-water"></i><div><h6>Gelombang Hijau dan Biru</h6><p>Lingkungan yang terjaga serta keterkaitan tugas penataan ruang dengan pemanfaatan tanah dan air.</p></div></article>
+            <article><i class="bi bi-palette-fill"></i><div><h6>Makna Warna</h6><p>Hijau untuk lingkungan, kuning untuk kemakmuran, biru untuk kebijakan dan keseimbangan, merah untuk semangat, serta putih untuk kedamaian dan kepercayaan.</p></div></article>
+        </div>
+    </section>
+
+    <section class="public-service-info">
+        <div class="requirements-panel"><div class="info-heading"><span class="section-label">PERSYARATAN</span><h4>Dokumen sesuai jenis pengajuan</h4><p>Siapkan informasi yang relevan agar pemeriksaan lebih cepat.</p></div><div class="requirement-list">
+            <div><i class="bi bi-info-square"></i><span><b>Permohonan Informasi</b><small>Pokok pertanyaan dan identitas kontak aktif.</small></span></div>
+            <div><i class="bi bi-file-earmark-text"></i><span><b>Permohonan Dokumen</b><small>Nama dokumen, tujuan penggunaan, dan bukti pendukung bila diperlukan.</small></span></div>
+            <div><i class="bi bi-envelope-paper"></i><span><b>Penyampaian Surat</b><small>Surat resmi atau dokumen pendukung dalam berkas lampiran.</small></span></div>
+            <div><i class="bi bi-chat-left-dots"></i><span><b>Pengaduan</b><small>Kronologi yang jelas, waktu kejadian, dan bukti pendukung.</small></span></div>
+        </div></div>
+        <aside class="service-panel"><div class="service-row"><i class="bi bi-clock"></i><div><small>Jam Layanan</small><b>{{ $informasiLayanan['jam_layanan'] }}</b></div></div><div class="service-row"><i class="bi bi-paperclip"></i><div><small>Ketentuan Lampiran</small><b>PDF, DOC, DOCX, JPG, PNG</b><span>Maksimal {{ $informasiLayanan['maksimal_lampiran'] }} MB per pengajuan.</span></div></div>@if($informasiLayanan['email_bantuan'] || $informasiLayanan['telepon_bantuan'])<div class="service-row"><i class="bi bi-headset"></i><div><small>Kontak Bantuan</small>@if($informasiLayanan['email_bantuan'])<a href="mailto:{{ $informasiLayanan['email_bantuan'] }}">{{ $informasiLayanan['email_bantuan'] }}</a>@endif @if($informasiLayanan['telepon_bantuan'])<a href="tel:{{ preg_replace('/[^0-9+]/', '', $informasiLayanan['telepon_bantuan']) }}">{{ $informasiLayanan['telepon_bantuan'] }}</a>@endif</div></div>@else<div class="service-row"><i class="bi bi-headset"></i><div><small>Kontak Bantuan</small><b>Hubungi petugas administrasi</b><span>Kontak layanan belum diatur oleh admin.</span></div></div>@endif<div class="data-protection"><i class="bi bi-shield-lock-fill"></i><div><b>Perlindungan Data</b><span>Pengajuan hanya terlihat oleh pemilik akun dan petugas yang berwenang.</span></div></div></aside>
+    </section>
+
+    <section class="status-guide"><div><span class="section-label">PANDUAN STATUS</span><h4>Arti status pengajuan</h4></div><div class="guide-items"><span><i class="dot warning"></i><b>Diajukan</b> menunggu pemeriksaan</span><span><i class="dot info"></i><b>Diproses</b> sedang ditindaklanjuti</span><span><i class="dot danger"></i><b>Perlu Perbaikan</b> cek catatan admin</span><span><i class="dot success"></i><b>Selesai</b> proses telah berakhir</span></div></section>
+
+    <section class="faq-section"><div class="info-heading"><span class="section-label">BANTUAN</span><h4>Pertanyaan yang sering diajukan</h4></div><div class="accordion accordion-flush" id="publicFaq">
+        @foreach([
+            ['Bagaimana mengetahui pengajuan sudah diterima?','Setelah berhasil dikirim, pengajuan muncul pada menu Surat Saya dengan status Diajukan ke Admin.'],
+            ['Apakah pengajuan dapat diubah setelah dikirim?','Pengajuan dikunci selama pemeriksaan. Form perbaikan tersedia apabila admin mengembalikannya beserta catatan.'],
+            ['Mengapa lampiran tidak dapat diunggah?','Pastikan format berkas didukung dan ukurannya tidak melebihi '.$informasiLayanan['maksimal_lampiran'].' MB.'],
+            ['Di mana saya melihat perkembangan pengajuan?','Perubahan status dan histori aktivitas tersedia pada halaman detail masing-masing pengajuan.']
+        ] as $index => [$question,$answer])
+        <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button {{ $index ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ $index }}">{{ $question }}</button></h2><div id="faq{{ $index }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" data-bs-parent="#publicFaq"><div class="accordion-body">{{ $answer }}</div></div></div>
+        @endforeach
+    </div></section>
+</div>
 @endsection
 
-
-@push('scripts')
-
-<script src="{{ asset('js/dashboard-umum.js') }}"></script>
-
-@endpush
+@push('styles')<style>
+.public-dashboard{max-width:1200px;margin:auto}.welcome-panel{padding:25px 28px;margin-bottom:20px;border-radius:19px;background:linear-gradient(135deg,#0f4c81,#1769aa);color:#fff;display:flex;align-items:center;gap:18px}.welcome-icon{width:54px;height:54px;border-radius:15px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:22px;flex:0 0 auto}.welcome-panel small,.section-label{font-size:11px;letter-spacing:1.2px}.welcome-panel small{color:#bae0ff}.welcome-panel h2{font-weight:700;margin:4px 0}.welcome-panel p{margin:0;color:#d7eafd}.public-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.public-stat{background:#fff;border:1px solid #e5eaf0;border-radius:15px;padding:18px;display:flex;align-items:center;gap:14px}.public-stat>i{font-size:25px}.public-stat strong,.public-stat small{display:block}.public-stat strong{font-size:24px}.public-stat small{color:#718096}.dashboard-card,.intro-card,.status-guide,.organization-info{background:#fff;border:1px solid #e5eaf0;border-radius:17px;box-shadow:0 10px 28px rgba(39,61,89,.05)}.dashboard-card{height:100%;padding:22px}.card-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.card-heading h5{font-weight:700;margin:0}.card-heading small{color:#8491a3}.card-heading a{font-size:13px}.letter-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #edf1f5;text-decoration:none;color:#334155}.letter-row>i{width:40px;height:40px;border-radius:11px;background:#edf6ff;color:#0f4c81;display:grid;place-items:center}.letter-row>span{flex:1;min-width:0}.letter-row strong,.letter-row small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.letter-row small,.activity-row small,.activity-row time{font-size:11px;color:#8491a3}.activity-row{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #edf1f5}.activity-row strong,.activity-row small,.activity-row time{display:block}.empty-box{text-align:center;padding:35px;color:#8491a3}.empty-box i,.empty-box span{display:block}.empty-box i{font-size:35px}.intro-card{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;padding:30px}.section-label{color:#1769aa;font-weight:700}.intro-copy h3{font-weight:700;margin:7px 0 13px;color:#17233b}.intro-copy>p{line-height:1.75;color:#66738a}.privacy{display:flex;gap:11px;padding:13px 15px;border-radius:12px;background:#edf6ff;color:#36536f}.privacy i{color:#1769aa}.flow-box{padding:22px;border-radius:15px;background:#f6f9fc}.flow-box h5{font-weight:700;margin-bottom:17px}.flow-box ol{list-style:none;padding:0;margin:0;counter-reset:flow}.flow-box li{position:relative;padding:0 0 17px 39px;counter-increment:flow}.flow-box li:before{content:counter(flow);position:absolute;left:0;width:26px;height:26px;border-radius:8px;background:#1769aa;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}.flow-box li:not(:last-child):after{content:"";position:absolute;left:12px;top:28px;height:13px;border-left:2px solid #cbd9e7}.flow-box b,.flow-box span{display:block}.flow-box span{font-size:12px;color:#718096;margin-top:2px}.organization-info{margin-top:18px;padding:24px}.organization-heading h4{font-size:20px;font-weight:700;margin:5px 0}.organization-heading p{color:#718096;margin:0 0 18px}.organization-grid{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:15px}.leader-card,.structure-card{overflow:hidden;border:1px solid #e5eaf0;border-radius:14px;background:#fff;color:#334155;text-decoration:none;transition:.2s}.leader-card:hover,.structure-card:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(30,55,85,.1)}.leader-card img{width:100%;height:180px;object-fit:cover;object-position:top}.leader-card>div,.structure-card>div:last-child{padding:15px}.leader-card small,.structure-card small{font-size:10px;letter-spacing:1px;color:#1769aa;font-weight:700}.leader-card h5,.structure-card h5{font-size:16px;font-weight:700;margin:4px 0}.leader-card span,.structure-card span{font-size:12px;color:#1769aa}.structure-card{display:grid;grid-template-columns:1.2fr 1fr}.structure-preview{background:#f8fafc;padding:10px;display:grid;place-items:center}.structure-preview img{width:100%;height:180px;object-fit:contain}.structure-card p{font-size:12px;color:#718096}.status-guide{margin-top:18px;padding:21px 24px;display:flex;justify-content:space-between;align-items:center;gap:24px}.status-guide h4{font-size:18px;font-weight:700;margin:4px 0}.guide-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 22px;color:#66738a;font-size:12px}.guide-items span{display:flex;align-items:center;gap:6px}.guide-items b{color:#334155}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}.dot.warning{background:#f6b500}.dot.info{background:#27a7c7}.dot.danger{background:#dc3545}.dot.success{background:#198754}@media(max-width:1000px){.organization-grid{grid-template-columns:1fr 1fr}.structure-card{grid-column:1/-1}}@media(max-width:900px){.public-stats{grid-template-columns:repeat(2,1fr)}.intro-card{grid-template-columns:1fr}.status-guide{align-items:flex-start;flex-direction:column}}@media(max-width:600px){.welcome-panel{align-items:flex-start}.public-stats,.guide-items,.organization-grid{grid-template-columns:1fr}.intro-card{padding:22px}.structure-card{grid-column:auto;grid-template-columns:1fr}.letter-row{align-items:flex-start;flex-wrap:wrap}.letter-row>span{width:calc(100% - 55px)}}
+</style>@endpush
+@push('styles')<style>
+.activity-table-card{margin-top:18px;height:auto}.activity-table{min-width:880px}.activity-table th{padding:12px 10px;background:#f8fafc;color:#64748b;font-size:10px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}.activity-table td{padding:13px 10px;color:#475569;font-size:11px;vertical-align:middle;border-bottom-color:#edf1f5}.activity-table td>strong,.activity-table td>small{display:block}.activity-table td>small{color:#8491a3;margin-top:2px}.activity-table .btn{width:31px;height:31px;padding:0;display:inline-grid;place-items:center}.vision-mission-section{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.vision-card,.mission-card,.logo-meaning-section{background:#fff;border:1px solid #e5eaf0;border-radius:17px;box-shadow:0 10px 28px rgba(39,61,89,.05)}.vision-card,.mission-card{padding:25px}.vision-card>i{float:right;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:#edf6ff;color:#1769aa;font-size:20px}.vision-card h4,.mission-card h4,.logo-meaning-heading h4{font-size:19px;font-weight:700;margin:6px 0 11px}.vision-card p{margin:0;color:#65748a;font-size:12px;line-height:1.75}.mission-card ol{list-style:none;padding:0;margin:0}.mission-card li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #edf1f5}.mission-card li:last-child{border:0}.mission-card li b{width:31px;height:31px;display:grid;place-items:center;flex:0 0 auto;border-radius:9px;background:#1769aa;color:#fff;font-size:10px}.mission-card li span{color:#65748a;font-size:12px;line-height:1.6}.logo-meaning-section{margin-top:18px;padding:25px}.logo-meaning-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.logo-meaning-heading p{color:#718096;font-size:12px;margin:0}.emblem-preview{width:108px;height:74px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:16px;background:linear-gradient(145deg,#0e4a78,#1769aa);color:#f6c33d;font-weight:800}.emblem-preview i{font-size:28px}.meaning-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.meaning-grid article{display:flex;gap:11px;padding:15px;border:1px solid #e8edf3;border-radius:13px;background:#fbfcfe}.meaning-grid article>i{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:#fff5d8;color:#b47b00;font-size:17px}.meaning-grid h6{font-size:12px;font-weight:750;margin:1px 0 5px}.meaning-grid p{font-size:10px;color:#718096;line-height:1.55;margin:0}@media(max-width:900px){.vision-mission-section{grid-template-columns:1fr}.meaning-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.logo-meaning-heading{align-items:flex-start}.emblem-preview{width:74px}.emblem-preview span{display:none}.meaning-grid{grid-template-columns:1fr}}
+</style>@endpush
+@push('styles')<style>
+.service-announcement{display:flex;gap:15px;align-items:center;margin-bottom:18px;padding:17px 20px;border:1px solid #bfdbfe;border-radius:15px;background:linear-gradient(100deg,#eff6ff,#fff)}.service-announcement>span{width:42px;height:42px;border-radius:11px;background:#1769aa;color:#fff;display:grid;place-items:center;flex:0 0 auto}.service-announcement small{font-size:10px;letter-spacing:1px;color:#1769aa;font-weight:700}.service-announcement h5{font-size:16px;font-weight:700;margin:2px 0}.service-announcement p{font-size:13px;color:#607087;margin:0}.public-service-info{display:grid;grid-template-columns:1.4fr .8fr;gap:18px;margin-top:18px}.requirements-panel,.service-panel,.faq-section{background:#fff;border:1px solid #e5eaf0;border-radius:17px;box-shadow:0 10px 28px rgba(39,61,89,.05)}.requirements-panel{padding:24px}.info-heading h4{font-size:19px;font-weight:700;margin:5px 0}.info-heading p{font-size:13px;color:#718096}.requirement-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:17px}.requirement-list>div{display:flex;gap:11px;padding:13px;border:1px solid #edf1f5;border-radius:12px;background:#fbfcfd}.requirement-list i{color:#1769aa;font-size:18px}.requirement-list b,.requirement-list small{display:block}.requirement-list b{font-size:13px}.requirement-list small{font-size:11px;color:#718096;margin-top:3px;line-height:1.5}.service-panel{padding:20px}.service-row{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #edf1f5}.service-row>i{width:35px;height:35px;border-radius:9px;background:#edf6ff;color:#1769aa;display:grid;place-items:center;flex:0 0 auto}.service-row small,.service-row b,.service-row span,.service-row a{display:block}.service-row small{font-size:10px;color:#8491a3;text-transform:uppercase;letter-spacing:.6px}.service-row b,.service-row a{font-size:12px;color:#334155}.service-row span{font-size:10px;color:#8491a3;margin-top:2px}.data-protection{display:flex;gap:10px;padding:13px;margin-top:15px;border-radius:11px;background:#ecfdf5;color:#166534}.data-protection b,.data-protection span{display:block}.data-protection b{font-size:12px}.data-protection span{font-size:10px;margin-top:2px}.faq-section{margin-top:18px;padding:24px}.faq-section .accordion{margin-top:13px}.faq-section .accordion-button{font-size:13px;font-weight:600;padding:15px 5px}.faq-section .accordion-button:not(.collapsed){color:#1769aa;background:#f8fbff;box-shadow:none}.faq-section .accordion-body{font-size:12px;color:#66738a;padding:10px 5px 17px}@media(max-width:900px){.public-service-info{grid-template-columns:1fr}}@media(max-width:600px){.requirement-list{grid-template-columns:1fr}.service-announcement{align-items:flex-start}}
+</style>@endpush

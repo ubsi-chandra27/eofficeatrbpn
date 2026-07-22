@@ -11,6 +11,7 @@ use App\Models\Surat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AdminDisposisiController extends Controller
 {
@@ -43,9 +44,14 @@ class AdminDisposisiController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $statistik = DisposisiTujuan::query()
+            ->selectRaw('status, COUNT(*) total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         return view(
             'admin.disposisi.index',
-            compact('disposisi')
+            compact('disposisi', 'statistik')
         );
     }
 
@@ -56,10 +62,15 @@ class AdminDisposisiController extends Controller
      */
     public function create()
     {
-        $surat = Surat::orderByDesc('tanggal_surat')
+        $surat = Surat::where('jenis_surat', 'masuk')
+                    ->whereIn('status', ['diverifikasi', 'diteruskan_ke_pimpinan'])
+                    ->orderByDesc('tanggal_surat')
                     ->get();
 
-        $pegawai = Pegawai::orderBy('nama')
+        $pegawai = Pegawai::with(['jabatan', 'unitKerja'])
+                    ->whereNotNull('user_id')
+                    ->whereHas('user', fn ($query) => $query->where('role', 'pegawai'))
+                    ->orderBy('nama')
                     ->get();
 
         return view(
@@ -80,17 +91,29 @@ class AdminDisposisiController extends Controller
         $request->validate([
             'surat_id'            => 'required|exists:surats,id',
             'pegawai_id'          => 'required|array|min:1',
-            'pegawai_id.*'        => 'exists:pegawai,id',
-            'catatan'             => 'required|string',
+            'pegawai_id.*'        => ['distinct', Rule::exists('pegawai', 'id')->whereNotNull('user_id')],
+            'catatan'             => 'required|string|max:2000',
             'prioritas'           => 'required|in:Rendah,Sedang,Tinggi',
             'tanggal_disposisi'   => 'required|date',
         ],[
             'surat_id.required'          => 'Surat wajib dipilih.',
             'pegawai_id.required'        => 'Minimal satu pegawai dipilih.',
             'pegawai_id.array'           => 'Format pegawai tidak valid.',
+            'pegawai_id.*.distinct'      => 'Pegawai tujuan tidak boleh dipilih lebih dari sekali.',
+            'pegawai_id.*.exists'        => 'Pegawai tujuan tidak valid atau belum memiliki akun.',
             'catatan.required'           => 'Catatan disposisi wajib diisi.',
+            'catatan.max'                => 'Catatan disposisi maksimal 2.000 karakter.',
             'tanggal_disposisi.required' => 'Tanggal disposisi wajib diisi.',
         ]);
+
+        // Hanya surat yang sudah disetujui yang boleh didisposisikan
+        $suratDisposisi = Surat::findOrFail($request->surat_id);
+
+        if (!in_array($suratDisposisi->status, ['diverifikasi', 'diteruskan_ke_pimpinan'], true)) {
+            return back()
+                ->withInput()
+                ->with('error', 'Hanya surat yang telah diverifikasi atau diteruskan ke pimpinan yang dapat didisposisikan.');
+        }
 
         DB::beginTransaction();
 
@@ -141,10 +164,7 @@ class AdminDisposisiController extends Controller
 
             return back()
                     ->withInput()
-                    ->with(
-                        'error',
-                        'Gagal menyimpan disposisi. ' . $e->getMessage()
-                    );
+                    ->with('error', 'Disposisi gagal disimpan. Silakan periksa data lalu coba kembali.');
 
         }
         
@@ -179,10 +199,18 @@ class AdminDisposisiController extends Controller
             'tujuans'
         ])->findOrFail($id);
 
-        $surat = Surat::orderByDesc('tanggal_surat')
+        $surat = Surat::where('jenis_surat', 'masuk')
+                    ->where(function ($query) use ($disposisi) {
+                        $query->whereIn('status', ['diverifikasi', 'diteruskan_ke_pimpinan'])
+                            ->orWhere('id', $disposisi->surat_id);
+                    })
+                    ->orderByDesc('tanggal_surat')
                     ->get();
 
-        $pegawai = Pegawai::orderBy('nama')
+        $pegawai = Pegawai::with(['jabatan', 'unitKerja'])
+                    ->whereNotNull('user_id')
+                    ->whereHas('user', fn ($query) => $query->where('role', 'pegawai'))
+                    ->orderBy('nama')
                     ->get();
 
         // Pegawai yang sudah menjadi tujuan disposisi
@@ -212,10 +240,19 @@ class AdminDisposisiController extends Controller
         $request->validate([
             'surat_id'            => 'required|exists:surats,id',
             'pegawai_id'          => 'required|array|min:1',
-            'pegawai_id.*'        => 'exists:pegawai,id',
-            'catatan'             => 'required|string',
+            'pegawai_id.*'        => ['distinct', Rule::exists('pegawai', 'id')->whereNotNull('user_id')],
+            'catatan'             => 'required|string|max:2000',
             'prioritas'           => 'required|in:Rendah,Sedang,Tinggi',
             'tanggal_disposisi'   => 'required|date',
+        ], [
+            'surat_id.required' => 'Surat wajib dipilih.',
+            'pegawai_id.required' => 'Minimal satu pegawai harus dipilih.',
+            'pegawai_id.*.distinct' => 'Pegawai tujuan tidak boleh dipilih lebih dari sekali.',
+            'pegawai_id.*.exists' => 'Pegawai tujuan tidak valid atau belum memiliki akun.',
+            'catatan.required' => 'Catatan disposisi wajib diisi.',
+            'catatan.max' => 'Catatan disposisi maksimal 2.000 karakter.',
+            'prioritas.required' => 'Prioritas wajib dipilih.',
+            'tanggal_disposisi.required' => 'Tanggal disposisi wajib diisi.',
         ]);
 
         DB::beginTransaction();
@@ -224,6 +261,20 @@ class AdminDisposisiController extends Controller
 
             $disposisi = Disposisi::findOrFail($id);
 
+            if ($disposisi->tujuans()->where('status', '!=', 'Belum Dibaca')->exists()) {
+                DB::rollBack();
+                return back()->with('error', 'Disposisi yang sudah dibaca atau selesai tidak dapat diubah.');
+            }
+
+            $suratDipilih = Surat::where('jenis_surat', 'masuk')->findOrFail($request->surat_id);
+            $bolehDipilih = in_array($suratDipilih->status, ['diverifikasi', 'diteruskan_ke_pimpinan'], true)
+                || $suratDipilih->id === $disposisi->surat_id;
+
+            if (!$bolehDipilih) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Surat yang dipilih tidak dapat didisposisikan.');
+            }
+
             $disposisi->update([
                 'surat_id'          => $request->surat_id,
                 'catatan'           => $request->catatan,
@@ -231,16 +282,16 @@ class AdminDisposisiController extends Controller
                 'tanggal_disposisi' => $request->tanggal_disposisi,
             ]);
 
-            // Hapus tujuan lama
+            // Hapus hanya penerima yang dibatalkan; status penerima lama tetap terjaga.
             DisposisiTujuan::where('disposisi_id', $disposisi->id)
+                ->whereNotIn('pegawai_id', $request->pegawai_id)
                 ->delete();
 
-            // Simpan tujuan baru
             foreach ($request->pegawai_id as $pegawai) {
-
-                DisposisiTujuan::create([
+                DisposisiTujuan::firstOrCreate([
                     'disposisi_id' => $disposisi->id,
                     'pegawai_id'   => $pegawai,
+                ], [
                     'status'       => 'Belum Dibaca',
                 ]);
 
@@ -258,7 +309,7 @@ class AdminDisposisiController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui disposisi. ' . $e->getMessage());
+                ->with('error', 'Disposisi gagal diperbarui. Silakan coba kembali.');
 
         }
     }
@@ -276,11 +327,12 @@ class AdminDisposisiController extends Controller
 
             $disposisi = Disposisi::findOrFail($id);
 
-            // Hapus seluruh tujuan disposisi
-            DisposisiTujuan::where('disposisi_id', $disposisi->id)
-                ->delete();
+            if ($disposisi->tujuans()->where('status', '!=', 'Belum Dibaca')->exists()) {
+                DB::rollBack();
+                return back()->with('error', 'Disposisi yang sudah dibaca atau selesai tidak dapat dihapus.');
+            }
 
-            // Hapus disposisi
+            // Soft delete menjaga histori surat dan penerima.
             $disposisi->delete();
 
             DB::commit();
@@ -299,5 +351,4 @@ class AdminDisposisiController extends Controller
         }
     }
 }
-    
     

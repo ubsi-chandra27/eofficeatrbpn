@@ -16,7 +16,7 @@
 <body>
     <div class="d-flex">
         <div class="sidebar p-3" style="width: 250px;">
-            <h4 class="text-white text-center py-3">E-Office ATR/BPN</h4>
+            <h4 class="text-white text-center py-3">E-Office</h4>
             <ul class="nav flex-column">
                 <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="/surat/masuk">Surat Masuk</a></li>

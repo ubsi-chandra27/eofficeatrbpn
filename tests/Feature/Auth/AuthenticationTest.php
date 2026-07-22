@@ -9,23 +9,25 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['role' => 'umum']);
 
     $response = $this->post('/login', [
-        'email' => $user->email,
+        'identifier' => $user->email,
         'password' => 'password',
+        'login_as' => 'umum',
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('umum.dashboard', absolute: false));
 });
 
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['role' => 'umum']);
 
     $this->post('/login', [
-        'email' => $user->email,
+        'identifier' => $user->email,
         'password' => 'wrong-password',
+        'login_as' => 'umum',
     ]);
 
     $this->assertGuest();
@@ -37,5 +39,5 @@ test('users can logout', function () {
     $response = $this->actingAs($user)->post('/logout');
 
     $this->assertGuest();
-    $response->assertRedirect('/');
+    $response->assertRedirect(route('login'));
 });

@@ -2,47 +2,38 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@atrbpn.com'],
-            [
-                'name' => 'Administrator',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-            ]
-        );
+        $this->call([JabatanSeeder::class, UnitKerjaSeeder::class]);
 
-        User::updateOrCreate(
-            ['email' => 'pegawai@atrbpn.com'],
-            [
-                'name' => 'Pegawai',
-                'password' => Hash::make('password'),
-                'role' => 'pegawai',
-            ]
-        );
+        if ($email = env('INITIAL_ADMIN_EMAIL')) {
+            $nip = env('INITIAL_ADMIN_NIP');
+            $password = env('INITIAL_ADMIN_PASSWORD');
 
-        User::updateOrCreate(
-            ['email' => 'umum@atrbpn.com'],
-            [
-                'name' => 'Masyarakat',
-                'password' => Hash::make('password'),
-                'role' => 'umum',
-            ]
-        );
+            if (! $nip || ! $password || strlen($password) < 8) {
+                $this->command?->warn('Admin awal tidak dibuat: lengkapi NIP dan password minimal 8 karakter.');
+            } else {
+                User::updateOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => env('INITIAL_ADMIN_NAME', 'Administrator'),
+                        'nip' => $nip,
+                        'password' => Hash::make($password),
+                        'role' => 'admin',
+                    ]
+                );
+                $this->command?->info('Akun Admin awal berhasil disiapkan.');
+            }
+        }
 
-        $this->call([
-            JabatanSeeder::class,
-            UnitKerjaSeeder::class,
-            PegawaiSeeder::class,
-            SuratSeeder::class,
-            DisposisiSeeder::class,
-        ]);
+        if ((bool) env('SEED_DEMO_DATA', false)) {
+            $this->call([PegawaiSeeder::class, SuratSeeder::class, DisposisiSeeder::class]);
+        }
     }
 }

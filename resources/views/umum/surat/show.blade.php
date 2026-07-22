@@ -32,10 +32,20 @@
 
                 <tr>
 
-                    <th>Jenis Surat</th>
+                    <th>Kategori Pengajuan</th>
 
-                    <td>{{ ucfirst($surat->jenis_surat) }}</td>
+                    <td>{{ $surat->kategori_pengajuan ?? 'Pengajuan Umum' }}</td>
 
+                </tr>
+
+                <tr>
+                    <th>Nomor Kontak</th>
+                    <td>{{ $surat->nomor_kontak ?: '-' }}</td>
+                </tr>
+
+                <tr>
+                    <th>Asal Instansi/Organisasi</th>
+                    <td>{{ $surat->asal_instansi ?: 'Perorangan' }}</td>
                 </tr>
 
                 <tr>
@@ -52,7 +62,7 @@
 
                 <tr>
 
-                    <th>Perihal</th>
+                    <th>Pokok Pengajuan</th>
 
                     <td>{{ $surat->perihal }}</td>
 
@@ -60,7 +70,7 @@
 
                 <tr>
 
-                    <th>Deskripsi</th>
+                    <th>Uraian Pengajuan</th>
 
                     <td>{{ $surat->deskripsi }}</td>
 
@@ -72,39 +82,7 @@
 
                     <td>
 
-                        @if($surat->status=='menunggu')
-
-                            <span class="badge bg-warning">
-
-                                Menunggu
-
-                            </span>
-
-                        @elseif($surat->status=='diproses')
-
-                            <span class="badge bg-info">
-
-                                Diproses
-
-                            </span>
-
-                        @elseif($surat->status=='selesai')
-
-                            <span class="badge bg-success">
-
-                                Selesai
-
-                            </span>
-
-                        @elseif($surat->status=='ditolak')
-
-                            <span class="badge bg-danger">
-
-                                Ditolak
-
-                            </span>
-
-                        @endif
+                        <span class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span>
 
                     </td>
 
@@ -118,11 +96,10 @@
 
                     <td>
 
-                        <a href="{{ asset('storage/'.$surat->file_path) }}"
-                           target="_blank"
+                        <a href="{{ route('umum.surat.download', $surat->id) }}"
                            class="btn btn-success btn-sm">
 
-                            Download File
+                            <i class="bi bi-download me-1"></i> Unduh Lampiran
 
                         </a>
 

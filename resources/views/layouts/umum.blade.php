@@ -13,34 +13,9 @@
 
     <title>
 
-        @yield('title') | E-Office ATR/BPN
+        @yield('title') | {{ \App\Models\Setting::getValue('app_name','E-Office') }}
 
     </title>
-
-    {{-- Bootstrap --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    {{-- Bootstrap Icons --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-          rel="stylesheet">
-
-    {{-- Google Font --}}
-    <link rel="preconnect"
-          href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
-
-    {{-- ========================= --}}
-    {{-- SWIPER CSS --}}
-    {{-- ========================= --}}
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
     {{-- Laravel --}}
     @vite(['resources/css/app.css','resources/js/app.js'])
@@ -75,13 +50,13 @@
 
                 <h4 class="mb-0">
 
-                    E-Office
+                    {{ \App\Models\Setting::getValue('app_name','E-Office') }}
 
                 </h4>
 
                 <small>
 
-                    ATR / BPN
+                    {{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}
 
                 </small>
 
@@ -145,7 +120,7 @@
 
             </span>
 
-            <a href="{{ route('profile.edit') }}">
+            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
 
                 <i class="bi bi-person-circle"></i>
 
@@ -205,7 +180,7 @@
 
                     <small class="text-muted">
 
-                        Sistem Informasi Persuratan ATR/BPN
+                        {{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}
 
                     </small>
 
@@ -218,9 +193,11 @@
                 <div class="user-box">
 
                     <div class="avatar">
-
-                        {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
-
+                        @if(auth()->user()->profile_photo_path)
+                            <img src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
+                        @endif
                     </div>
 
                     <div>
@@ -262,33 +239,13 @@
         {{-- ========================= --}}
 
         <footer class="footer">
-
-            <div>
-
-                © {{ date('Y') }} E-Office ATR/BPN
-
-            </div>
-
-            <div>
-
-                Kementerian Agraria dan Tata Ruang /
-                Badan Pertanahan Nasional
-
-            </div>
-
+            <div>&copy; {{ date('Y') }} {{ \App\Models\Setting::getValue('app_name','E-Office') }}</div>
+            <div>Layanan administrasi dan persuratan digital</div>
         </footer>
 
     </main>
 
 </div>
-
-{{-- Bootstrap --}}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-{{-- ========================= --}}
-{{-- SWIPER JS --}}
-{{-- ========================= --}}
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 {{-- Dashboard JS --}}
 <script src="{{ asset('js/dashboard-umum.js') }}"></script>

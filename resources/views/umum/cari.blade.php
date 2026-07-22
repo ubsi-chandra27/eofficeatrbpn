@@ -1,83 +1,21 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Pencarian Berkas') }}
-        </h2>
-    </x-slot>
+@extends('layouts.umum')
+@section('title', 'Lacak Pengajuan')
+@section('content')
+<div class="tracking-page">
+    <div class="tracking-heading"><div><h2><i class="bi bi-search text-primary me-2"></i>Lacak Pengajuan</h2><p>Masukkan nomor pengajuan untuk membuka status dan histori proses.</p></div><a href="{{ route('umum.surat.index') }}" class="btn btn-outline-secondary"><i class="bi bi-list-ul me-2"></i>Semua Pengajuan</a></div>
 
-    <div class="py-12" x-data="{ isChecked: false }">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
-                <div class="p-8">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Formulir Cari Berkas</h3>
-                    
-                    @if(session('error'))
-                        <div class="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 font-medium">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                    @if(session('success'))
-                        <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 font-medium">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    <form action="{{ route('umum.cari.proses') }}" method="POST" class="space-y-6">
-                        @csrf
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Pilih Kantor</label>
-                                <select name="kantor" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Pilih Kantor Layanan...</option>
-                                    <option value="Jakarta">Kantor Pertanahan Jakarta</option>
-                                    <option value="Bogor">Kantor Pertanahan Bogor</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Nomor Berkas</label>
-                                <input type="text" name="nomor_berkas" required placeholder="Masukkan nomor berkas" 
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Tahun</label>
-                                <select name="tahun" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="2026">2026</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2024">2024</option>
-                                </select>
-                            </div>
-
-                            <div class="flex items-center">
-                                <div @click="isChecked = !isChecked" 
-                                     class="border border-gray-300 rounded px-4 py-3 flex items-center justify-between w-full bg-[#f9f9f9] cursor-pointer hover:bg-gray-50 transition">
-                                    <div class="flex items-center">
-                                        <div class="w-6 h-6 border-2 border-gray-400 rounded-sm flex items-center justify-center mr-3"
-                                             :class="isChecked ? 'bg-blue-600 border-blue-600' : 'bg-white'">
-                                            <svg x-show="isChecked" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                        </div>
-                                        <span class="text-gray-700 text-sm font-medium">I'm not a robot</span>
-                                    </div>
-                                    <div class="flex flex-col items-center">
-                                        <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="w-8 h-8 opacity-70" alt="reCAPTCHA">
-                                        <span class="text-[10px] text-gray-500">reCAPTCHA</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-4">
-                            <button type="submit" 
-                                    :disabled="!isChecked" 
-                                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-md transition duration-200">
-                                Cari Berkas Sekarang
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div class="row g-4">
+        <div class="col-lg-7"><div class="tracking-card"><div class="tracking-icon"><i class="bi bi-folder2-open"></i></div><h4>Cari dengan nomor pengajuan</h4><p class="text-muted">Nomor diperoleh setelah pengajuan berhasil dikirim, misalnya <code>UMUM/{{ now()->format('Ymd') }}/ABC123</code>.</p>
+            @if(session('error'))<div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}</div>@endif
+            <form action="{{ route('umum.cari.proses') }}" method="POST">@csrf<label for="nomor_berkas" class="form-label fw-semibold">Nomor Pengajuan</label><div class="input-group input-group-lg has-validation"><span class="input-group-text"><i class="bi bi-upc-scan"></i></span><input id="nomor_berkas" name="nomor_berkas" value="{{ old('nomor_berkas') }}" class="form-control @error('nomor_berkas') is-invalid @enderror" placeholder="UMUM/YYYYMMDD/XXXXXX" required autofocus><button class="btn btn-primary" type="submit"><i class="bi bi-search me-2"></i>Lacak</button>@error('nomor_berkas')<div class="invalid-feedback">{{ $message }}</div>@enderror</div></form>
+            <div class="privacy-note"><i class="bi bi-shield-lock-fill"></i><div><strong>Pencarian privat</strong><span>Nomor milik pengguna lain tidak dapat ditemukan atau dibuka dari akun Anda.</span></div></div>
+        </div></div>
+        <div class="col-lg-5"><div class="recent-card"><div class="recent-heading"><div><h5>Pengajuan Terbaru</h5><small>Akses cepat tanpa mengetik nomor</small></div></div>@forelse($pengajuanTerbaru as $surat)<a href="{{ route('umum.surat.show',$surat->id) }}" class="recent-item"><span><strong>{{ $surat->nomor_surat }}</strong><small>{{ $surat->perihal }}</small></span><b class="badge rounded-pill bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</b></a>@empty<div class="recent-empty"><i class="bi bi-inbox"></i><span>Belum ada pengajuan untuk dilacak.</span></div>@endforelse</div></div>
     </div>
-</x-app-layout>
+
+    <div class="tracking-help"><div><i class="bi bi-lightbulb"></i><span><b>Nomor tidak ditemukan?</b><small>Periksa kembali huruf, angka, dan tanda garis miring pada nomor pengajuan.</small></span></div><div><i class="bi bi-clock-history"></i><span><b>Status belum berubah?</b><small>Pemeriksaan dilakukan pada jam layanan dan perubahan akan tercatat pada histori.</small></span></div><div><i class="bi bi-question-circle"></i><span><b>Masih membutuhkan bantuan?</b><small>Lihat informasi kontak dan persyaratan pada menu Layanan.</small></span></div></div>
+</div>
+@endsection
+@push('styles')<style>
+.tracking-page{max-width:1150px;margin:auto}.tracking-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:22px}.tracking-heading h2{font-weight:700;margin:0}.tracking-heading p{color:#718096;margin:5px 0 0}.tracking-card,.recent-card{height:100%;background:#fff;border:1px solid #e5eaf0;border-radius:18px;padding:28px;box-shadow:0 10px 28px rgba(39,61,89,.05)}.tracking-icon{width:52px;height:52px;border-radius:14px;background:#edf6ff;color:#1769aa;display:grid;place-items:center;font-size:23px}.tracking-card h4{font-weight:700;margin:17px 0 6px}.tracking-card>p{font-size:13px;margin-bottom:22px}.tracking-card code{color:#1769aa}.tracking-card .input-group>*{min-height:52px}.tracking-card .input-group-text{background:#f8fafc;color:#1769aa}.privacy-note{display:flex;gap:11px;margin-top:22px;padding:14px;border-radius:12px;background:#ecfdf5;color:#166534}.privacy-note strong,.privacy-note span{display:block}.privacy-note span{font-size:11px;margin-top:2px}.recent-heading{padding-bottom:14px;margin-bottom:4px;border-bottom:1px solid #edf1f5}.recent-heading h5{font-weight:700;margin:0}.recent-heading small{color:#8491a3}.recent-item{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid #edf1f5;text-decoration:none;color:#334155}.recent-item>span{flex:1;min-width:0}.recent-item strong,.recent-item small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.recent-item strong{font-size:12px}.recent-item small{font-size:11px;color:#8491a3;margin-top:3px}.recent-item .badge{font-size:9px}.recent-empty{text-align:center;color:#8491a3;padding:40px 10px}.recent-empty i,.recent-empty span{display:block}.recent-empty i{font-size:35px;margin-bottom:8px}.tracking-help{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}.tracking-help>div{display:flex;gap:11px;padding:17px;background:#fff;border:1px solid #e5eaf0;border-radius:14px}.tracking-help i{color:#1769aa;font-size:19px}.tracking-help b,.tracking-help small{display:block}.tracking-help b{font-size:12px}.tracking-help small{font-size:10px;color:#8491a3;margin-top:3px}@media(max-width:700px){.tracking-heading{align-items:flex-start;flex-direction:column}.tracking-heading .btn{width:100%}.tracking-help{grid-template-columns:1fr}.tracking-card .input-group{flex-wrap:wrap}.tracking-card .input-group .btn{width:100%;border-radius:0 0 .5rem .5rem}}
+</style>@endpush
