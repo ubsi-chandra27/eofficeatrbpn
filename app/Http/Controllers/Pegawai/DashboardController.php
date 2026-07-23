@@ -36,13 +36,12 @@ class DashboardController extends Controller
 
 
 
-        if(!$pegawai){
+        if (!$pegawai) {
 
             abort(
                 403,
                 'Data pegawai belum terhubung dengan akun login.'
             );
-
         }
 
 
@@ -57,16 +56,15 @@ class DashboardController extends Controller
         // surat masuk dari disposisi (total tugas disposisi)
         $suratMasuk = Surat::whereHas(
             'disposisiTujuans',
-            function($q) use($pegawai){
+            function ($q) use ($pegawai) {
 
                 $q->where(
                     'pegawai_id',
                     $pegawai->id
                 );
-
             }
         )
-        ->count();
+            ->count();
 
 
 
@@ -75,8 +73,8 @@ class DashboardController extends Controller
             'pegawai_id',
             $pegawai->id
         )
-        ->whereIn('status', ['Belum Dibaca', 'Sudah Dibaca'])
-        ->count();
+            ->whereIn('status', ['Belum Dibaca', 'Sudah Dibaca'])
+            ->count();
 
 
 
@@ -85,11 +83,11 @@ class DashboardController extends Controller
             'user_id',
             $user->id
         )
-        ->where(
-            'jenis_surat',
-            'keluar'
-        )
-        ->count();
+            ->where(
+                'jenis_surat',
+                'keluar'
+            )
+            ->count();
 
 
 
@@ -98,17 +96,21 @@ class DashboardController extends Controller
             'pegawai_id',
             $pegawai->id
         )
-        ->count();
+            ->count();
 
 
 
-        // surat menunggu
-        $menunggu = Surat::where(
-            'user_id',
-            $user->id
-        )
-        ->whereIn('status', ['draft', 'diajukan', 'dikembalikan'])
-        ->count();
+        // surat menunggu (normalize grouped statuses)
+        $statusGroups = [
+            'diajukan' => ['menunggu', 'diajukan'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'perbaikan' => ['dikembalikan', 'ditolak'],
+            'selesai' => ['selesai', 'terkirim', 'diarsipkan'],
+        ];
+
+        $menunggu = Surat::where('user_id', $user->id)
+            ->whereIn('status', $statusGroups['diajukan'])
+            ->count();
 
 
 
@@ -124,11 +126,11 @@ class DashboardController extends Controller
             'pegawai_id',
             $pegawai->id
         )
-        ->where(
-            'status',
-            'Belum Dibaca'
-        )
-        ->count();
+            ->where(
+                'status',
+                'Belum Dibaca'
+            )
+            ->count();
 
 
 
@@ -153,10 +155,10 @@ class DashboardController extends Controller
             'user_id',
             $user->id
         )
-        ->where('jenis_surat', 'masuk')
-        ->latest()
-        ->take(5)
-        ->get();
+            ->where('jenis_surat', 'masuk')
+            ->latest()
+            ->take(5)
+            ->get();
 
 
 
@@ -169,12 +171,12 @@ class DashboardController extends Controller
 
 
         $disposisiTerbaru = DisposisiTujuan::with([
-        'disposisi.surat'
-    ])
-    ->where('pegawai_id', $pegawai->id)
-    ->latest()
-    ->take(5)
-    ->get();
+            'disposisi.surat'
+        ])
+            ->where('pegawai_id', $pegawai->id)
+            ->latest()
+            ->take(5)
+            ->get();
 
 
 
@@ -236,7 +238,5 @@ class DashboardController extends Controller
 
             )
         );
-
     }
-
 }
