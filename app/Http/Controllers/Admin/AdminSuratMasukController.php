@@ -8,7 +8,6 @@ use App\Models\Surat;
 use App\Models\LogAktivitas;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AdminSuratMasukController extends Controller
 {
@@ -86,7 +85,7 @@ class AdminSuratMasukController extends Controller
         ]);
 
         if ($request->hasFile('file_path')) {
-            $data['file_path'] = $request->file('file_path')->store('surat-masuk', 'public');
+            $data['file_path'] = $request->file('file_path')->store('surat-masuk');
         }
 
         $data['jenis_surat'] = 'masuk';
@@ -126,7 +125,7 @@ class AdminSuratMasukController extends Controller
      */
     public function show($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         return view('admin.surat.masuk.show', compact('surat'));
     }
@@ -136,7 +135,7 @@ class AdminSuratMasukController extends Controller
      */
     public function edit($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         return view('admin.surat.masuk.edit', compact('surat'));
     }
@@ -152,7 +151,7 @@ class AdminSuratMasukController extends Controller
         'tanggal_surat' => 'required|date',
     ]);
 
-    $surat = Surat::findOrFail($id);
+    $surat = $this->suratMasuk($id);
 
     // Simpan status lama
     $statusLama = $surat->status;
@@ -243,7 +242,7 @@ class AdminSuratMasukController extends Controller
             'catatan_admin' => 'nullable|string|max:1000',
         ]);
 
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         if ($surat->status !== 'diajukan') {
             return back()->with('error', 'Hanya surat yang telah diajukan yang dapat diverifikasi.');
@@ -284,7 +283,7 @@ class AdminSuratMasukController extends Controller
             'catatan_admin.required' => 'Catatan penolakan wajib diisi.',
         ]);
 
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         if ($surat->status !== 'diajukan') {
             return back()->with('error', 'Hanya surat yang telah diajukan yang dapat dikembalikan.');
@@ -322,7 +321,7 @@ class AdminSuratMasukController extends Controller
             'metode_penerusan' => 'required|in:fisik,email,lainnya',
         ]);
 
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         if ($surat->status !== 'diverifikasi') {
             return back()->with('error', 'Surat harus diverifikasi sebelum diteruskan ke pimpinan.');
@@ -366,14 +365,14 @@ class AdminSuratMasukController extends Controller
      */
     public function destroy($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratMasuk($id);
 
         if (!in_array($surat->status, ['draft', 'dikembalikan'], true) || $surat->disposisi()->exists()) {
             return back()->with('error', 'Surat yang sudah diproses atau memiliki disposisi tidak dapat dihapus.');
         }
 
         if ($surat->file_path) {
-            Storage::disk('public')->delete($surat->file_path);
+            $surat->deleteAttachment();
         }
 
         LogAktivitas::create([
@@ -387,5 +386,9 @@ class AdminSuratMasukController extends Controller
         return redirect()
             ->route('admin.surat.masuk.index')
             ->with('success','Surat berhasil dipindahkan dari daftar aktif.');
+    }
+    private function suratMasuk(int $id): Surat
+    {
+        return Surat::where('jenis_surat', 'masuk')->findOrFail($id);
     }
 }

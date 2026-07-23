@@ -8,7 +8,6 @@ use App\Models\LogAktivitas;
 use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 
 class SuratKeluarController extends Controller
@@ -142,7 +141,7 @@ class SuratKeluarController extends Controller
                 ->file('file_path')
                 ->store(
                     'surat-keluar',
-                    'public'
+                    'local'
                 );
 
         }
@@ -220,6 +219,13 @@ class SuratKeluarController extends Controller
             'pegawai.surat.keluar.show',
             compact('surat')
         );
+    }
+
+    public function cetak(int $id)
+    {
+        return view('pegawai.surat.keluar.cetak', [
+            'surat' => $this->suratKeluarMilikPegawai($id)->load('jabatanPimpinan'),
+        ]);
     }
 
 
@@ -329,10 +335,7 @@ class SuratKeluarController extends Controller
 
             if ($surat->file_path) {
 
-                Storage::disk('public')
-                    ->delete(
-                        $surat->file_path
-                    );
+                $surat->deleteAttachment();
 
             }
 
@@ -341,7 +344,7 @@ class SuratKeluarController extends Controller
                     ->file('file_path')
                     ->store(
                         'surat-keluar',
-                        'public'
+                        'local'
                     );
         }
 
@@ -418,10 +421,7 @@ class SuratKeluarController extends Controller
 
         if ($surat->file_path) {
 
-            Storage::disk('public')
-                ->delete(
-                    $surat->file_path
-                );
+            $surat->deleteAttachment();
 
         }
 

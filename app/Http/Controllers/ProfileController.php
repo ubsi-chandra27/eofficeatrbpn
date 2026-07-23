@@ -20,6 +20,35 @@ use App\Models\DisposisiTujuan;
 
 class ProfileController extends Controller
 {
+    public function pegawaiIndex(Request $request): View
+    {
+        $user = $request->user();
+        $pegawai = $user->pegawai?->load(['jabatan', 'unitKerja']);
+        $statistik = [
+            'surat' => Surat::where('user_id', $user->id)->count(),
+            'disposisi_aktif' => $pegawai
+                ? DisposisiTujuan::where('pegawai_id', $pegawai->id)
+                    ->whereIn('status', ['Belum Dibaca', 'Sudah Dibaca'])->count()
+                : 0,
+            'disposisi_selesai' => $pegawai
+                ? DisposisiTujuan::where('pegawai_id', $pegawai->id)
+                    ->where('status', 'Selesai')->count()
+                : 0,
+        ];
+
+        return view('pegawai.profile.index', compact('user', 'pegawai', 'statistik'));
+    }
+
+    public function pegawaiPassword(): View
+    {
+        return view('pegawai.profile.password');
+    }
+
+    public function pegawaiSettings(): View
+    {
+        return view('pegawai.pengaturan.index');
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -42,7 +71,7 @@ class ProfileController extends Controller
                 'disposisi_aktif' => $pegawai ? DisposisiTujuan::where('pegawai_id', $pegawai->id)->whereIn('status', ['Belum Dibaca', 'Sudah Dibaca'])->count() : 0,
                 'disposisi_selesai' => $pegawai ? DisposisiTujuan::where('pegawai_id', $pegawai->id)->where('status', 'Selesai')->count() : 0,
             ];
-            return view('profile.pegawai', compact('pegawai', 'statistik') + ['user' => $request->user()]);
+            return view('pegawai.profile.index', compact('pegawai', 'statistik') + ['user' => $request->user()]);
         }
 
         return view('profile.edit', [

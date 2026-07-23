@@ -68,12 +68,11 @@
                data-bs-toggle="dropdown"
                aria-expanded="false">
 
-                <img
-                    src="https://ui-avatars.com/api/?background=0D47A1&color=fff&name={{ urlencode(Auth::user()->name) }}"
-                    class="rounded-circle shadow"
-                    width="45"
-                    height="45"
-                    alt="Avatar">
+                <span class="rounded-circle shadow d-inline-grid bg-primary text-white fw-bold"
+                      style="width:45px;height:45px;place-items:center"
+                      role="img" aria-label="Inisial {{ Auth::user()->name }}">
+                    {{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
+                </span>
 
                 <div class="ms-3 d-none d-md-block">
 

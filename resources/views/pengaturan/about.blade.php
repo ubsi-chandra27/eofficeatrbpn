@@ -145,8 +145,7 @@
 
                 <div class="card-body text-center">
 
-                    <img src="{{ asset('images/logo.png') }}"
-                         onerror="this.src='https://via.placeholder.com/180'"
+                    <img src="{{ asset('images/logo-eoffice.svg') }}"
                          class="img-fluid mb-3"
                          style="max-height:180px;">
 

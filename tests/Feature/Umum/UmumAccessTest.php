@@ -106,7 +106,7 @@ it('membuat nomor otomatis untuk pengajuan masyarakat', function () {
 });
 
 it('mengunggah dan mengunduh lampiran yang didukung secara aman', function (string $filename, string $mime) {
-    Storage::fake('public');
+    Storage::fake('local');
     $user = User::factory()->create(['role' => 'umum']);
 
     $this->actingAs($user)->post(route('umum.surat.store'), [
@@ -118,7 +118,7 @@ it('mengunggah dan mengunduh lampiran yang didukung secara aman', function (stri
     ])->assertRedirect(route('umum.surat.index'));
 
     $surat = Surat::where('user_id', $user->id)->firstOrFail();
-    Storage::disk('public')->assertExists($surat->file_path);
+    Storage::disk('local')->assertExists($surat->file_path);
     $this->actingAs($user)->get(route('umum.surat.download', $surat))->assertOk();
 
     $other = User::factory()->create(['role' => 'umum']);
@@ -140,4 +140,108 @@ it('memfilter daftar pengajuan berdasarkan kelompok status dan kategori', functi
 
     $this->actingAs($user)->get(route('umum.surat.index', ['status' => 'selesai']))
         ->assertOk()->assertDontSee('UMUM-FILTER-001');
+});
+
+it('menautkan peringatan dashboard ke filter perbaikan yang benar', function () {
+    $user = User::factory()->create(['role' => 'umum']);
+    $surat = createUmumSurat($user, 'UMUM-DASHBOARD-PERBAIKAN');
+    $surat->update(['status' => 'dikembalikan']);
+
+    $this->actingAs($user)->get(route('umum.dashboard'))
+        ->assertOk()
+        ->assertSee(route('umum.surat.index', ['status' => 'perbaikan']), false);
+});
+
+it('menolak lampiran berbahaya dan lampiran yang melebihi batas', function () {
+    Storage::fake('local');
+    $user = User::factory()->create(['role' => 'umum']);
+    $base = [
+        'kategori_pengajuan' => 'Permohonan Dokumen',
+        'nomor_kontak' => '081234567890',
+        'perihal' => 'Validasi lampiran',
+        'deskripsi' => 'Memastikan hanya dokumen yang aman dan sesuai ukuran yang diterima.',
+    ];
+
+    $this->actingAs($user)->post(route('umum.surat.store'), $base + [
+        'file_path' => UploadedFile::fake()->create('program.exe', 10, 'application/x-msdownload'),
+    ])->assertSessionHasErrors('file_path');
+
+    $this->actingAs($user)->post(route('umum.surat.store'), $base + [
+        'file_path' => UploadedFile::fake()->create('terlalu-besar.pdf', 6 * 1024, 'application/pdf'),
+    ])->assertSessionHasErrors('file_path');
+
+    expect(Surat::where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('menolak nomor kontak dan deskripsi yang tidak valid', function () {
+    $user = User::factory()->create(['role' => 'umum']);
+    $base = [
+        'kategori_pengajuan' => 'Pengaduan',
+        'perihal' => 'Validasi data pengajuan',
+    ];
+
+    $this->actingAs($user)->post(route('umum.surat.store'), $base + [
+        'nomor_kontak' => 'telepon-tidak-valid',
+        'deskripsi' => 'Deskripsi valid.',
+    ])->assertSessionHasErrors('nomor_kontak');
+
+    $this->actingAs($user)->post(route('umum.surat.store'), $base + [
+        'nomor_kontak' => '081234567890',
+        'deskripsi' => str_repeat('A', 2001),
+    ])->assertSessionHasErrors('deskripsi');
+});
+
+it('membatasi frekuensi pembuatan pengajuan', function () {
+    $user = User::factory()->create(['role' => 'umum']);
+    $payload = [
+        'kategori_pengajuan' => 'Permohonan Informasi',
+        'nomor_kontak' => '081234567890',
+        'perihal' => 'Uji pembatasan pengajuan',
+        'deskripsi' => 'Pengajuan untuk memastikan pembatasan frekuensi berjalan.',
+    ];
+
+    for ($i = 0; $i < 10; $i++) {
+        $this->actingAs($user)->post(route('umum.surat.store'), $payload)->assertRedirect();
+    }
+
+    $this->actingAs($user)->post(route('umum.surat.store'), $payload)
+        ->assertTooManyRequests();
+});
+
+it('membersihkan lampiran baru ketika pembuatan pengajuan gagal', function () {
+    Storage::fake('local');
+    $this->withoutExceptionHandling();
+    $user = User::factory()->create(['role' => 'umum']);
+    Surat::creating(fn () => throw new RuntimeException('Simulasi kegagalan database'));
+
+    expect(fn () => $this->actingAs($user)->post(route('umum.surat.store'), [
+        'kategori_pengajuan' => 'Permohonan Dokumen',
+        'nomor_kontak' => '081234567890',
+        'perihal' => 'Simulasi kegagalan',
+        'deskripsi' => 'Memastikan berkas baru dibersihkan ketika database gagal.',
+        'file_path' => UploadedFile::fake()->create('baru.pdf', 128, 'application/pdf'),
+    ]))->toThrow(RuntimeException::class, 'Simulasi kegagalan database');
+
+    expect(Storage::disk('local')->allFiles())->toBeEmpty();
+});
+
+it('mempertahankan lampiran lama ketika penggantian lampiran gagal', function () {
+    Storage::fake('local');
+    $this->withoutExceptionHandling();
+    $user = User::factory()->create(['role' => 'umum']);
+    Storage::disk('local')->put('surat-umum/lama.pdf', 'lampiran-lama');
+    $surat = createUmumSurat($user, 'UMUM-ROLLBACK-001');
+    $surat->update(['status' => 'dikembalikan', 'file_path' => 'surat-umum/lama.pdf']);
+    Surat::updating(fn () => throw new RuntimeException('Simulasi kegagalan pembaruan'));
+
+    expect(fn () => $this->actingAs($user)->put(route('umum.surat.update', $surat), [
+        'kategori_pengajuan' => 'Permohonan Dokumen',
+        'nomor_kontak' => '081234567890',
+        'perihal' => 'Penggantian lampiran',
+        'deskripsi' => 'Memastikan lampiran lama tetap tersedia saat pembaruan gagal.',
+        'file_path' => UploadedFile::fake()->create('pengganti.pdf', 128, 'application/pdf'),
+    ]))->toThrow(RuntimeException::class, 'Simulasi kegagalan pembaruan');
+
+    Storage::disk('local')->assertExists('surat-umum/lama.pdf');
+    expect(Storage::disk('local')->allFiles())->toBe(['surat-umum/lama.pdf']);
 });

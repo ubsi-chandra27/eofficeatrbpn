@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Logo E-Office</title>
+  <desc id="desc">Lambang dokumen digital berwarna biru dan emas</desc>
+  <rect width="160" height="160" rx="32" fill="#0f4c81"/>
+  <path d="M45 28h51l25 25v79H45z" fill="#fff"/>
+  <path d="M96 28v25h25" fill="#d9e8f5"/>
+  <path d="M60 72h46M60 88h46M60 104h31" fill="none" stroke="#0f4c81" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="112" cy="116" r="24" fill="#f4b942"/>
+  <path d="m101 116 7 7 15-17" fill="none" stroke="#17324d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

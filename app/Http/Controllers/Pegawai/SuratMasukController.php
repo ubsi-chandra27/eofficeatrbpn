@@ -67,13 +67,13 @@ class SuratMasukController extends Controller
             'jabatan_pimpinan_id' => 'nullable|exists:jabatan,id',
             'nama_pimpinan' => 'nullable|string|max:255',
             'deskripsi'     => 'nullable',
-            'file_path'     => 'nullable|file|max:5120',
+            'file_path'     => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         $file = null;
 
         if ($request->hasFile('file_path')) {
-            $file = $request->file('file_path')->store('surat', 'public');
+            $file = $request->file('file_path')->store('surat');
         }
 
         Surat::create([
@@ -104,6 +104,13 @@ class SuratMasukController extends Controller
         $surat = $this->suratMilikPegawai($id);
 
         return view('pegawai.surat.masuk.show', compact('surat'));
+    }
+
+    public function cetak(int $id)
+    {
+        return view('pegawai.surat.masuk.cetak', [
+            'surat' => $this->suratMilikPegawai($id),
+        ]);
     }
 
     /**
@@ -145,11 +152,12 @@ class SuratMasukController extends Controller
         'tujuan_surat'  => 'required',
         'perihal'       => 'required',
         'deskripsi'     => 'nullable',
-        'file_path'     => 'nullable|file|max:5120',
+        'file_path'     => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
     ]);
 
     if ($request->hasFile('file_path')) {
-        $file = $request->file('file_path')->store('surat', 'public');
+        $surat->deleteAttachment();
+        $file = $request->file('file_path')->store('surat');
         $surat->file_path = $file;
     }
 
@@ -178,6 +186,7 @@ class SuratMasukController extends Controller
             return back()->with('error', 'Surat tidak dapat dihapus.');
         }
 
+        $surat->deleteAttachment();
         $surat->delete();
 
         return redirect()

@@ -7,7 +7,6 @@ use App\Models\LogAktivitas;
 use App\Models\Surat;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminSuratKeluarController extends Controller
@@ -40,7 +39,7 @@ class AdminSuratKeluarController extends Controller
     {
         $data = $request->validate($this->rules());
         if ($request->hasFile('file_path')) {
-            $data['file_path'] = $request->file('file_path')->store('surat-keluar', 'public');
+            $data['file_path'] = $request->file('file_path')->store('surat-keluar');
         }
         $data['user_id'] = auth()->id();
         $data['jenis_surat'] = 'keluar';
@@ -51,16 +50,16 @@ class AdminSuratKeluarController extends Controller
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Surat keluar berhasil ditambahkan.');
     }
 
-    public function show($id) { return view('admin.surat.keluar.show', ['surat' => Surat::findOrFail($id)]); }
-    public function edit($id) { return view('admin.surat.keluar.edit', ['surat' => Surat::findOrFail($id)]); }
+    public function show($id) { return view('admin.surat.keluar.show', ['surat' => $this->suratKeluar($id)]); }
+    public function edit($id) { return view('admin.surat.keluar.edit', ['surat' => $this->suratKeluar($id)]); }
 
     public function update(Request $request, $id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluar($id);
         $data = $request->validate($this->rules($surat->id));
         if ($request->hasFile('file_path')) {
-            if ($surat->file_path) Storage::disk('public')->delete($surat->file_path);
-            $data['file_path'] = $request->file('file_path')->store('surat-keluar', 'public');
+            $surat->deleteAttachment();
+            $data['file_path'] = $request->file('file_path')->store('surat-keluar');
         }
         $data['status'] = $request->input('status', $surat->status);
         $data['is_priority'] = $request->boolean('is_priority');
@@ -71,11 +70,11 @@ class AdminSuratKeluarController extends Controller
 
     public function destroy($id)
     {
-        $surat = Surat::findOrFail($id);
+        $surat = $this->suratKeluar($id);
         if ($surat->status !== 'draft') {
             return back()->with('error', 'Hanya surat draft yang dapat dihapus. Surat lain tetap disimpan sebagai histori.');
         }
-        if ($surat->file_path) Storage::disk('public')->delete($surat->file_path);
+        $surat->deleteAttachment();
         $this->log($surat, 'Hapus Surat Keluar', 'Mengarsipkan surat ' . $surat->nomor_surat);
         $surat->delete();
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Draft surat berhasil dihapus.');
@@ -103,5 +102,10 @@ class AdminSuratKeluarController extends Controller
     private function log(Surat $surat, string $action, string $description): void
     {
         LogAktivitas::create(['user_id' => auth()->id(), 'surat_id' => $surat->id, 'action' => $action, 'description' => $description]);
+    }
+
+    private function suratKeluar(int $id): Surat
+    {
+        return Surat::where('jenis_surat', 'keluar')->findOrFail($id);
     }
 }

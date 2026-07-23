@@ -527,7 +527,7 @@ Kode Surat
 
                 <div class="d-flex gap-2 mt-3 mt-md-0">
 
-                    <a href="{{ asset('storage/'.$surat->file_path) }}"
+                    <a href="{{ route('surat.lampiran', $surat) }}"
                        target="_blank"
                        class="btn btn-primary">
 
@@ -537,7 +537,7 @@ Kode Surat
 
                     </a>
 
-                    <a href="{{ asset('storage/'.$surat->file_path) }}"
+                    <a href="{{ route('surat.lampiran', $surat) }}"
                        download
                        class="btn btn-success">
 
@@ -737,7 +737,7 @@ Kode Surat
 
                 @if($surat->file_path)
 
-                    <a href="{{ asset('storage/'.$surat->file_path) }}"
+                    <a href="{{ route('surat.lampiran', $surat) }}"
                        download
                        class="btn btn-success">
 

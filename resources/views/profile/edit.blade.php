@@ -48,10 +48,11 @@
 
                 <div class="card-body text-center">
 
-                    <img
-                        src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=0D6EFD&color=fff&size=200"
-                        class="rounded-circle mb-3"
-                        width="130">
+                    <div class="rounded-circle mb-3 mx-auto d-grid place-items-center bg-primary text-white fw-bold"
+                         style="width:130px;height:130px;font-size:42px;place-items:center"
+                         role="img" aria-label="Inisial {{ $user->name }}">
+                        {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
+                    </div>
 
                     <h5 class="fw-bold">
 

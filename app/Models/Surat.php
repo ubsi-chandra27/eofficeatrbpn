@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Storage;
 
 class Surat extends Model
 {
@@ -190,5 +192,28 @@ class Surat extends Model
     public function scopeMilikUser($query, $userId)
     {
         return $query->where('user_id', $userId);
+    }
+
+    public function attachmentDisk(): FilesystemAdapter
+    {
+        if ($this->file_path && Storage::disk('local')->exists($this->file_path)) {
+            return Storage::disk('local');
+        }
+
+        // Kompatibilitas untuk lampiran lama sebelum penyimpanan dipindahkan ke private.
+        return Storage::disk('public');
+    }
+
+    public function attachmentExists(): bool
+    {
+        return (bool) $this->file_path && $this->attachmentDisk()->exists($this->file_path);
+    }
+
+    public function deleteAttachment(): void
+    {
+        if ($this->file_path) {
+            Storage::disk('local')->delete($this->file_path);
+            Storage::disk('public')->delete($this->file_path);
+        }
     }
 }

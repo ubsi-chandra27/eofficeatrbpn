@@ -7,7 +7,7 @@
     ========================== --}}
     <div class="sidebar-header">
 
-        <img src="{{ asset('images/logo-atr.png') }}"
+        <img src="{{ asset('images/logo-eoffice.svg') }}"
              alt="Logo E-Office">
 
         <div>

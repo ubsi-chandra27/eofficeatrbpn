@@ -347,7 +347,7 @@
 
                         @if($disposisi->disposisi->surat->file_path)
 
-                            <a href="{{ asset('storage/'.$disposisi->disposisi->surat->file_path) }}"
+                            <a href="{{ route('surat.lampiran', $disposisi->disposisi->surat) }}"
                                target="_blank"
                                class="btn btn-outline-primary">
 
@@ -388,58 +388,7 @@
 
                 </a>
 
-                <div class="d-flex gap-2">
-
-                    @if($disposisi->status == 'Belum Dibaca')
-
-                        <form
-                            action="{{ route('pegawai.disposisi.dibaca',$disposisi->id) }}"
-                            method="POST">
-
-                            @csrf
-
-                            @method('PATCH')
-
-                            <button
-                                type="submit"
-                                class="btn btn-info">
-
-                                <i class="bi bi-book-half me-1"></i>
-
-                                Tandai Sudah Dibaca
-
-                            </button>
-
-                        </form>
-
-                    @endif
-
-                    @if($disposisi->status != 'Selesai')
-
-                        <form
-                            action="{{ route('pegawai.disposisi.selesai',$disposisi->id) }}"
-                            method="POST">
-
-                            @csrf
-
-                            @method('PATCH')
-
-                            <button
-                                type="submit"
-                                class="btn btn-success"
-                                onclick="return confirm('Apakah disposisi ini sudah selesai dikerjakan?')">
-
-                                <i class="bi bi-check-circle-fill me-1"></i>
-
-                                Selesaikan
-
-                            </button>
-
-                        </form>
-
-                    @endif
-
-                </div>
+                @include('pegawai.disposisi.tindak-lanjut', ['disposisiTujuan' => $disposisi])
 
             </div>
 

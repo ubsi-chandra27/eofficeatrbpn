@@ -72,11 +72,11 @@
 
                 <div class="card-body text-center">
 
-                    <img
-                        src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D6EFD&color=fff&size=250"
-                        class="rounded-circle shadow mb-3"
-                        width="170"
-                        height="170">
+                    <div class="rounded-circle shadow mb-3 mx-auto d-grid bg-primary text-white fw-bold"
+                         style="width:170px;height:170px;place-items:center;font-size:54px"
+                         role="img" aria-label="Inisial {{ auth()->user()->name }}">
+                        {{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}
+                    </div>
 
                     <h5 class="fw-bold">
                         {{ auth()->user()->name }}

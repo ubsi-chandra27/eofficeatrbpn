@@ -12,22 +12,19 @@ class SuratFactory extends Factory
 
     public function definition(): array
     {
-        // Mendapatkan array jenis surat untuk randomisasi
-        $jenis = ['masuk', 'keluar', 'pengantar', 'inisiatif'];
+        $jenis = ['masuk', 'keluar'];
 
         return [
             'nomor_surat' => fake()->unique()->bothify('BPN/??/####/2026'),
-            'judul_surat' => fake()->sentence(4),
             'jenis_surat' => fake()->randomElement($jenis),
-            'asal_instansi' => fake()->company(),
-            'tujuan_instansi' => fake()->company(),
+            'perihal' => fake()->sentence(4),
+            'asal_surat' => fake()->company(),
+            'tujuan_surat' => fake()->company(),
             'tanggal_surat' => fake()->dateTimeBetween('-1 month', 'now'),
-            'tanggal_diterima' => fake()->dateTimeBetween('-1 month', 'now'),
-            'ringkasan_isi' => fake()->paragraph(),
-            'file_surat' => 'default_dokumen.pdf',
-            
-            // Mengambil ID user secara acak agar data tersebar merata
-            'user_id' => User::inRandomOrder()->first()->id ?? 1,
+            'deskripsi' => fake()->paragraph(),
+            'status' => 'draft',
+            'metode' => 'Sistem',
+            'user_id' => User::factory(),
         ];
     }
     

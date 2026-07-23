@@ -76,7 +76,7 @@
             <input type="file" name="file_path" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="form-control @error('file_path') is-invalid @enderror">
             <small class="form-text">PDF, DOC, DOCX, JPG, atau PNG; maksimal 5 MB.</small>
             @error('file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            @if($editing && $current?->file_path)<a href="{{ asset('storage/'.$current->file_path) }}" target="_blank" class="btn btn-sm btn-outline-success mt-2"><i class="bi bi-paperclip me-1"></i>Lihat berkas saat ini</a>@endif
+            @if($editing && $current?->file_path)<a href="{{ route('surat.lampiran', $current) }}" target="_blank" class="btn btn-sm btn-outline-success mt-2"><i class="bi bi-paperclip me-1"></i>Lihat berkas saat ini</a>@endif
         </div>
         <div class="col-md-6">
             <label class="form-label">Status Surat <span class="text-danger">*</span></label>

@@ -11,6 +11,8 @@
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
 
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+
     <title>
 
         @yield('title','Dashboard')
@@ -952,4 +954,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-

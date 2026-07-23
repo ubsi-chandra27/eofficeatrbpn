@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') | {{ \App\Models\Setting::getValue('app_name','E-Office') }}</title>
     @vite(['resources/css/app.css', 'resources/css/auth.css', 'resources/js/app.js'])

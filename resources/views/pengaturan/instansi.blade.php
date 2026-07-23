@@ -262,7 +262,7 @@
                 <div class="card-body text-center">
 
                     <img
-                        src="{{ asset('images/logo.png') }}"onerror="this.src='https://via.placeholder.com/150'"
+                        src="{{ asset('images/logo-eoffice.svg') }}"
                         class="img-fluid mb-3"
                         style="max-height:150px;">
 

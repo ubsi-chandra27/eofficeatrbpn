@@ -24,10 +24,19 @@ it('merender seluruh halaman utama pegawai', function () {
         route('pegawai.surat-masuk.index'),
         route('pegawai.surat-masuk.create'), route('pegawai.surat-keluar.index'),
         route('pegawai.surat-keluar.create'), route('pegawai.disposisi.index'),
-        route('profile.edit'),
+        route('profile.edit'), route('pegawai.profile.index'),
+        route('pegawai.profile.password'), route('pegawai.settings.index'),
     ] as $url) {
         $this->actingAs($user)->get($url)->assertOk();
     }
+
+    $this->actingAs($user)->get(route('pegawai.profile.index'))
+        ->assertOk()
+        ->assertViewIs('pegawai.profile.index')
+        ->assertSee('Profil Saya')
+        ->assertSee('Informasi Pegawai')
+        ->assertSee('Keamanan Login')
+        ->assertSee('Nonaktifkan Akun');
 });
 
 it('menolak pegawai mengakses data pegawai lain', function () {
@@ -37,6 +46,9 @@ it('menolak pegawai mengakses data pegawai lain', function () {
     $surat = \App\Models\Surat::create(['user_id' => $owner->id, 'jenis_surat' => 'masuk', 'nomor_surat' => 'PRIV-PEG-001', 'tanggal_surat' => now(), 'status' => 'draft']);
 
     $this->actingAs($other)->get(route('pegawai.surat-masuk.show', $surat))->assertNotFound();
+    $this->actingAs($other)->get(route('pegawai.surat-masuk.cetak', $surat))->assertNotFound();
+    $this->actingAs($owner)->get(route('pegawai.surat-masuk.cetak', $surat))
+        ->assertOk()->assertSee('SURAT MASUK');
 });
 
 it('menampilkan isi tabel surat masuk surat keluar dan disposisi milik pegawai', function () {
@@ -49,7 +61,7 @@ it('menampilkan isi tabel surat masuk surat keluar dan disposisi milik pegawai',
         'tanggal_surat' => now(), 'perihal' => 'Undangan koordinasi', 'asal_surat' => 'Unit Pelayanan',
         'tujuan_surat' => 'Pegawai', 'metode' => 'Sistem', 'status' => 'draft',
     ]);
-    \App\Models\Surat::create([
+    $keluar = \App\Models\Surat::create([
         'user_id' => $user->id, 'jenis_surat' => 'keluar', 'nomor_surat' => 'SK-PEG-001',
         'tanggal_surat' => now(), 'perihal' => 'Balasan permohonan', 'asal_surat' => $user->name,
         'tujuan_surat' => 'Pemohon', 'metode' => 'Sistem', 'status' => 'diajukan',
@@ -59,7 +71,7 @@ it('menampilkan isi tabel surat masuk surat keluar dan disposisi milik pegawai',
         'catatan' => 'Pelajari dan siapkan bahan tindak lanjut.', 'prioritas' => 'Tinggi',
         'tanggal_disposisi' => now(),
     ]);
-    \App\Models\DisposisiTujuan::create([
+    $tujuan = \App\Models\DisposisiTujuan::create([
         'disposisi_id' => $disposisi->id, 'pegawai_id' => $pegawai->id, 'status' => 'Belum Dibaca',
     ]);
 
@@ -69,4 +81,8 @@ it('menampilkan isi tabel surat masuk surat keluar dan disposisi milik pegawai',
         ->assertOk()->assertSee('SK-PEG-001')->assertSee('Balasan permohonan')->assertSee('Pemohon');
     $this->actingAs($user)->get(route('pegawai.disposisi.index'))
         ->assertOk()->assertSee('SM-PEG-001')->assertSee('Pelajari dan siapkan bahan')->assertSee('Tinggi');
+    $this->actingAs($user)->get(route('pegawai.disposisi.show', $tujuan))
+        ->assertOk()->assertDontSee('Tandai Dibaca')->assertSee('Selesaikan')->assertSee('Cetak');
+    $this->actingAs($user)->get(route('pegawai.surat-keluar.cetak', $keluar))
+        ->assertOk()->assertSee('SURAT KELUAR');
 });

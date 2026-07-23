@@ -230,7 +230,7 @@ File Saat Ini
 
 
 <a
-href="{{ asset('storage/'.$surat->file_path) }}"
+href="{{ route('surat.lampiran', $surat) }}"
 target="_blank"
 class="btn btn-outline-primary btn-sm">
 

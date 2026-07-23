@@ -2,6 +2,7 @@
 <html lang="id">
 
 <head>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
     <meta charset="UTF-8">
 

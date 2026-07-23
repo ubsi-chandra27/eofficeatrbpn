@@ -14,7 +14,7 @@
     </div>
 
     @if($statistik['perbaikan'])
-        <div class="alert alert-warning d-flex justify-content-between align-items-center"><span><i class="bi bi-exclamation-triangle me-2"></i>Ada <strong>{{ $statistik['perbaikan'] }}</strong> surat yang perlu diperbaiki.</span><a href="{{ route('umum.surat.index',['status'=>'dikembalikan']) }}" class="btn btn-sm btn-warning">Lihat</a></div>
+        <div class="alert alert-warning d-flex justify-content-between align-items-center"><span><i class="bi bi-exclamation-triangle me-2"></i>Ada <strong>{{ $statistik['perbaikan'] }}</strong> surat yang perlu diperbaiki.</span><a href="{{ route('umum.surat.index',['status'=>'perbaikan']) }}" class="btn btn-sm btn-warning">Lihat</a></div>
     @endif
 
     <section class="service-announcement"><span><i class="bi bi-megaphone-fill"></i></span><div><small>PENGUMUMAN</small><h5>{{ $informasiLayanan['judul_pengumuman'] }}</h5><p>{{ $informasiLayanan['isi_pengumuman'] }}</p></div></section>

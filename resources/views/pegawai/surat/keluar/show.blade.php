@@ -411,7 +411,7 @@
 
                             @if($surat->file_path)
 
-                                <a href="{{ asset('storage/'.$surat->file_path) }}"
+                                <a href="{{ route('surat.lampiran', $surat) }}"
                                    target="_blank"
                                    class="btn btn-success">
 

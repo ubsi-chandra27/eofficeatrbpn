@@ -26,6 +26,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 */
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuratLampiranController;
 
 
 /*
@@ -218,6 +219,10 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function(){
 
+    Route::get('/surat/{surat}/lampiran', SuratLampiranController::class)
+        ->whereNumber('surat')
+        ->name('surat.lampiran');
+
 
     Route::get('/profile',
         [ProfileController::class,'edit'])
@@ -385,6 +390,15 @@ Route::middleware(['auth','role:pegawai'])
     )
     ->name('dashboard');
 
+    Route::get('/profil', [ProfileController::class, 'pegawaiIndex'])
+        ->name('profile.index');
+
+    Route::get('/profil/password', [ProfileController::class, 'pegawaiPassword'])
+        ->name('profile.password');
+
+    Route::get('/pengaturan', [ProfileController::class, 'pegawaiSettings'])
+        ->name('settings.index');
+
 
 
     Route::resource(
@@ -404,6 +418,10 @@ Route::middleware(['auth','role:pegawai'])
     )
     ->name('surat-masuk.kirim');
 
+    Route::get('/surat-masuk/{id}/cetak', [PegawaiSuratMasukController::class, 'cetak'])
+        ->whereNumber('id')
+        ->name('surat-masuk.cetak');
+
 
 
     Route::resource(
@@ -413,6 +431,10 @@ Route::middleware(['auth','role:pegawai'])
 
     Route::put('/surat-keluar/{id}/kirim', [PegawaiSuratKeluarController::class, 'kirim'])
         ->name('surat-keluar.kirim');
+
+    Route::get('/surat-keluar/{id}/cetak', [PegawaiSuratKeluarController::class, 'cetak'])
+        ->whereNumber('id')
+        ->name('surat-keluar.cetak');
 
 
 
@@ -455,10 +477,12 @@ Route::middleware(['auth', 'role:umum'])
         ->whereNumber('id')
         ->name('surat.download');
 
-    Route::resource(
-        'surat',
-        UmumSuratController::class
-    );
+    Route::post('/surat', [UmumSuratController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('surat.store');
+
+    Route::resource('surat', UmumSuratController::class)
+        ->except('store');
 
 
     Route::get('/cari',

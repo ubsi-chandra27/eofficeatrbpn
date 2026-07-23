@@ -7,6 +7,7 @@ use App\Models\LogAktivitas;
 use App\Models\Setting;
 use App\Models\Surat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
@@ -43,7 +44,12 @@ class UmumSuratController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
-        if ($request->hasFile('file_path')) $data['file_path'] = $request->file('file_path')->store('surat-umum', 'public');
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-umum', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
+        }
         $data['user_id'] = auth()->id();
         $data['jenis_surat'] = 'masuk';
         $data['nomor_surat'] = $this->generateSubmissionNumber();
@@ -53,8 +59,20 @@ class UmumSuratController extends Controller
         $data['tujuan_surat'] = 'Administrasi Umum';
         $data['metode'] = 'Sistem';
         $data['is_priority'] = false;
-        $surat = Surat::create($data);
-        $this->log($surat, 'Pengajuan Surat', 'Surat '.$surat->nomor_surat.' diajukan untuk diverifikasi admin.');
+        try {
+            $surat = DB::transaction(function () use ($data) {
+                $surat = Surat::create($data);
+                $this->log($surat, 'Pengajuan Surat', 'Surat '.$surat->nomor_surat.' diajukan untuk diverifikasi admin.');
+
+                return $surat;
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
 
         return redirect()->route('umum.surat.index')->with('success', 'Surat berhasil diajukan dan menunggu verifikasi admin.');
     }
@@ -69,9 +87,9 @@ class UmumSuratController extends Controller
     {
         $surat = Surat::where('user_id', auth()->id())->findOrFail($id);
 
-        abort_unless($surat->file_path && Storage::disk('public')->exists($surat->file_path), 404);
+        abort_unless($surat->attachmentExists(), 404);
 
-        return Storage::disk('public')->download($surat->file_path, basename($surat->file_path));
+        return $surat->attachmentDisk()->download($surat->file_path, basename($surat->file_path));
     }
 
     public function edit($id)
@@ -83,14 +101,33 @@ class UmumSuratController extends Controller
     {
         $surat = $this->editableLetter($id);
         $data = $request->validate($this->rules($surat->id));
-        if ($request->hasFile('file_path')) {
-            if ($surat->file_path) Storage::disk('public')->delete($surat->file_path);
-            $data['file_path'] = $request->file('file_path')->store('surat-umum', 'public');
+        $oldPath = $surat->file_path;
+        $oldDisk = $oldPath ? $surat->attachmentDisk() : null;
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-umum', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
         $data['status'] = 'diajukan';
         $data['asal_surat'] = auth()->user()->name;
-        $surat->update($data);
-        $this->log($surat, 'Perbaikan Surat', 'Surat diperbaiki dan diajukan kembali kepada admin.');
+
+        try {
+            DB::transaction(function () use ($surat, $data) {
+                $surat->update($data);
+                $this->log($surat, 'Perbaikan Surat', 'Surat diperbaiki dan diajukan kembali kepada admin.');
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($newPath && $oldPath) {
+            $oldDisk?->delete($oldPath);
+        }
 
         return redirect()->route('umum.surat.index')->with('success', 'Perbaikan surat berhasil diajukan kembali.');
     }

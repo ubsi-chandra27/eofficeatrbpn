@@ -11,6 +11,8 @@
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
 
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+
     <title>
 
         @yield('title','Dashboard')
@@ -307,7 +309,7 @@
 
             </span>
 
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+            <a href="{{ route('pegawai.profile.index') }}" class="{{ request()->routeIs('pegawai.profile.*', 'profile.edit') ? 'active' : '' }}">
 
                 <i class="bi bi-person-circle"></i>
 
@@ -317,6 +319,16 @@
 
                 </span>
 
+            </a>
+
+            <a href="{{ route('pegawai.profile.password') }}" class="{{ request()->routeIs('pegawai.profile.password') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock"></i>
+                <span>Ubah Kata Sandi</span>
+            </a>
+
+            <a href="{{ route('pegawai.settings.index') }}" class="{{ request()->routeIs('pegawai.settings.*') ? 'active' : '' }}">
+                <i class="bi bi-gear"></i>
+                <span>Pengaturan</span>
             </a>
 
             <div class="sidebar-footer">
@@ -484,7 +496,7 @@
 
                             <a
                                 class="dropdown-item"
-                                href="{{ route('profile.edit') }}">
+                                href="{{ route('pegawai.profile.index') }}">
 
                                 <i class="bi bi-person-circle"></i>
 
