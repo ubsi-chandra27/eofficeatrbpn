@@ -37,7 +37,7 @@
     {{-- SIDEBAR --}}
     {{-- ========================= --}}
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Menu utama Masyarakat Umum">
 
         <div class="sidebar-header">
 
@@ -165,7 +165,11 @@
             <div class="topbar-left">
 
                 <button class="menu-toggle"
-                        id="menuToggle">
+                        id="menuToggle"
+                        type="button"
+                        aria-controls="sidebar"
+                        aria-expanded="false"
+                        aria-label="Buka menu navigasi">
 
                     <i class="bi bi-list"></i>
 

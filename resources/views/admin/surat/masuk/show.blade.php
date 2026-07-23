@@ -110,7 +110,7 @@
 
                 <div class="detail-value">
 
-                    {{ \Carbon\Carbon::parse($surat->tanggal_surat)->format('d F Y') }}
+                    {{ $surat->tanggal_surat?->translatedFormat('d F Y') ?? '-' }}
 
                 </div>
 
@@ -207,77 +207,7 @@
 
                 <div class="detail-value">
 
-                    @switch(strtolower($surat->status))
- 
-                        @case('menunggu')
- 
-                            <span class="badge bg-warning text-dark">
- 
-                                <i class="bi bi-hourglass-split me-1"></i>
- 
-                                Menunggu
- 
-                            </span>
- 
-                        @break
- 
-                        @case('diverifikasi')
- 
-                            <span class="badge bg-success">
- 
-                                <i class="bi bi-check-circle-fill me-1"></i>
- 
-                                Diverifikasi
- 
-                            </span>
- 
-                        @break
- 
-                        @case('dikembalikan')
- 
-                            <span class="badge bg-danger">
- 
-                                <i class="bi bi-x-circle-fill me-1"></i>
- 
-                                Dikembalikan
- 
-                            </span>
- 
-                        @break
- 
-                        @case('diproses')
- 
-                            <span class="badge bg-info">
- 
-                                <i class="bi bi-arrow-repeat me-1"></i>
- 
-                                Diproses
- 
-                            </span>
- 
-                        @break
- 
-                        @case('selesai')
- 
-                            <span class="badge bg-primary">
- 
-                                <i class="bi bi-flag-fill me-1"></i>
- 
-                                Selesai
- 
-                            </span>
- 
-                        @break
- 
-                        @default
- 
-                            <span class="badge bg-secondary">
- 
-                                {{ ucfirst($surat->status) }}
- 
-                            </span>
- 
-                    @endswitch
+                    <span class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span>
 
                 </div>
 

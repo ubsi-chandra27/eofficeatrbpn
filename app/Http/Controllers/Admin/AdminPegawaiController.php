@@ -20,17 +20,45 @@ class AdminPegawaiController extends Controller
      */
     public function index(Request $request)
     {
-        $keyword = $request->keyword;
+        $keyword = trim($request->string('keyword')->toString());
+        $jabatanId = $request->integer('jabatan_id') ?: null;
+        $unitKerjaId = $request->integer('unit_kerja_id') ?: null;
+        $statusAkun = in_array($request->string('status_akun')->toString(), ['aktif', 'belum'], true)
+            ? $request->string('status_akun')->toString()
+            : null;
 
-        $pegawai = Pegawai::with(['jabatan', 'unitKerja'])
-            ->when($keyword, function ($query) use ($keyword) {
-                $query->where('nama', 'like', "%{$keyword}%")
-                      ->orWhere('nip', 'like', "%{$keyword}%");
+        $base = Pegawai::query();
+        $statistik = [
+            'total' => (clone $base)->count(),
+            'akun_aktif' => (clone $base)->whereNotNull('user_id')->whereHas('user')->count(),
+            'tanpa_akun' => (clone $base)->where(fn ($query) => $query
+                ->whereNull('user_id')->orWhereDoesntHave('user'))->count(),
+            'profil_lengkap' => (clone $base)->whereNotNull('jabatan_id')->whereNotNull('unit_kerja_id')->count(),
+        ];
+
+        $pegawai = Pegawai::with(['jabatan', 'unitKerja', 'user'])
+            ->when($keyword !== '', function ($query) use ($keyword) {
+                $query->where(function ($search) use ($keyword) {
+                    $search->where('nama', 'like', "%{$keyword}%")
+                        ->orWhere('nip', 'like', "%{$keyword}%")
+                        ->orWhere('email', 'like', "%{$keyword}%")
+                        ->orWhere('no_hp', 'like', "%{$keyword}%");
+                });
             })
+            ->when($jabatanId, fn ($query) => $query->where('jabatan_id', $jabatanId))
+            ->when($unitKerjaId, fn ($query) => $query->where('unit_kerja_id', $unitKerjaId))
+            ->when($statusAkun === 'aktif', fn ($query) => $query->whereNotNull('user_id')->whereHas('user'))
+            ->when($statusAkun === 'belum', fn ($query) => $query
+                ->where(fn ($account) => $account->whereNull('user_id')->orWhereDoesntHave('user')))
             ->orderBy('nama')
             ->paginate(10);
 
-        return view('admin.pegawai.index', compact('pegawai'));
+        return view('admin.pegawai.index', [
+            'pegawai' => $pegawai,
+            'statistik' => $statistik,
+            'jabatan' => Jabatan::orderBy('nama')->get(),
+            'unitKerja' => UnitKerja::orderBy('nama')->get(),
+        ]);
     }
 
     /**
@@ -52,35 +80,29 @@ class AdminPegawaiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-        'nip' => 'required|unique:pegawai,nip|unique:users,nip',
-        'nama' => 'required|string|max:100',
-        'email' => 'required|email|unique:users,email|unique:pegawai,email',
-        'password' => 'required|string|min:8|confirmed',
-        'no_hp' => 'nullable|max:20',
-        'alamat' => 'nullable',
-        'jabatan_id' => 'required|exists:jabatan,id',
-        'unit_kerja_id' => 'required|exists:unit_kerja,id',
+        $data = $request->validate([
+            'nip' => 'required|string|max:30|unique:pegawai,nip|unique:users,nip',
+            'nama' => 'required|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email|unique:pegawai,email',
+            'password' => 'required|string|min:8|confirmed',
+            'no_hp' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+()\\-\\s]+$/'],
+            'alamat' => 'nullable|string|max:1000',
+            'jabatan_id' => 'required|exists:jabatan,id',
+            'unit_kerja_id' => 'required|exists:unit_kerja,id',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($data) {
             $user = User::create([
-                'name' => $request->nama,
-                'nip' => $request->nip,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'name' => $data['nama'],
+                'nip' => $data['nip'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
                 'role' => 'pegawai',
             ]);
 
             Pegawai::create([
                 'user_id' => $user->id,
-                'nip' => $request->nip,
-                'nama' => $request->nama,
-                'email' => $request->email,
-                'no_hp' => $request->no_hp,
-                'alamat' => $request->alamat,
-                'jabatan_id' => $request->jabatan_id,
-                'unit_kerja_id' => $request->unit_kerja_id,
+                ...collect($data)->except('password')->all(),
             ]);
         });
 
@@ -94,9 +116,11 @@ class AdminPegawaiController extends Controller
      */
     public function show(Pegawai $pegawai)
 {
-    $pegawai->load(['jabatan', 'unitKerja']);
+    $pegawai->load(['jabatan', 'unitKerja', 'user'])
+        ->loadCount('disposisiTujuans');
+    $jumlahSurat = \App\Models\Surat::where('user_id', $pegawai->user_id)->count();
 
-    return view('admin.pegawai.show', compact('pegawai'));
+    return view('admin.pegawai.show', compact('pegawai', 'jumlahSurat'));
 }
     /**
      * Form edit pegawai
@@ -118,53 +142,52 @@ class AdminPegawaiController extends Controller
      */
     public function update(Request $request, Pegawai $pegawai)
     {
-        $request->validate([
+        $data = $request->validate([
             'nama'            => 'required|string|max:100',
             'email'           => [
-                'required', 'email',
+                'required', 'email', 'max:255',
                 Rule::unique('pegawai', 'email')->ignore($pegawai->id),
                 Rule::unique('users', 'email')->ignore($pegawai->user_id),
             ],
             'nip' => [
-                'required',
+                'required', 'string', 'max:30',
                 Rule::unique('pegawai', 'nip')->ignore($pegawai->id),
                 Rule::unique('users', 'nip')->ignore($pegawai->user_id),
             ],
-            'no_hp'           => 'nullable|max:20',
-            'alamat'          => 'nullable',
+            'no_hp'           => ['nullable', 'string', 'max:20', 'regex:/^[0-9+()\\-\\s]+$/'],
+            'alamat'          => 'nullable|string|max:1000',
             'jabatan_id'      => 'required|exists:jabatan,id',
             'unit_kerja_id'   => 'required|exists:unit_kerja,id',
+            'password'        => 'nullable|string|min:8|confirmed',
         ]);
 
-        DB::transaction(function () use ($request, $pegawai) {
+        DB::transaction(function () use ($data, $pegawai) {
             $user = $pegawai->user;
 
             if (!$user) {
                 $user = User::create([
-                    'name' => $request->nama,
-                    'nip' => $request->nip,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->nip),
+                    'name' => $data['nama'],
+                    'nip' => $data['nip'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password'] ?: $data['nip']),
                     'role' => 'pegawai',
                 ]);
             } else {
-                $user->update([
-                    'name' => $request->nama,
-                    'nip' => $request->nip,
-                    'email' => $request->email,
+                $accountData = [
+                    'name' => $data['nama'],
+                    'nip' => $data['nip'],
+                    'email' => $data['email'],
                     'role' => 'pegawai',
-                ]);
+                ];
+                if (!empty($data['password'])) {
+                    $accountData['password'] = Hash::make($data['password']);
+                }
+                $user->update($accountData);
             }
 
             $pegawai->update([
                 'user_id' => $user->id,
-                'nip' => $request->nip,
-                'nama' => $request->nama,
-                'email' => $request->email,
-                'no_hp' => $request->no_hp,
-                'alamat' => $request->alamat,
-                'jabatan_id' => $request->jabatan_id,
-                'unit_kerja_id' => $request->unit_kerja_id,
+                ...collect($data)->except(['password'])->all(),
             ]);
         });
 

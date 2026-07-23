@@ -149,13 +149,17 @@
 
                     <th>No</th>
 
-                    <th>No Surat</th>
+                    <th>Tanggal</th>
+
+                    <th>Surat</th>
+
+                    <th>Instruksi</th>
+
+                    <th>Prioritas</th>
+
+                    <th>Penerima &amp; Status</th>
 
                     <th>Pengirim</th>
-
-                    <th>Penerima</th>
-
-                    <th>Status</th>
 
                     <th width="180">Aksi</th>
 
@@ -174,79 +178,49 @@
     </td>
 
     <td>
-        <strong>
-            {{ $item->surat->nomor_surat ?? '-' }}
-        </strong>
+        <strong>{{ $item->tanggal_disposisi?->format('d/m/Y') ?? '-' }}</strong>
+        <small class="d-block text-muted">{{ $item->created_at?->format('H:i') }}</small>
+    </td>
+
+    <td>
+        <strong>{{ $item->surat->nomor_surat ?? '-' }}</strong>
+        <small class="d-block text-muted">{{ Str::limit($item->surat->perihal ?: $item->surat->judul_surat, 45) ?: '-' }}</small>
+    </td>
+
+    <td>
+        <span title="{{ $item->catatan }}">{{ Str::limit($item->catatan, 70) }}</span>
+    </td>
+
+    <td>
+        @php($warnaPrioritas = ['Rendah' => 'secondary', 'Sedang' => 'primary', 'Tinggi' => 'danger'][$item->prioritas] ?? 'secondary')
+        <span class="badge bg-{{ $warnaPrioritas }}">{{ $item->prioritas }}</span>
+    </td>
+
+    <td>
+
+        @forelse($item->tujuans as $tujuan)
+
+            @php($warnaStatus = ['Belum Dibaca' => 'warning text-dark', 'Sudah Dibaca' => 'info', 'Selesai' => 'success'][$tujuan->status] ?? 'secondary')
+            <div class="recipient-row mb-2">
+                <strong>{{ $tujuan->pegawai->nama ?? '-' }}</strong>
+                <span class="badge bg-{{ $warnaStatus }}">{{ $tujuan->status }}</span>
+                @if($tujuan->selesai_pada)
+                    <small class="d-block text-muted">Selesai {{ $tujuan->selesai_pada->format('d/m/Y H:i') }}</small>
+                @elseif($tujuan->dibaca_pada)
+                    <small class="d-block text-muted">Dibaca {{ $tujuan->dibaca_pada->format('d/m/Y H:i') }}</small>
+                @endif
+            </div>
+
+        @empty
+
+            -
+
+        @endforelse
+
     </td>
 
     <td>
         {{ $item->pengirim->name ?? '-' }}
-    </td>
-
-    <td>
-
-        @forelse($item->tujuans as $tujuan)
-
-            <span class="badge bg-primary mb-1">
-
-                {{ $tujuan->pegawai->nama ?? '-' }}
-
-            </span><br>
-
-        @empty
-
-            -
-
-        @endforelse
-
-    </td>
-
-    <td>
-
-        @forelse($item->tujuans as $tujuan)
-
-            @if($tujuan->status == 'Belum Dibaca')
-
-                <span class="badge bg-warning text-dark mb-1">
-
-                    Belum Dibaca
-
-                </span>
-
-            @elseif($tujuan->status == 'Sudah Dibaca')
-
-                <span class="badge bg-info mb-1">
-
-                    Sudah Dibaca
-
-                </span>
-
-            @elseif($tujuan->status == 'Selesai')
-
-                <span class="badge bg-success mb-1">
-
-                    Selesai
-
-                </span>
-
-            @else
-
-                <span class="badge bg-secondary mb-1">
-
-                    {{ $tujuan->status }}
-
-                </span>
-
-            @endif
-
-            <br>
-
-        @empty
-
-            -
-
-        @endforelse
-
     </td>
 
     <td>
@@ -261,6 +235,7 @@
 
             </a>
 
+            @if($item->is_editable)
             <a
                 href="{{ route('admin.disposisi.edit',$item->id) }}"
                 class="btn btn-warning btn-sm text-white">
@@ -285,6 +260,7 @@
                 </button>
 
             </form>
+            @endif
 
         </div>
 
@@ -296,7 +272,7 @@
 
 <tr>
 
-    <td colspan="6" class="text-center py-5">
+    <td colspan="8" class="text-center py-5">
 
         <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
 
@@ -429,6 +405,7 @@
 
 .custom-table{
     margin:0;
+    min-width:1180px;
 }
 
 .custom-table thead th{
@@ -451,6 +428,7 @@
 .table-actions{
     display:flex;
     gap:8px;
+    flex-wrap:nowrap;
 }
 
 .table-actions form{

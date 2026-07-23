@@ -11,7 +11,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $base = Surat::where('user_id', auth()->id());
+        $userId = auth()->id();
+        $base = Surat::where('user_id', $userId)
+            ->where('jenis_surat', 'masuk');
         $statistik = [
             'total' => (clone $base)->count(),
             'diajukan' => (clone $base)->whereIn('status', ['menunggu', 'diajukan'])->count(),
@@ -19,11 +21,14 @@ class DashboardController extends Controller
             'perbaikan' => (clone $base)->whereIn('status', ['dikembalikan', 'ditolak'])->count(),
             'selesai' => (clone $base)->whereIn('status', ['selesai', 'terkirim', 'diarsipkan'])->count(),
         ];
-        $suratTerbaru = (clone $base)->latest()->limit(5)->get();
+        $suratTerbaru = (clone $base)->latest('updated_at')->limit(5)->get();
         $aktivitas = LogAktivitas::with('surat')
-            ->where(function ($query) {
-                $query->where('user_id', auth()->id())
-                    ->orWhereHas('surat', fn ($surat) => $surat->where('user_id', auth()->id()));
+            ->where(function ($query) use ($userId) {
+                $query->where(function ($accountLog) use ($userId) {
+                    $accountLog->where('user_id', $userId)->whereNull('surat_id');
+                })->orWhereHas('surat', fn ($surat) => $surat
+                    ->where('user_id', $userId)
+                    ->where('jenis_surat', 'masuk'));
             })
             ->latest()
             ->limit(8)

@@ -125,6 +125,39 @@ Diteruskan ke Pimpinan
 
 </div>
 
+@php
+    $sudahDikirim = !in_array($surat->status, ['draft'], true);
+    $sudahDiverifikasi = in_array($surat->status, ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan', 'selesai'], true);
+    $perluPerbaikan = $surat->status === 'dikembalikan';
+    $sudahDiteruskan = in_array($surat->status, ['diteruskan_ke_pimpinan', 'selesai'], true);
+@endphp
+<div class="card shadow-sm border-0 mb-4 verification-card">
+    <div class="card-header bg-white">
+        <h5 class="mb-1"><i class="bi bi-shield-check text-primary me-2"></i>Status Verifikasi Admin</h5>
+        <small class="text-muted">Pantau apakah surat masih draft, menunggu approval, disetujui, atau perlu diperbaiki.</small>
+    </div>
+    <div class="card-body">
+        <div class="approval-progress">
+            <div class="approval-step done"><span><i class="bi bi-file-earmark-check"></i></span><strong>Diregistrasi</strong><small>{{ $surat->created_at->translatedFormat('d M Y H:i') }}</small></div>
+            <div class="approval-step {{ $sudahDikirim ? 'done' : '' }}"><span><i class="bi bi-send"></i></span><strong>Dikirim ke Admin</strong><small>{{ $sudahDikirim ? 'Sudah masuk antrean' : 'Belum dikirim' }}</small></div>
+            <div class="approval-step {{ $sudahDiverifikasi ? 'done' : ($perluPerbaikan ? 'rejected' : '') }}"><span><i class="bi bi-patch-check"></i></span><strong>Verifikasi Admin</strong><small>{{ $sudahDiverifikasi ? 'Disetujui' : ($perluPerbaikan ? 'Perlu perbaikan' : 'Menunggu pemeriksaan') }}</small></div>
+            <div class="approval-step {{ $sudahDiteruskan ? 'done' : '' }}"><span><i class="bi bi-diagram-3"></i></span><strong>Tindak Lanjut</strong><small>{{ $sudahDiteruskan ? 'Diteruskan ke pimpinan' : 'Belum diteruskan' }}</small></div>
+        </div>
+        @if($surat->status === 'diajukan')
+            <div class="alert alert-warning mt-4 mb-0"><i class="bi bi-hourglass-split me-2"></i><strong>Menunggu verifikasi Admin.</strong> Surat sudah terkirim tetapi belum disetujui atau dikembalikan.</div>
+        @elseif($sudahDiverifikasi)
+            <div class="alert alert-success mt-4 mb-0"><i class="bi bi-check-circle-fill me-2"></i><strong>Surat sudah disetujui Admin.</strong> Status saat ini: {{ $surat->status_label }}.</div>
+        @elseif($perluPerbaikan)
+            <div class="alert alert-danger mt-4 mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Surat belum disetujui.</strong> Perbaiki data sesuai catatan Admin lalu kirim ulang.</div>
+        @else
+            <div class="alert alert-secondary mt-4 mb-0"><i class="bi bi-file-earmark me-2"></i>Surat masih draft dan belum diajukan untuk verifikasi.</div>
+        @endif
+        @if($surat->catatan_admin)
+            <div class="admin-verification-note mt-3"><strong><i class="bi bi-chat-left-text me-1"></i>Catatan Admin</strong><p class="mb-0">{{ $surat->catatan_admin }}</p></div>
+        @endif
+    </div>
+</div>
+
 
 
 <div class="card shadow-sm border-0 mb-4">
@@ -706,6 +739,17 @@ Kode Surat
 
                 @if(in_array($surat->status, ['draft', 'dikembalikan']))
 
+                    <form action="{{ route('pegawai.surat-masuk.destroy',$surat->id) }}"
+                          method="POST"
+                          onsubmit="return confirm('Pindahkan surat ini ke sampah?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-2"></i>
+                            Hapus
+                        </button>
+                    </form>
+
                     <a href="{{ route('pegawai.surat-masuk.edit',$surat->id) }}"
                        class="btn btn-warning">
 
@@ -804,6 +848,8 @@ padding:30px;
 
 }
 
+.approval-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.approval-step{position:relative;text-align:center;color:#94a3b8}.approval-step span{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px;background:#e2e8f0;color:#64748b;font-size:19px}.approval-step strong,.approval-step small{display:block}.approval-step strong{color:#64748b}.approval-step.done span{background:#dcfce7;color:#15803d}.approval-step.done strong{color:#166534}.approval-step.rejected span{background:#fee2e2;color:#dc2626}.approval-step.rejected strong{color:#b91c1c}.admin-verification-note{padding:15px 17px;border-left:4px solid #dc3545;background:#fff5f5;border-radius:8px}.admin-verification-note p{margin-top:5px;white-space:pre-wrap}
+
 .timeline{
 
 position:relative;
@@ -886,6 +932,8 @@ padding:10px 18px;
 }
 
 @media(max-width:768px){
+
+.approval-progress{grid-template-columns:1fr 1fr;gap:18px}
 
 .page-header{
 

@@ -108,7 +108,7 @@
 
                 <div class="detail-value">
 
-                    {{ \Carbon\Carbon::parse($surat->tanggal_surat)->format('d F Y') }}
+                    {{ $surat->tanggal_surat?->translatedFormat('d F Y') ?? '-' }}
 
                 </div>
 
@@ -189,6 +189,28 @@
 
                 </div>
 
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label class="detail-label">Penandatangan</label>
+                <div class="detail-value">{{ $surat->penandatangan ?: '-' }}</div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label class="detail-label">Status Surat</label>
+                <div class="detail-value">
+                    <span class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label class="detail-label">Tanggal Keluar</label>
+                <div class="detail-value">{{ $surat->tanggal_keluar?->translatedFormat('d F Y') ?? 'Belum ditentukan' }}</div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label class="detail-label">Tanggal Kirim</label>
+                <div class="detail-value">{{ $surat->tanggal_kirim?->translatedFormat('d F Y') ?? 'Belum dikirim' }}</div>
             </div>
 
             {{-- =========================================== --}}

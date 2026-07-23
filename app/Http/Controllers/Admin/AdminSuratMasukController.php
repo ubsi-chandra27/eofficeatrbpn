@@ -8,6 +8,9 @@ use App\Models\Surat;
 use App\Models\LogAktivitas;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AdminSuratMasukController extends Controller
 {
@@ -16,52 +19,44 @@ class AdminSuratMasukController extends Controller
      */
     public function index(Request $request)
     {
-    $baseQuery = Surat::where('jenis_surat', 'masuk')
-        ->where('status', '!=', 'draft');
+        $statusTersedia = [
+            'diajukan', 'menunggu', 'diverifikasi', 'dikembalikan',
+            'diproses', 'diteruskan_ke_pimpinan', 'selesai', 'diarsipkan',
+        ];
+        $status = in_array($request->string('status')->toString(), $statusTersedia, true)
+            ? $request->string('status')->toString()
+            : null;
+        $keyword = trim($request->string('keyword')->toString());
+        $baseQuery = Surat::where('jenis_surat', 'masuk')->where('status', '!=', 'draft');
 
-    $totalSurat = (clone $baseQuery)->count();
+        $totalSurat = (clone $baseQuery)->count();
+        $menunggu = (clone $baseQuery)->whereIn('status', ['diajukan', 'menunggu'])->count();
+        $disetujui = (clone $baseQuery)->where('status', 'diverifikasi')->count();
+        $ditolak = (clone $baseQuery)->whereIn('status', ['dikembalikan', 'ditolak'])->count();
+        $diproses = (clone $baseQuery)->whereIn('status', ['diproses', 'diteruskan_ke_pimpinan'])->count();
+        $selesai = (clone $baseQuery)->whereIn('status', ['selesai', 'diarsipkan'])->count();
 
-    $menunggu = (clone $baseQuery)
-        ->where('status','diajukan')
-        ->count();
+        $surat = (clone $baseQuery)
+            ->withCount('disposisi')
+            ->when($keyword !== '', function ($query) use ($keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('nomor_surat', 'like', "%{$keyword}%")
+                        ->orWhere('nomor_agenda', 'like', "%{$keyword}%")
+                        ->orWhere('perihal', 'like', "%{$keyword}%")
+                        ->orWhere('asal_surat', 'like', "%{$keyword}%");
+                });
+            })
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->orderByDesc('tanggal_surat')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
-    $disetujui = (clone $baseQuery)
-        ->where('status','diverifikasi')
-        ->count();
-
-    $ditolak = (clone $baseQuery)
-        ->where('status','dikembalikan')
-        ->count();
-
-    $diproses = (clone $baseQuery)
-        ->where('status','diteruskan_ke_pimpinan')
-        ->count();
-
-    $selesai = (clone $baseQuery)
-        ->where('status','selesai')
-        ->count();
-
-    $query = clone $baseQuery;
-
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
+        return view('admin.surat.masuk.index', compact(
+            'surat', 'totalSurat', 'menunggu', 'disetujui', 'ditolak',
+            'diproses', 'selesai', 'statusTersedia'
+        ));
     }
-
-    $surat = $query
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
-
-    return view('admin.surat.masuk.index', compact(
-        'surat',
-        'totalSurat',
-        'menunggu',
-        'disetujui',
-        'ditolak',
-        'diproses',
-        'selesai'
-    ));
-}
     public function create()
     {
         return view('admin.surat.masuk.create');
@@ -72,20 +67,12 @@ class AdminSuratMasukController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'nomor_surat'   => 'required|string|max:100|unique:surats,nomor_surat',
-            'perihal'       => 'required|string|max:500',
-            'tanggal_surat' => 'required|date',
-            'asal_surat'    => 'required|string|max:255',
-            'nomor_agenda'  => 'nullable|string|max:100',
-            'metode'        => 'required|in:Email,Kurir,Pos,Langsung',
-            'deskripsi'     => 'nullable|string',
-            'is_priority'   => 'nullable|boolean',
-            'file_path'     => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
-        ]);
-
-        if ($request->hasFile('file_path')) {
-            $data['file_path'] = $request->file('file_path')->store('surat-masuk');
+        $data = $request->validate($this->rules());
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-masuk', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
 
         $data['jenis_surat'] = 'masuk';
@@ -93,26 +80,22 @@ class AdminSuratMasukController extends Controller
         $data['user_id'] = auth()->id();
         $data['is_priority'] = $request->boolean('is_priority');
 
-        $surat = Surat::create($data);
+        try {
+            DB::transaction(function () use ($data) {
+                $surat = Surat::create($data);
+                LogAktivitas::create([
+                    'user_id' => auth()->id(),
+                    'surat_id' => $surat->id,
+                    'action' => 'Tambah Surat Masuk',
+                    'description' => 'Menambahkan surat '.$surat->nomor_surat,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
 
-
-        // Log Admin
-        LogAktivitas::create([
-            'user_id'     => auth()->id(),
-            'action'      => 'Tambah Surat Masuk',
-            'description' => 'Menambahkan surat '.$surat->nomor_surat,
-        ]);
-
-        // Log User
-        if ($surat->user_id) {
-
-            LogAktivitas::create([
-                'user_id'     => $surat->user_id,
-                'surat_id'    => $surat->id,
-                'action'      => 'Pengajuan',
-                'description' => 'Surat berhasil diajukan',
-            ]);
-
+            throw $exception;
         }
 
         return redirect()
@@ -144,94 +127,44 @@ class AdminSuratMasukController extends Controller
      * Update
      */
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'nomor_surat'   => 'required',
-        'perihal'       => 'required',
-        'tanggal_surat' => 'required|date',
-    ]);
-
-    $surat = $this->suratMasuk($id);
-
-    // Simpan status lama
-    $statusLama = $surat->status;
-
-    // Update data surat
-    $surat->update([
-        'nomor_surat'   => $request->nomor_surat,
-        'perihal'       => $request->perihal,
-        'tanggal_surat' => $request->tanggal_surat,
-        'jenis_surat'   => 'masuk',
-    ]);
-
-    // Log aktivitas Admin
-    LogAktivitas::create([
-        'user_id'     => auth()->id(),
-        'surat_id'    => $surat->id,
-        'action'      => 'Update Surat',
-        'description' => 'Admin memperbarui data surat ' . $surat->nomor_surat,
-    ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Log aktivitas untuk pemilik surat
-    | Hanya dibuat jika status berubah
-    |--------------------------------------------------------------------------
-    */
-    if ($surat->user_id && $statusLama != $surat->status) {
-
-        switch ($surat->status) {
-
-            case 'menunggu':
-
-                LogAktivitas::create([
-                    'user_id'     => $surat->user_id,
-                    'surat_id'    => $surat->id,
-                    'action'      => 'Verifikasi',
-                    'description' => 'Surat sedang diverifikasi oleh Admin.',
-                ]);
-
-                break;
-
-            case 'proses':
-
-                LogAktivitas::create([
-                    'user_id'     => $surat->user_id,
-                    'surat_id'    => $surat->id,
-                    'action'      => 'Proses',
-                    'description' => 'Surat sedang diproses oleh Petugas.',
-                ]);
-
-                break;
-
-            case 'selesai':
-
-                LogAktivitas::create([
-                    'user_id'     => $surat->user_id,
-                    'surat_id'    => $surat->id,
-                    'action'      => 'Selesai',
-                    'description' => 'Surat telah selesai diproses dan dapat diunduh.',
-                ]);
-
-                break;
-
-            case 'ditolak':
-
-                LogAktivitas::create([
-                    'user_id'     => $surat->user_id,
-                    'surat_id'    => $surat->id,
-                    'action'      => 'Ditolak',
-                    'description' => 'Surat ditolak oleh Admin.',
-                ]);
-
-                break;
+    {
+        $surat = $this->suratMasuk($id);
+        $data = $request->validate($this->rules($surat));
+        $oldPath = $surat->file_path;
+        $oldDisk = $oldPath ? $surat->attachmentDisk() : null;
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-masuk', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
-    }
+        $data['is_priority'] = $request->boolean('is_priority');
 
-    return redirect()
-        ->route('admin.surat.masuk.index')
-        ->with('success', 'Surat berhasil diperbarui.');
-}
+        try {
+            DB::transaction(function () use ($surat, $data) {
+                $surat->update($data);
+                LogAktivitas::create([
+                    'user_id' => auth()->id(),
+                    'surat_id' => $surat->id,
+                    'action' => 'Update Surat',
+                    'description' => 'Admin memperbarui data surat '.$surat->nomor_surat,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($newPath && $oldPath) {
+            $oldDisk?->delete($oldPath);
+        }
+
+        return redirect()->route('admin.surat.masuk.index')
+            ->with('success', 'Surat berhasil diperbarui.');
+    }
 
     /**
      * Setujui surat (lolos verifikasi)
@@ -371,12 +304,9 @@ class AdminSuratMasukController extends Controller
             return back()->with('error', 'Surat yang sudah diproses atau memiliki disposisi tidak dapat dihapus.');
         }
 
-        if ($surat->file_path) {
-            $surat->deleteAttachment();
-        }
-
         LogAktivitas::create([
             'user_id'     => auth()->id(),
+            'surat_id'    => $surat->id,
             'action'      => 'Hapus Surat Masuk',
             'description' => 'Menghapus surat '.$surat->nomor_surat,
         ]);
@@ -390,5 +320,23 @@ class AdminSuratMasukController extends Controller
     private function suratMasuk(int $id): Surat
     {
         return Surat::where('jenis_surat', 'masuk')->findOrFail($id);
+    }
+
+    private function rules(?Surat $surat = null): array
+    {
+        return [
+            'nomor_surat' => [
+                'required', 'string', 'max:100',
+                Rule::unique('surats', 'nomor_surat')->ignore($surat?->id),
+            ],
+            'perihal' => 'required|string|max:500',
+            'tanggal_surat' => 'required|date',
+            'asal_surat' => 'required|string|max:255',
+            'nomor_agenda' => 'nullable|string|max:100',
+            'metode' => 'required|in:Email,Kurir,Pos,Langsung',
+            'deskripsi' => 'nullable|string|max:2000',
+            'is_priority' => 'nullable|boolean',
+            'file_path' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
+        ];
     }
 }

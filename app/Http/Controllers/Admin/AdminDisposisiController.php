@@ -30,15 +30,17 @@ class AdminDisposisiController extends Controller
                 'tujuans.pegawai'
             ])
             ->when($keyword, function ($query) use ($keyword) {
-
-                $query->whereHas('surat', function ($q) use ($keyword) {
-
-                    $q->where('nomor_surat', 'like', "%{$keyword}%")
-                      ->orWhere('judul_surat', 'like', "%{$keyword}%")
-                      ->orWhere('perihal', 'like', "%{$keyword}%");
-
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('catatan', 'like', "%{$keyword}%")
+                        ->orWhere('prioritas', 'like', "%{$keyword}%")
+                        ->orWhereHas('surat', function ($q) use ($keyword) {
+                            $q->where('nomor_surat', 'like', "%{$keyword}%")
+                                ->orWhere('judul_surat', 'like', "%{$keyword}%")
+                                ->orWhere('perihal', 'like', "%{$keyword}%");
+                        })
+                        ->orWhereHas('pengirim', fn ($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('tujuans.pegawai', fn ($q) => $q->where('nama', 'like', "%{$keyword}%"));
                 });
-
             })
             ->latest()
             ->paginate(10)
@@ -107,7 +109,7 @@ class AdminDisposisiController extends Controller
         ]);
 
         // Hanya surat yang sudah disetujui yang boleh didisposisikan
-        $suratDisposisi = Surat::findOrFail($request->surat_id);
+        $suratDisposisi = Surat::where('jenis_surat', 'masuk')->findOrFail($request->surat_id);
 
         if (!in_array($suratDisposisi->status, ['diverifikasi', 'diteruskan_ke_pimpinan'], true)) {
             return back()
@@ -179,7 +181,8 @@ class AdminDisposisiController extends Controller
         $disposisi = Disposisi::with([
             'surat',
             'pengirim',
-            'tujuans.pegawai'
+            'tujuans.pegawai.jabatan',
+            'tujuans.pegawai.unitKerja',
         ])->findOrFail($id);
 
         return view(
@@ -198,6 +201,11 @@ class AdminDisposisiController extends Controller
         $disposisi = Disposisi::with([
             'tujuans'
         ])->findOrFail($id);
+
+        if (! $disposisi->is_editable) {
+            return redirect()->route('admin.disposisi.show', $disposisi)
+                ->with('error', 'Disposisi yang sudah dibaca atau selesai tidak dapat diubah.');
+        }
 
         $surat = Surat::where('jenis_surat', 'masuk')
                     ->where(function ($query) use ($disposisi) {

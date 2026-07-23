@@ -16,7 +16,8 @@ class UmumSuratController extends Controller
 {
     public function index(Request $request)
     {
-        $base = Surat::where('user_id', auth()->id());
+        $base = Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk');
         $stats = [
             'total' => (clone $base)->count(),
             'diajukan' => (clone $base)->whereIn('status', ['menunggu', 'diajukan'])->count(),
@@ -30,9 +31,19 @@ class UmumSuratController extends Controller
             'perbaikan' => ['dikembalikan', 'ditolak'],
             'selesai' => ['selesai', 'terkirim', 'diarsipkan'],
         ];
+        $keyword = trim($request->string('keyword')->toString());
+        $categories = ['Permohonan Informasi', 'Permohonan Dokumen', 'Penyampaian Surat', 'Pengaduan', 'Lainnya'];
+        $category = in_array($request->string('kategori')->toString(), $categories, true)
+            ? $request->string('kategori')->toString()
+            : null;
         $surats = $base
-            ->when($request->keyword, fn ($q, $keyword) => $q->where(fn ($sub) => $sub->where('nomor_surat', 'like', "%{$keyword}%")->orWhere('perihal', 'like', "%{$keyword}%")->orWhere('kategori_pengajuan', 'like', "%{$keyword}%")))
-            ->when($request->kategori, fn ($q, $kategori) => $q->where('kategori_pengajuan', $kategori))
+            ->when($keyword !== '', fn ($q) => $q->where(fn ($sub) => $sub
+                ->where('nomor_surat', 'like', "%{$keyword}%")
+                ->orWhere('perihal', 'like', "%{$keyword}%")
+                ->orWhere('kategori_pengajuan', 'like', "%{$keyword}%")
+                ->orWhere('nomor_kontak', 'like', "%{$keyword}%")
+                ->orWhere('asal_instansi', 'like', "%{$keyword}%")))
+            ->when($category, fn ($q) => $q->where('kategori_pengajuan', $category))
             ->when($request->status && isset($statusGroups[$request->status]), fn ($q) => $q->whereIn('status', $statusGroups[$request->status]))
             ->latest('updated_at')->paginate(10)->withQueryString();
 
@@ -79,13 +90,18 @@ class UmumSuratController extends Controller
 
     public function show($id)
     {
-        $surat = Surat::with(['logs' => fn ($q) => $q->latest(), 'logs.user'])->where('user_id', auth()->id())->findOrFail($id);
+        $surat = Surat::with(['logs' => fn ($q) => $q->latest(), 'logs.user'])
+            ->where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->findOrFail($id);
         return view('umum.surat.show', compact('surat'));
     }
 
     public function download($id)
     {
-        $surat = Surat::where('user_id', auth()->id())->findOrFail($id);
+        $surat = Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->findOrFail($id);
 
         abort_unless($surat->attachmentExists(), 404);
 
@@ -134,15 +150,22 @@ class UmumSuratController extends Controller
 
     public function destroy($id)
     {
-        $surat = Surat::where('user_id', auth()->id())->where('status', 'menunggu')->findOrFail($id);
-        $this->log($surat, 'Hapus Pengajuan', 'Pengajuan '.$surat->nomor_surat.' dipindahkan ke histori terhapus.');
-        $surat->delete();
+        $surat = Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->where('status', 'menunggu')
+            ->findOrFail($id);
+        DB::transaction(function () use ($surat) {
+            $this->log($surat, 'Hapus Pengajuan', 'Pengajuan '.$surat->nomor_surat.' dipindahkan ke histori terhapus.');
+            $surat->delete();
+        });
         return redirect()->route('umum.surat.index')->with('success', 'Pengajuan berhasil dihapus.');
     }
 
     public function cariBerkasForm()
     {
-        $pengajuanTerbaru = Surat::where('user_id', auth()->id())->latest()->limit(5)->get();
+        $pengajuanTerbaru = Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->latest()->limit(5)->get();
         return view('umum.cari', compact('pengajuanTerbaru'));
     }
 
@@ -150,7 +173,9 @@ class UmumSuratController extends Controller
     {
         $data = $request->validate(['nomor_berkas' => 'required|string|max:100']);
         $number = trim($data['nomor_berkas']);
-        $surat = Surat::where('user_id', auth()->id())->where('nomor_surat', $number)->first();
+        $surat = Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->where('nomor_surat', $number)->first();
         return $surat
             ? redirect()->route('umum.surat.show', $surat->id)->with('success', 'Berkas ditemukan.')
             : back()->withInput()->with('error', 'Berkas tidak ditemukan pada akun Anda.');
@@ -221,7 +246,10 @@ class UmumSuratController extends Controller
 
     private function editableLetter(int $id): Surat
     {
-        return Surat::where('user_id', auth()->id())->whereIn('status', ['menunggu', 'dikembalikan', 'ditolak'])->findOrFail($id);
+        return Surat::where('user_id', auth()->id())
+            ->where('jenis_surat', 'masuk')
+            ->whereIn('status', ['menunggu', 'dikembalikan', 'ditolak'])
+            ->findOrFail($id);
     }
 
     private function rules(?int $id = null): array

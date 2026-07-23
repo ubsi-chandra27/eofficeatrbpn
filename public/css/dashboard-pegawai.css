@@ -4505,3 +4505,8 @@ body.dark .table{
 /* ==========================
    END OF FILE
 ========================== */
+
+.sidebar-backdrop{position:fixed;inset:0;border:0;background:rgba(15,23,42,.52);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease;z-index:999}
+.sidebar-backdrop.show{opacity:1;visibility:visible;pointer-events:auto}
+body.sidebar-mobile-open{overflow:hidden}
+@media(max-width:991px){.sidebar{z-index:1000}.toggle-sidebar{display:inline-grid!important;place-items:center;flex:0 0 auto}.main-wrapper{width:100%!important}}

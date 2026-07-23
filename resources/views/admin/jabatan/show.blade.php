@@ -186,16 +186,17 @@
             <span class="badge bg-primary">{{ $jabatan->pegawai_count }} Pegawai</span>
         </div>
         <div class="employee-list">
-            @forelse($jabatan->pegawai as $pegawai)
-                <a href="{{ route('admin.pegawai.show', $pegawai->id) }}" class="employee-item">
-                    <span class="employee-avatar">{{ strtoupper(substr($pegawai->nama, 0, 1)) }}</span>
-                    <span><strong>{{ $pegawai->nama }}</strong><small>{{ $pegawai->nip ?: 'NIP belum tersedia' }}</small></span>
+            @forelse($pegawai as $item)
+                <a href="{{ route('admin.pegawai.show', $item->id) }}" class="employee-item">
+                    <span class="employee-avatar">{{ strtoupper(mb_substr($item->nama, 0, 1)) }}</span>
+                    <span><strong>{{ $item->nama }}</strong><small>{{ $item->nip ?: 'NIP belum tersedia' }} · {{ $item->unitKerja?->nama ?? 'Unit belum diisi' }}</small></span>
                     <i class="bi bi-chevron-right"></i>
                 </a>
             @empty
                 <div class="text-center text-muted py-4"><i class="bi bi-person-x fs-2 d-block mb-2"></i>Belum ada pegawai pada jabatan ini.</div>
             @endforelse
         </div>
+        @if($pegawai->hasPages())<div class="mt-3">{{ $pegawai->withQueryString()->links() }}</div>@endif
     </div>
 
     <div class="detail-footer">
@@ -210,15 +211,10 @@
 
         </a>
 
-        <a
-            href="{{ route('admin.jabatan.edit',$jabatan->id) }}"
-            class="btn btn-warning text-white">
-
-            <i class="bi bi-pencil-square me-2"></i>
-
-            Edit Jabatan
-
-        </a>
+        <div class="d-flex gap-2">
+            @if($jabatan->pegawai_count === 0)<form method="POST" action="{{ route('admin.jabatan.destroy',$jabatan) }}" onsubmit="return confirm('Hapus jabatan {{ addslashes($jabatan->nama) }}?')">@csrf @method('DELETE')<button class="btn btn-outline-danger"><i class="bi bi-trash me-2"></i>Hapus</button></form>@endif
+            <a href="{{ route('admin.jabatan.edit',$jabatan) }}" class="btn btn-warning text-white"><i class="bi bi-pencil-square me-2"></i>Edit Jabatan</a>
+        </div>
 
     </div>
 

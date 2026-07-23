@@ -8,6 +8,7 @@
             <h2><i class="bi bi-send-check-fill text-primary me-2"></i>Disposisi Saya</h2>
             <p class="text-muted mb-0">Baca instruksi, prioritaskan tugas penting, dan tandai pekerjaan yang selesai.</p>
         </div>
+        <a href="{{ route('pegawai.disposisi.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Buat Disposisi</a>
     </div>
 
     <div class="metric-grid">
@@ -72,5 +73,17 @@
         </div>
         <div class="data-footer"><span>{{ $disposisi->firstItem() ?? 0 }}&ndash;{{ $disposisi->lastItem() ?? 0 }} dari {{ $disposisi->total() }} disposisi</span>{{ $disposisi->links() }}</div>
     </div>
+
+    <div class="data-card mt-4">
+        <div class="sent-heading"><div><h4>Disposisi Terkirim</h4><p>Disposisi yang Anda kirim kepada pegawai lain.</p></div><span>{{ $dikirim->total() }} Data</span></div>
+        <div class="table-responsive"><table class="table compact-table mb-0"><thead><tr><th>No</th><th>Surat</th><th>Instruksi</th><th>Penerima</th><th>Prioritas</th><th>Status</th><th class="text-end">Aksi</th></tr></thead><tbody>
+        @forelse($dikirim as $item)
+            @php($editable = $item->is_editable)
+            <tr><td>{{ $dikirim->firstItem()+$loop->index }}</td><td><span class="cell-title">{{ $item->surat?->nomor_surat ?? '-' }}</span><span class="cell-meta">{{ $item->surat?->perihal ?? '-' }}</span></td><td>{{ Str::limit($item->catatan,55) }}</td><td>@foreach($item->tujuans as $tujuan)<span class="recipient-line">{{ $tujuan->pegawai?->nama ?? '-' }}</span>@endforeach</td><td><span class="badge bg-{{ $item->prioritas==='Tinggi'?'danger':($item->prioritas==='Sedang'?'warning':'secondary') }}">{{ $item->prioritas }}</span></td><td>@foreach($item->tujuans as $tujuan)<span class="recipient-line">{{ $tujuan->status }}</span>@endforeach</td><td><div class="row-actions"><a href="{{ route('pegawai.disposisi.sent.show',$item) }}" class="btn btn-outline-primary" title="Detail"><i class="bi bi-eye"></i></a>@if($editable)<a href="{{ route('pegawai.disposisi.edit',$item) }}" class="btn btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a><form method="POST" action="{{ route('pegawai.disposisi.destroy',$item) }}" onsubmit="return confirm('Hapus disposisi terkirim ini?')">@csrf @method('DELETE')<button class="btn btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button></form>@else<span class="btn btn-light text-muted" title="Sudah dibaca dan terkunci"><i class="bi bi-lock"></i></span>@endif</div></td></tr>
+        @empty<tr><td colspan="7"><div class="empty-state"><i class="bi bi-send"></i><h5>Belum ada disposisi terkirim</h5><p>Gunakan tombol Buat Disposisi untuk mengirim instruksi kepada pegawai lain.</p></div></td></tr>@endforelse
+        </tbody></table></div>
+        <div class="data-footer"><span>{{ $dikirim->firstItem() ?? 0 }}&ndash;{{ $dikirim->lastItem() ?? 0 }} dari {{ $dikirim->total() }} disposisi</span>{{ $dikirim->links() }}</div>
+    </div>
 </div>
 @endsection
+@push('styles')<style>.sent-heading{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #edf1f5}.sent-heading h4{margin:0}.sent-heading p{margin:3px 0 0;color:#64748b}.sent-heading>span{padding:6px 10px;border-radius:20px;background:#eaf3fb;color:#0f4c81;font-weight:700}.recipient-line{display:block;font-size:13px}.recipient-line+.recipient-line{margin-top:4px}</style>@endpush

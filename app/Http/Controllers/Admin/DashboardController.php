@@ -15,7 +15,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $statusSurat = Surat::query()
+        $statusSurat = Surat::where('jenis_surat', 'masuk')
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -28,6 +28,7 @@ class DashboardController extends Controller
         ];
 
         $disposisiStatus = DisposisiTujuan::query()
+            ->whereHas('disposisi')
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -79,6 +80,8 @@ class DashboardController extends Controller
             'antrean' => $antrean,
             'indikatorDisposisi' => $indikatorDisposisi,
             'totalSurat' => Surat::count(),
+            'totalSuratMasuk' => Surat::where('jenis_surat', 'masuk')->count(),
+            'totalSuratKeluar' => Surat::where('jenis_surat', 'keluar')->count(),
             'totalDisposisi' => Disposisi::count(),
             'totalPegawai' => Pegawai::count(),
             'suratHariIni' => Surat::whereDate('created_at', Carbon::today())->count(),

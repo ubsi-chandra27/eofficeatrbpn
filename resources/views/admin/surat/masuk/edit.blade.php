@@ -73,7 +73,8 @@
                         type="text"
                         name="nomor_surat"
                         class="form-control @error('nomor_surat') is-invalid @enderror"
-                        value="{{ old('nomor_surat',$surat->nomor_surat) }}">
+                        value="{{ old('nomor_surat',$surat->nomor_surat) }}"
+                        required>
 
                     @error('nomor_surat')
 
@@ -100,7 +101,8 @@
                         type="date"
                         name="tanggal_surat"
                         class="form-control @error('tanggal_surat') is-invalid @enderror"
-                        value="{{ old('tanggal_surat',$surat->tanggal_surat) }}">
+                        value="{{ old('tanggal_surat', $surat->tanggal_surat?->format('Y-m-d')) }}"
+                        required>
 
                     @error('tanggal_surat')
 
@@ -127,7 +129,8 @@
                         type="text"
                         name="perihal"
                         class="form-control @error('perihal') is-invalid @enderror"
-                        value="{{ old('perihal',$surat->perihal) }}">
+                        value="{{ old('perihal',$surat->perihal) }}"
+                        required>
 
                     @error('perihal')
 
@@ -158,7 +161,8 @@
                         name="asal_surat"
                         class="form-control @error('asal_surat') is-invalid @enderror"
                         value="{{ old('asal_surat', $surat->asal_surat) }}"
-                        placeholder="Instansi / Pengirim">
+                        placeholder="Instansi / Pengirim"
+                        required>
 
                     @error('asal_surat')
 
@@ -217,7 +221,8 @@
 
                     <select
                         name="metode"
-                        class="form-select">
+                        class="form-select @error('metode') is-invalid @enderror"
+                        required>
 
                         <option value="">-- Pilih Metode --</option>
 
@@ -257,41 +262,8 @@
 
                     </label>
 
-                    <select
-                        name="status"
-                        class="form-select @error('status') is-invalid @enderror">
-
-                        <option value="menunggu"
-                            {{ old('status', $surat->status) == 'menunggu' ? 'selected' : '' }}>
-                            Menunggu
-                        </option>
-
-                        <option value="proses"
-                            {{ old('status', $surat->status) == 'proses' ? 'selected' : '' }}>
-                            Diproses
-                        </option>
-
-                        <option value="selesai"
-                            {{ old('status', $surat->status) == 'selesai' ? 'selected' : '' }}>
-                            Selesai
-                        </option>
-
-                        <option value="ditolak"
-                            {{ old('status', $surat->status) == 'ditolak' ? 'selected' : '' }}>
-                            Ditolak
-                        </option>
-
-                    </select>
-
-                    @error('status')
-
-                        <div class="invalid-feedback">
-
-                            {{ $message }}
-
-                        </div>
-
-                    @enderror
+                    <input class="form-control bg-light" value="{{ $surat->status_label }}" readonly>
+                    <small class="text-muted">Status diubah melalui proses verifikasi dan disposisi.</small>
 
                 </div>
 
@@ -344,6 +316,7 @@
                     <input
                         type="file"
                         name="file_path"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         class="form-control @error('file_path') is-invalid @enderror">
 
                     @error('file_path')

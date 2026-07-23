@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Surat;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 
 class SuratKeluarController extends Controller
@@ -16,13 +19,15 @@ class SuratKeluarController extends Controller
 
     public function index(Request $request)
     {
-        $query = Surat::where('user_id', Auth::id())
+        $query = Surat::with('jabatanPimpinan')
+            ->where('user_id', Auth::id())
             ->where('jenis_surat', 'keluar');
         $base = clone $query;
         $stats = [
             'total' => (clone $base)->count(),
             'draft' => (clone $base)->where('status', 'draft')->count(),
-            'diajukan' => (clone $base)->whereIn('status', ['diajukan', 'diverifikasi'])->count(),
+            'diajukan' => (clone $base)->whereIn('status', ['diajukan', 'diverifikasi', 'diteruskan_ke_pimpinan'])->count(),
+            'perbaikan' => (clone $base)->where('status', 'dikembalikan')->count(),
             'selesai' => (clone $base)->whereIn('status', ['terkirim', 'selesai', 'diarsipkan'])->count(),
         ];
 
@@ -50,13 +55,9 @@ class SuratKeluarController extends Controller
 
         }
 
-        if ($request->filled('status')) {
-
-            $query->where(
-                'status',
-                $request->status
-            );
-
+        $allowedStatuses = ['draft', 'diajukan', 'diverifikasi', 'dikembalikan', 'diteruskan_ke_pimpinan', 'terkirim', 'selesai', 'diarsipkan'];
+        if ($request->filled('status') && in_array($request->status, $allowedStatuses, true)) {
+            $query->where('status', $request->status);
         }
 
         $surat = $query
@@ -99,23 +100,16 @@ class SuratKeluarController extends Controller
     public function store(Request $request)
     {
 
-        $request->validate([
-
-            'nomor_surat'          => 'required|unique:surats,nomor_surat',
-
-            'tanggal_surat'        => 'required|date',
-
-            'perihal'              => 'required',
-
-            'tujuan_surat'         => 'required',
-
-            'pimpinan_pegawai_id'  => 'required|exists:pegawai,id',
-
-            'deskripsi'            => 'nullable',
-
-            'file_path'            => 'nullable|mimes:pdf,doc,docx|max:5120',
-
-            'status'               => 'nullable|in:draft,diajukan',
+        $data = $request->validate([
+            'nomor_surat' => 'required|string|max:100|unique:surats,nomor_surat',
+            'tanggal_surat' => 'required|date',
+            'kode_surat' => 'nullable|string|max:50',
+            'perihal' => 'required|string|max:500',
+            'tujuan_surat' => 'required|string|max:255',
+            'pimpinan_pegawai_id' => 'required|exists:pegawai,id',
+            'deskripsi' => 'nullable|string|max:2000',
+            'file_path' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
+            'status' => 'required|in:draft,diajukan',
 
         ], [
             'pimpinan_pegawai_id.required' => 'Pimpinan atau penandatangan wajib dipilih.',
@@ -133,66 +127,30 @@ class SuratKeluarController extends Controller
             ]);
         }
 
-        $file = null;
-
-        if ($request->hasFile('file_path')) {
-
-            $file = $request
-                ->file('file_path')
-                ->store(
-                    'surat-keluar',
-                    'local'
-                );
-
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-keluar', 'local')
+            : null;
+        unset($data['pimpinan_pegawai_id']);
+        $data = array_merge($data, [
+            'user_id' => Auth::id(), 'jenis_surat' => 'keluar',
+            'jabatan_pimpinan_id' => $pimpinan->jabatan_id,
+            'nama_pimpinan' => $pimpinan->nama, 'file_path' => $newPath,
+        ]);
+        try {
+            DB::transaction(function () use ($data) {
+                $surat = Surat::create($data);
+                LogAktivitas::create([
+                    'user_id' => Auth::id(), 'surat_id' => $surat->id,
+                    'action' => $surat->status === 'diajukan' ? 'Mengirim Surat Keluar' : 'Membuat Surat Keluar',
+                    'description' => 'Surat keluar '.$surat->nomor_surat.($surat->status === 'diajukan' ? ' dikirim ke Admin.' : ' disimpan sebagai draft.'),
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+            throw $exception;
         }
-
-
-
-        $surat = Surat::create([
-
-            'user_id' => Auth::id(),
-
-            'jenis_surat' => 'keluar',
-
-            'nomor_surat' => $request->nomor_surat,
-
-            'tanggal_surat' => $request->tanggal_surat,
-
-            'perihal' => $request->perihal,
-
-            'tujuan_surat' => $request->tujuan_surat,
-
-            'jabatan_pimpinan_id'
-                => $pimpinan->jabatan_id,
-
-            'nama_pimpinan'
-                => $pimpinan->nama,
-
-            'deskripsi'
-                => $request->deskripsi,
-
-            'file_path'
-                => $file,
-
-            'status'
-                => $request->input('status', 'draft'),
-
-        ]);
-
-
-        LogAktivitas::create([
-
-            'user_id' => Auth::id(),
-
-            'surat_id' => $surat->id,
-
-            'action' => 'Membuat Surat Keluar',
-
-            'description'
-                => 'Membuat Surat Keluar '
-                . $surat->nomor_surat,
-
-        ]);
 
 
         return redirect()
@@ -213,7 +171,7 @@ class SuratKeluarController extends Controller
     public function show($id)
     {
         $surat = $this->suratKeluarMilikPegawai($id)
-            ->load('jabatanPimpinan');
+            ->load(['jabatanPimpinan', 'logs.user']);
 
         return view(
             'pegawai.surat.keluar.show',
@@ -293,28 +251,15 @@ class SuratKeluarController extends Controller
 
         }
 
-        $request->validate([
-
-            'nomor_surat'
-                => 'required|unique:surats,nomor_surat,' . $surat->id,
-
-            'tanggal_surat'
-                => 'required|date',
-
-            'perihal'
-                => 'required',
-
-            'tujuan_surat'
-                => 'required',
-
-            'pimpinan_pegawai_id'
-                => 'required|exists:pegawai,id',
-
-            'deskripsi'
-                => 'nullable',
-
-            'file_path'
-                => 'nullable|mimes:pdf,doc,docx|max:5120',
+        $data = $request->validate([
+            'nomor_surat' => 'required|string|max:100|unique:surats,nomor_surat,' . $surat->id,
+            'tanggal_surat' => 'required|date',
+            'kode_surat' => 'nullable|string|max:50',
+            'perihal' => 'required|string|max:500',
+            'tujuan_surat' => 'required|string|max:255',
+            'pimpinan_pegawai_id' => 'required|exists:pegawai,id',
+            'deskripsi' => 'nullable|string|max:2000',
+            'file_path' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
 
         ], [
             'pimpinan_pegawai_id.required' => 'Pimpinan atau penandatangan wajib dipilih.',
@@ -331,63 +276,35 @@ class SuratKeluarController extends Controller
             ]);
         }
 
-        if ($request->hasFile('file_path')) {
-
-            if ($surat->file_path) {
-
-                $surat->deleteAttachment();
-
-            }
-
-            $surat->file_path =
-                $request
-                    ->file('file_path')
-                    ->store(
-                        'surat-keluar',
-                        'local'
-                    );
+        $oldPath = $surat->file_path;
+        $oldDisk = $oldPath ? $surat->attachmentDisk() : null;
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-keluar', 'local')
+            : null;
+        unset($data['pimpinan_pegawai_id']);
+        $data['jabatan_pimpinan_id'] = $pimpinan->jabatan_id;
+        $data['nama_pimpinan'] = $pimpinan->nama;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
-
-
-        $surat->update([
-
-            'nomor_surat'
-                => $request->nomor_surat,
-
-            'tanggal_surat'
-                => $request->tanggal_surat,
-
-            'perihal'
-                => $request->perihal,
-
-            'tujuan_surat'
-                => $request->tujuan_surat,
-
-            'jabatan_pimpinan_id'
-                => $pimpinan->jabatan_id,
-
-            'nama_pimpinan'
-                => $pimpinan->nama,
-
-            'deskripsi'
-                => $request->deskripsi,
-
-        ]);
-
-
-        LogAktivitas::create([
-
-            'user_id' => Auth::id(),
-
-            'surat_id' => $surat->id,
-
-            'action' => 'Mengubah Surat Keluar',
-
-            'description'
-                => 'Mengubah Surat '
-                . $surat->nomor_surat,
-
-        ]);
+        try {
+            DB::transaction(function () use ($surat, $data) {
+                $surat->update($data);
+                LogAktivitas::create([
+                    'user_id' => Auth::id(), 'surat_id' => $surat->id,
+                    'action' => 'Mengubah Surat Keluar',
+                    'description' => 'Mengubah surat '.$surat->nomor_surat,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+            throw $exception;
+        }
+        if ($newPath && $oldPath) {
+            $oldDisk?->delete($oldPath);
+        }
 
 
         return redirect()
@@ -419,27 +336,14 @@ class SuratKeluarController extends Controller
 
         }
 
-        if ($surat->file_path) {
-
-            $surat->deleteAttachment();
-
-        }
-
-        LogAktivitas::create([
-
-            'user_id' => Auth::id(),
-
-            'surat_id' => $surat->id,
-
-            'action' => 'Menghapus Surat Keluar',
-
-            'description'
-                => 'Menghapus Surat '
-                . $surat->nomor_surat,
-
-        ]);
-
-        $surat->delete();
+        DB::transaction(function () use ($surat) {
+            LogAktivitas::create([
+                'user_id' => Auth::id(), 'surat_id' => $surat->id,
+                'action' => 'Menghapus Surat Keluar',
+                'description' => 'Surat '.$surat->nomor_surat.' dipindahkan ke sampah.',
+            ]);
+            $surat->delete();
+        });
 
         return redirect()
             ->route('pegawai.surat-keluar.index')
@@ -471,26 +375,14 @@ class SuratKeluarController extends Controller
 
         }
 
-        $surat->update([
-
-            'status' => 'diajukan'
-
-        ]);
-
-
-        LogAktivitas::create([
-
-            'user_id' => Auth::id(),
-
-            'surat_id' => $surat->id,
-
-            'action' => 'Mengirim Surat Keluar',
-
-            'description'
-                => 'Mengirim Surat '
-                . $surat->nomor_surat,
-
-        ]);
+        DB::transaction(function () use ($surat) {
+            $surat->update(['status' => 'diajukan', 'catatan_admin' => null]);
+            LogAktivitas::create([
+                'user_id' => Auth::id(), 'surat_id' => $surat->id,
+                'action' => 'Mengirim Surat Keluar',
+                'description' => 'Mengirim surat '.$surat->nomor_surat.' ke Admin.',
+            ]);
+        });
 
 
         return redirect()

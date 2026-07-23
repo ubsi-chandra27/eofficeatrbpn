@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Jabatan;
 use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class AdminJabatanController extends Controller
@@ -13,6 +14,9 @@ class AdminJabatanController extends Controller
     public function index(Request $request)
     {
         $keyword = trim((string) $request->input('keyword'));
+        $penggunaan = in_array($request->input('penggunaan'), ['terpakai', 'kosong'], true)
+            ? $request->input('penggunaan')
+            : null;
         $totalJabatan = Jabatan::count();
         $jabatanTerpakai = Jabatan::has('pegawai')->count();
         $jabatanKosong = $totalJabatan - $jabatanTerpakai;
@@ -23,6 +27,8 @@ class AdminJabatanController extends Controller
                     ->orWhere('kode', 'like', "%{$keyword}%")
                     ->orWhere('deskripsi', 'like', "%{$keyword}%");
             }))
+            ->when($penggunaan === 'terpakai', fn ($query) => $query->has('pegawai'))
+            ->when($penggunaan === 'kosong', fn ($query) => $query->doesntHave('pegawai'))
             ->orderBy('nama')
             ->paginate(10)
             ->withQueryString();
@@ -37,46 +43,60 @@ class AdminJabatanController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizeRequest($request);
         $data = $request->validate($this->rules(), $this->messages());
-        $data['nama'] = trim($data['nama']);
-        $data['kode'] = filled($data['kode'] ?? null) ? strtoupper(trim($data['kode'])) : null;
+        $data = $this->normalize($data);
         $jabatan = Jabatan::create($data);
         $this->log('Tambah Jabatan', "Menambahkan jabatan {$jabatan->nama}.");
 
         return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil ditambahkan.');
     }
 
-    public function show($id)
+    public function show(Jabatan $jabatan)
     {
-        $jabatan = Jabatan::withCount('pegawai')->with(['pegawai' => fn ($query) => $query->orderBy('nama')])->findOrFail($id);
-        return view('admin.jabatan.show', compact('jabatan'));
+        $jabatan->loadCount('pegawai');
+        $pegawai = $jabatan->pegawai()
+            ->with(['unitKerja', 'user'])
+            ->orderBy('nama')
+            ->paginate(10, ['*'], 'pegawai_page');
+
+        return view('admin.jabatan.show', compact('jabatan', 'pegawai'));
     }
 
-    public function edit($id)
+    public function edit(Jabatan $jabatan)
     {
-        return view('admin.jabatan.edit', ['jabatan' => Jabatan::findOrFail($id)]);
+        return view('admin.jabatan.edit', compact('jabatan'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Jabatan $jabatan)
     {
-        $jabatan = Jabatan::findOrFail($id);
+        $this->normalizeRequest($request);
         $data = $request->validate($this->rules($jabatan->id), $this->messages());
-        $data['nama'] = trim($data['nama']);
-        $data['kode'] = filled($data['kode'] ?? null) ? strtoupper(trim($data['kode'])) : null;
+        $data = $this->normalize($data);
         $jabatan->update($data);
         $this->log('Perbarui Jabatan', "Memperbarui jabatan {$jabatan->nama}.");
 
         return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy(Jabatan $jabatan)
     {
-        $jabatan = Jabatan::withCount('pegawai')->findOrFail($id);
-        if ($jabatan->pegawai_count > 0) {
-            return back()->with('error', "Jabatan masih digunakan oleh {$jabatan->pegawai_count} pegawai dan tidak dapat dihapus.");
+        $result = DB::transaction(function () use ($jabatan) {
+            $locked = Jabatan::lockForUpdate()->findOrFail($jabatan->id);
+            $jumlahPegawai = $locked->pegawai()->count();
+            if ($jumlahPegawai > 0) {
+                return $jumlahPegawai;
+            }
+
+            $locked->delete();
+            return 0;
+        });
+
+        if ($result > 0) {
+            return back()->with('error', "Jabatan masih digunakan oleh {$result} pegawai dan tidak dapat dihapus.");
         }
+
         $nama = $jabatan->nama;
-        $jabatan->delete();
         $this->log('Hapus Jabatan', "Menghapus jabatan {$nama} yang tidak digunakan.");
 
         return redirect()->route('admin.jabatan.index')->with('success', 'Data jabatan berhasil dihapus.');
@@ -98,6 +118,24 @@ class AdminJabatanController extends Controller
             'kode.unique' => 'Kode jabatan sudah digunakan.', 'kode.alpha_dash' => 'Kode hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
             'deskripsi.max' => 'Deskripsi maksimal 1.000 karakter.',
         ];
+    }
+
+    private function normalize(array $data): array
+    {
+        $data['nama'] = trim($data['nama']);
+        $data['kode'] = filled($data['kode'] ?? null) ? strtoupper(trim($data['kode'])) : null;
+        $data['deskripsi'] = filled($data['deskripsi'] ?? null) ? trim($data['deskripsi']) : null;
+
+        return $data;
+    }
+
+    private function normalizeRequest(Request $request): void
+    {
+        $request->merge([
+            'nama' => trim((string) $request->input('nama')),
+            'kode' => filled($request->input('kode')) ? strtoupper(trim((string) $request->input('kode'))) : null,
+            'deskripsi' => filled($request->input('deskripsi')) ? trim((string) $request->input('deskripsi')) : null,
+        ]);
     }
 
     private function log(string $action, string $description): void

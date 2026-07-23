@@ -1,0 +1,5 @@
+@push('styles')
+<style>
+.employee-form{max-width:1080px;margin:auto}.employee-form-card{background:#fff;border:1px solid #e5ebf2;border-radius:18px;padding:25px;margin-bottom:18px;box-shadow:0 8px 24px rgba(15,76,129,.05)}.form-section-title{display:flex;align-items:center;gap:13px;padding-bottom:17px;margin-bottom:19px;border-bottom:1px solid #edf1f5}.form-section-title>span{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:#eaf3fb;color:#0f4c81;font-size:19px}.form-section-title h4{font-size:18px;margin:0}.form-section-title p{font-size:13px;color:#64748b;margin:2px 0 0}.employee-form .form-label{font-weight:650;color:#334155}.employee-form .form-control,.employee-form .form-select{min-height:48px;border-radius:11px;border-color:#dbe3ec}.employee-form textarea.form-control{min-height:110px}.employee-form-actions{display:flex;justify-content:flex-end;gap:10px;padding-bottom:25px}@media(max-width:650px){.employee-form-card{padding:20px}.employee-form-actions{flex-direction:column-reverse}.employee-form-actions .btn{width:100%}}
+</style>
+@endpush

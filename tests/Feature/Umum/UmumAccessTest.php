@@ -54,6 +54,63 @@ it('membatasi detail dan pencarian surat berdasarkan pemilik', function () {
     $this->actingAs($owner)->get(route('umum.surat.show', $letter))->assertOk();
 });
 
+it('menampilkan isi tabel surat saya beserta tahap proses dan hanya surat masuk milik pengguna', function () {
+    $owner = User::factory()->create(['role' => 'umum']);
+    $other = User::factory()->create(['role' => 'umum']);
+
+    $letter = createUmumSurat($owner, 'UMUM-TABEL-001');
+    $letter->update([
+        'kategori_pengajuan' => 'Permohonan Dokumen',
+        'perihal' => 'Permohonan salinan dokumen pertanahan',
+        'nomor_kontak' => '081234567890',
+        'asal_instansi' => 'Komunitas Warga',
+        'file_path' => 'surat/umum/contoh.pdf',
+        'status' => 'dikembalikan',
+        'catatan_admin' => 'Lampiran identitas perlu diperjelas.',
+    ]);
+
+    createUmumSurat($other, 'UMUM-MILIK-LAIN');
+    Surat::factory()->create([
+        'user_id' => $owner->id,
+        'jenis_surat' => 'keluar',
+        'nomor_surat' => 'UMUM-SURAT-KELUAR',
+    ]);
+
+    $this->actingAs($owner)->get(route('umum.surat.index'))
+        ->assertOk()
+        ->assertSee('UMUM-TABEL-001')
+        ->assertSee('Permohonan Dokumen')
+        ->assertSee('Permohonan salinan dokumen pertanahan')
+        ->assertSee('081234567890')
+        ->assertSee('Komunitas Warga')
+        ->assertSee('PDF')
+        ->assertSee('Harus diperbaiki dan dikirim ulang')
+        ->assertSee('Lampiran identitas perlu diperjelas.')
+        ->assertDontSee('UMUM-MILIK-LAIN')
+        ->assertDontSee('UMUM-SURAT-KELUAR');
+});
+
+it('mencari surat saya berdasarkan kontak atau instansi dan menampilkan catatan admin di detail', function () {
+    $owner = User::factory()->create(['role' => 'umum']);
+    $letter = createUmumSurat($owner, 'UMUM-CARI-001');
+    $letter->update([
+        'nomor_kontak' => '081299998888',
+        'asal_instansi' => 'Forum Masyarakat',
+        'status' => 'dikembalikan',
+        'catatan_admin' => 'Mohon unggah ulang dokumen yang terbaca.',
+    ]);
+
+    $this->actingAs($owner)->get(route('umum.surat.index', ['keyword' => '081299998888']))
+        ->assertOk()->assertSee('UMUM-CARI-001');
+    $this->actingAs($owner)->get(route('umum.surat.index', ['keyword' => 'Forum Masyarakat']))
+        ->assertOk()->assertSee('UMUM-CARI-001');
+    $this->actingAs($owner)->get(route('umum.surat.show', $letter))
+        ->assertOk()
+        ->assertSee('Harus diperbaiki dan dikirim ulang')
+        ->assertSee('Mohon unggah ulang dokumen yang terbaca.')
+        ->assertSee('Perbaiki Pengajuan');
+});
+
 it('mengintegrasikan pilihan layanan dengan form pengajuan', function () {
     $user = User::factory()->create(['role' => 'umum']);
     $this->actingAs($user)->get(route('umum.layanan.index'))

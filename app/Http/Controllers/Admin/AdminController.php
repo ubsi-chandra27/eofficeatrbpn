@@ -63,15 +63,47 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function userIndex()
+    public function userIndex(Request $request)
     {
-        $users = User::latest()->get();
+        $keyword = trim($request->string('keyword')->toString());
+        $roleFilter = in_array($request->string('role')->toString(), ['admin', 'pegawai', 'umum'], true)
+            ? $request->string('role')->toString()
+            : null;
+        $profilFilter = in_array($request->string('profil')->toString(), ['terhubung', 'belum'], true)
+            ? $request->string('profil')->toString()
+            : null;
+
+        $users = User::with(['pegawai.jabatan', 'pegawai.unitKerja'])
+            ->when($keyword !== '', function ($query) use ($keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('email', 'like', "%{$keyword}%")
+                        ->orWhere('nip', 'like', "%{$keyword}%")
+                        ->orWhereHas('pegawai', fn ($pegawai) => $pegawai
+                            ->where('nama', 'like', "%{$keyword}%")
+                            ->orWhere('nip', 'like', "%{$keyword}%"));
+                });
+            })
+            ->when($roleFilter, fn ($query) => $query->where('role', $roleFilter))
+            ->when($profilFilter === 'terhubung', fn ($query) => $query->whereHas('pegawai'))
+            ->when($profilFilter === 'belum', fn ($query) => $query->whereDoesntHave('pegawai'))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         $roles = collect(['admin', 'pegawai', 'umum'])->map(fn ($name) => (object) ['name' => $name]);
+        $statistik = [
+            'total' => User::count(),
+            'admin' => User::where('role', 'admin')->count(),
+            'pegawai' => User::where('role', 'pegawai')->count(),
+            'umum' => User::where('role', 'umum')->count(),
+            'profil_belum_terhubung' => User::where('role', 'pegawai')->whereDoesntHave('pegawai')->count(),
+        ];
 
         return view('admin.users', compact(
             'users',
-            'roles'
+            'roles',
+            'statistik'
         ));
     }
 
@@ -96,7 +128,8 @@ class AdminController extends Controller
             );
         }
 
-        if ($request->role !== 'umum' && blank($user->nip)) {
+        $nipEfektif = $user->nip ?: $user->pegawai?->nip;
+        if ($request->role !== 'umum' && blank($nipEfektif)) {
             return back()->with('error', 'Isi NIP pengguna terlebih dahulu sebelum mengubahnya menjadi Admin atau Pegawai.');
         }
 
@@ -111,7 +144,8 @@ class AdminController extends Controller
         */
 
         $user->update([
-            'role' => $request->role
+            'role' => $request->role,
+            'nip' => $nipEfektif,
         ]);
 
         /*
@@ -134,7 +168,7 @@ class AdminController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if ($user->role === 'umum') {
+        if ($user->role === 'umum' && ! $user->pegawai) {
             return back()->with('error', 'Akun Umum menggunakan email dan tidak memerlukan NIP.');
         }
 
@@ -171,6 +205,10 @@ class AdminController extends Controller
         ]);
 
         $user = User::findOrFail($id);
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Ubah password akun Anda melalui menu Profil.');
+        }
 
         $user->update([
 

@@ -443,6 +443,19 @@ Route::middleware(['auth','role:pegawai'])
     )
     ->name('disposisi.index');
 
+    Route::get('/disposisi/create', [PegawaiDisposisiController::class, 'create'])
+        ->name('disposisi.create');
+    Route::post('/disposisi', [PegawaiDisposisiController::class, 'store'])
+        ->name('disposisi.store');
+    Route::get('/disposisi-terkirim/{id}', [PegawaiDisposisiController::class, 'sentShow'])
+        ->name('disposisi.sent.show');
+    Route::get('/disposisi-terkirim/{id}/edit', [PegawaiDisposisiController::class, 'edit'])
+        ->name('disposisi.edit');
+    Route::put('/disposisi-terkirim/{id}', [PegawaiDisposisiController::class, 'update'])
+        ->name('disposisi.update');
+    Route::delete('/disposisi-terkirim/{id}', [PegawaiDisposisiController::class, 'destroy'])
+        ->name('disposisi.destroy');
+
     Route::get('/disposisi/{id}', [PegawaiDisposisiController::class, 'show'])
         ->name('disposisi.show');
 

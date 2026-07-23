@@ -7,6 +7,8 @@ use App\Models\LogAktivitas;
 use App\Models\Surat;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminSuratKeluarController extends Controller
@@ -17,15 +19,22 @@ class AdminSuratKeluarController extends Controller
     {
         $base = Surat::where('jenis_surat', 'keluar');
         $stats = (clone $base)->selectRaw('status, COUNT(*) total')->groupBy('status')->pluck('total', 'status');
+        $status = in_array($request->string('status')->toString(), self::STATUS, true)
+            ? $request->string('status')->toString()
+            : null;
+        $keyword = trim($request->string('keyword')->toString());
 
         $surat = $base
-            ->when($request->keyword, fn ($q, $keyword) => $q->where(function ($sub) use ($keyword) {
+            ->when($keyword !== '', fn ($q) => $q->where(function ($sub) use ($keyword) {
                 $sub->where('nomor_surat', 'like', "%{$keyword}%")
+                    ->orWhere('nomor_agenda', 'like', "%{$keyword}%")
                     ->orWhere('perihal', 'like', "%{$keyword}%")
                     ->orWhere('tujuan_surat', 'like', "%{$keyword}%");
             }))
-            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
-            ->latest()->paginate(10)->withQueryString();
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->orderByDesc('tanggal_surat')
+            ->orderByDesc('id')
+            ->paginate(10)->withQueryString();
 
         return view('admin.surat.keluar.index', compact('surat', 'stats'));
     }
@@ -38,15 +47,29 @@ class AdminSuratKeluarController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
-        if ($request->hasFile('file_path')) {
-            $data['file_path'] = $request->file('file_path')->store('surat-keluar');
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-keluar', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
         $data['user_id'] = auth()->id();
         $data['jenis_surat'] = 'keluar';
         $data['status'] = $request->input('status', Setting::getValue('outgoing_default_status', 'draft'));
         $data['is_priority'] = $request->boolean('is_priority');
-        $surat = Surat::create($data);
-        $this->log($surat, 'Tambah Surat Keluar', 'Menambahkan surat ' . $surat->nomor_surat);
+        try {
+            DB::transaction(function () use ($data) {
+                $surat = Surat::create($data);
+                $this->log($surat, 'Tambah Surat Keluar', 'Menambahkan surat '.$surat->nomor_surat);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Surat keluar berhasil ditambahkan.');
     }
 
@@ -57,14 +80,33 @@ class AdminSuratKeluarController extends Controller
     {
         $surat = $this->suratKeluar($id);
         $data = $request->validate($this->rules($surat->id));
-        if ($request->hasFile('file_path')) {
-            $surat->deleteAttachment();
-            $data['file_path'] = $request->file('file_path')->store('surat-keluar');
+        $oldPath = $surat->file_path;
+        $oldDisk = $oldPath ? $surat->attachmentDisk() : null;
+        $newPath = $request->hasFile('file_path')
+            ? $request->file('file_path')->store('surat-keluar', 'local')
+            : null;
+        if ($newPath) {
+            $data['file_path'] = $newPath;
         }
         $data['status'] = $request->input('status', $surat->status);
         $data['is_priority'] = $request->boolean('is_priority');
-        $surat->update($data);
-        $this->log($surat, 'Update Surat Keluar', 'Mengubah surat ' . $surat->nomor_surat);
+        try {
+            DB::transaction(function () use ($surat, $data) {
+                $surat->update($data);
+                $this->log($surat, 'Update Surat Keluar', 'Mengubah surat '.$surat->nomor_surat);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($newPath && $oldPath) {
+            $oldDisk?->delete($oldPath);
+        }
+
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Surat berhasil diperbarui.');
     }
 
@@ -74,7 +116,6 @@ class AdminSuratKeluarController extends Controller
         if ($surat->status !== 'draft') {
             return back()->with('error', 'Hanya surat draft yang dapat dihapus. Surat lain tetap disimpan sebagai histori.');
         }
-        $surat->deleteAttachment();
         $this->log($surat, 'Hapus Surat Keluar', 'Mengarsipkan surat ' . $surat->nomor_surat);
         $surat->delete();
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Draft surat berhasil dihapus.');
@@ -85,14 +126,14 @@ class AdminSuratKeluarController extends Controller
         return [
             'nomor_surat' => ['required', 'string', 'max:100', Rule::unique('surats', 'nomor_surat')->ignore($id)],
             'tanggal_surat' => 'required|date',
-            'tanggal_kirim' => 'nullable|date',
-            'tanggal_keluar' => 'nullable|date',
+            'tanggal_kirim' => 'nullable|date|after_or_equal:tanggal_surat',
+            'tanggal_keluar' => 'nullable|date|after_or_equal:tanggal_surat',
             'tujuan_surat' => 'required|string|max:255',
             'penandatangan' => 'required|string|max:255',
             'perihal' => 'required|string|max:500',
             'nomor_agenda' => 'nullable|string|max:100',
             'metode' => 'required|in:Email,Kurir,Pos,Langsung',
-            'deskripsi' => 'nullable|string',
+            'deskripsi' => 'nullable|string|max:2000',
             'is_priority' => 'nullable|boolean',
             'file_path' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
             'status' => ['nullable', Rule::in(self::STATUS)],

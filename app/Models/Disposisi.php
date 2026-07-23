@@ -101,4 +101,9 @@ class Disposisi extends Model
     {
         return $this->tujuans();
     }
+
+    public function getIsEditableAttribute(): bool
+    {
+        return ! $this->tujuans->contains(fn (DisposisiTujuan $tujuan) => $tujuan->status !== 'Belum Dibaca');
+    }
 }

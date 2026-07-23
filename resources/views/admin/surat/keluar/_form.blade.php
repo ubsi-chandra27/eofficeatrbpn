@@ -56,11 +56,13 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Tanggal Keluar</label>
-            <input type="date" name="tanggal_keluar" value="{{ old('tanggal_keluar', $current?->tanggal_keluar?->format('Y-m-d')) }}" class="form-control">
+            <input type="date" name="tanggal_keluar" value="{{ old('tanggal_keluar', $current?->tanggal_keluar?->format('Y-m-d')) }}" min="{{ old('tanggal_surat', $current?->tanggal_surat?->format('Y-m-d')) }}" class="form-control @error('tanggal_keluar') is-invalid @enderror">
+            @error('tanggal_keluar')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
         <div class="col-md-6">
             <label class="form-label">Tanggal Kirim</label>
-            <input type="date" name="tanggal_kirim" value="{{ old('tanggal_kirim', $current?->tanggal_kirim?->format('Y-m-d')) }}" class="form-control">
+            <input type="date" name="tanggal_kirim" value="{{ old('tanggal_kirim', $current?->tanggal_kirim?->format('Y-m-d')) }}" min="{{ old('tanggal_surat', $current?->tanggal_surat?->format('Y-m-d')) }}" class="form-control @error('tanggal_kirim') is-invalid @enderror">
+            @error('tanggal_kirim')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
     </div>
 </section>
@@ -80,10 +82,11 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Status Surat <span class="text-danger">*</span></label>
-            <select name="status" class="form-select" required>
+            <select name="status" class="form-select @error('status') is-invalid @enderror" required>
                 @php($statuses = $editing ? ['draft'=>'Draft','diajukan'=>'Diajukan','diverifikasi'=>'Diverifikasi','diteruskan_ke_pimpinan'=>'Diteruskan ke Pimpinan','terkirim'=>'Terkirim','diarsipkan'=>'Diarsipkan'] : ['draft'=>'Draft','diajukan'=>'Diajukan'])
                 @foreach($statuses as $value => $label)<option value="{{ $value }}" @selected(old('status', $current?->status ?? ($defaultStatus ?? 'draft')) === $value)>{{ $label }}</option>@endforeach
             </select>
+            @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
             <small class="form-text">Simpan sebagai draft bila surat belum siap diproses.</small>
         </div>
         <div class="col-md-6 d-flex align-items-center">
@@ -94,7 +97,8 @@
         </div>
         <div class="col-md-6">
             <label class="form-label">Deskripsi/Catatan</label>
-            <textarea name="deskripsi" rows="3" class="form-control" placeholder="Catatan tambahan surat">{{ old('deskripsi', $current?->deskripsi) }}</textarea>
+            <textarea name="deskripsi" rows="3" maxlength="2000" class="form-control @error('deskripsi') is-invalid @enderror" placeholder="Catatan tambahan surat">{{ old('deskripsi', $current?->deskripsi) }}</textarea>
+            @error('deskripsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
     </div>
 </section>

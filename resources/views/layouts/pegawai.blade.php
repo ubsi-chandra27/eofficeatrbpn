@@ -161,7 +161,8 @@
 
     <aside
         class="sidebar"
-        id="sidebar">
+        id="sidebar"
+        aria-label="Menu utama Pegawai">
 
         {{-- ===================================================== --}}
         {{-- LOGO --}}
@@ -381,7 +382,10 @@
                 <button
                     class="toggle-sidebar"
                     id="toggleSidebar"
-                    type="button">
+                    type="button"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                    aria-label="Buka menu navigasi">
 
                     <i class="bi bi-list"></i>
 
@@ -740,6 +744,59 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('toggleSidebar');
+    const mobileBreakpoint = 991;
+    const backdrop = document.createElement('button');
+    backdrop.type = 'button';
+    backdrop.className = 'sidebar-backdrop';
+    backdrop.setAttribute('aria-label', 'Tutup menu navigasi');
+    document.body.appendChild(backdrop);
+
+    const closeMobileSidebar = () => {
+        sidebar?.classList.remove('show');
+        backdrop.classList.remove('show');
+        document.body.classList.remove('sidebar-mobile-open');
+        toggle?.setAttribute('aria-expanded', 'false');
+        toggle?.setAttribute('aria-label', 'Buka menu navigasi');
+    };
+    const openMobileSidebar = () => {
+        sidebar?.classList.add('show');
+        backdrop.classList.add('show');
+        document.body.classList.add('sidebar-mobile-open');
+        toggle?.setAttribute('aria-expanded', 'true');
+        toggle?.setAttribute('aria-label', 'Tutup menu navigasi');
+    };
+
+    toggle?.addEventListener('click', () => {
+        if (!sidebar) return;
+        if (window.innerWidth > mobileBreakpoint) {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapse', isCollapsed);
+            toggle.setAttribute('aria-expanded', String(!isCollapsed));
+        } else {
+            sidebar.classList.contains('show') ? closeMobileSidebar() : openMobileSidebar();
+        }
+    });
+
+    if (window.innerWidth <= mobileBreakpoint) {
+        sidebar?.classList.remove('collapsed');
+        document.body.classList.remove('sidebar-collapse');
+    }
+    backdrop.addEventListener('click', closeMobileSidebar);
+    sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+        if (window.innerWidth <= mobileBreakpoint) closeMobileSidebar();
+    }));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && sidebar?.classList.contains('show')) {
+            closeMobileSidebar();
+            toggle?.focus();
+        }
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > mobileBreakpoint) closeMobileSidebar();
+    });
+
     document.querySelectorAll('select:not([data-native-select])').forEach((select) => {
         if (select.dataset.choicesEnhanced === 'true') return;
         select.dataset.choicesEnhanced = 'true';

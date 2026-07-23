@@ -102,12 +102,13 @@ class DashboardController extends Controller
 
 
 
-        // surat menunggu
+        // surat keluar yang benar-benar sedang menunggu verifikasi Admin
         $menunggu = Surat::where(
             'user_id',
             $user->id
         )
-        ->whereIn('status', ['draft', 'diajukan', 'dikembalikan'])
+        ->where('jenis_surat', 'keluar')
+        ->where('status', 'diajukan')
         ->count();
 
 
@@ -134,6 +135,7 @@ class DashboardController extends Controller
 
 
         $prioritasTinggi = DisposisiTujuan::where('pegawai_id', $pegawai->id)
+            ->whereIn('status', ['Belum Dibaca', 'Sudah Dibaca'])
             ->whereHas('disposisi', function ($query) {
                 $query->where('prioritas', 'Tinggi');
             })
@@ -154,7 +156,7 @@ class DashboardController extends Controller
             $user->id
         )
         ->where('jenis_surat', 'masuk')
-        ->latest()
+        ->latest('updated_at')
         ->take(5)
         ->get();
 
@@ -169,12 +171,13 @@ class DashboardController extends Controller
 
 
         $disposisiTerbaru = DisposisiTujuan::with([
-        'disposisi.surat'
-    ])
-    ->where('pegawai_id', $pegawai->id)
-    ->latest()
-    ->take(5)
-    ->get();
+            'disposisi.surat',
+            'disposisi.pengirim',
+        ])
+            ->where('pegawai_id', $pegawai->id)
+            ->latest('updated_at')
+            ->take(5)
+            ->get();
 
 
 
@@ -191,7 +194,7 @@ class DashboardController extends Controller
             ->latest()
             ->take(8)
             ->get()
-            ->map(function (LogAktivitas $log) {
+            ->map(function (LogAktivitas $log) use ($user) {
                 $surat = $log->surat;
 
                 return [
@@ -200,7 +203,7 @@ class DashboardController extends Controller
                     'nomor' => $surat?->nomor_surat ?? '-',
                     'keterangan' => $log->description,
                     'status' => $surat?->status,
-                    'url' => $surat
+                    'url' => $surat && $surat->user_id === $user->id
                         ? ($surat->jenis_surat === 'keluar'
                             ? route('pegawai.surat-keluar.show', $surat->id)
                             : route('pegawai.surat-masuk.show', $surat->id))

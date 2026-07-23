@@ -54,6 +54,11 @@
                         <div class="col-4"><small class="text-muted d-block">Disposisi</small><b>{{ $totalDisposisi }}</b></div>
                         <div class="col-4"><small class="text-muted d-block">Pegawai</small><b>{{ $totalPegawai }}</b></div>
                     </div>
+                    <div class="dashboard-mini-summary mt-3">
+                        <span><i class="bi bi-inbox-fill text-primary"></i> Masuk <b>{{ $totalSuratMasuk }}</b></span>
+                        <span><i class="bi bi-send-fill text-success"></i> Keluar <b>{{ $totalSuratKeluar }}</b></span>
+                        <span><i class="bi bi-calendar-check text-info"></i> Hari ini <b>{{ $suratHariIni }}</b></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,12 +103,24 @@
         <div class="card-header bg-white border-0 pt-4 px-4"><h5 class="fw-bold mb-0">Surat Terbaru</h5></div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
-                <thead><tr><th>Nomor</th><th>Perihal</th><th>Pembuat</th><th>Status</th><th>Tanggal</th></tr></thead>
+                <thead><tr><th>Nomor</th><th>Jenis</th><th>Perihal</th><th>Pembuat</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead>
                 <tbody>
                 @forelse($suratTerbaru as $surat)
-                    <tr><td>{{ $surat->nomor_surat }}</td><td>{{ $surat->perihal }}</td><td>{{ $surat->user->name ?? 'Admin' }}</td><td><span class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span></td><td>{{ optional($surat->tanggal_surat)->format('d M Y') }}</td></tr>
+                    <tr>
+                        <td><strong>{{ $surat->nomor_surat }}</strong></td>
+                        <td><span class="badge bg-{{ $surat->jenis_surat === 'masuk' ? 'primary' : 'success' }}">{{ ucfirst($surat->jenis_surat) }}</span></td>
+                        <td>{{ $surat->perihal }}</td>
+                        <td>{{ $surat->user->name ?? 'Admin' }}</td>
+                        <td><span class="badge bg-{{ $surat->status_badge }}">{{ $surat->status_label }}</span></td>
+                        <td>{{ optional($surat->tanggal_surat)->translatedFormat('d M Y') }}</td>
+                        <td>
+                            <a href="{{ $surat->jenis_surat === 'masuk' ? route('admin.surat.masuk.show', $surat) : route('admin.surat.keluar.show', $surat) }}" class="btn btn-sm btn-outline-primary" title="Lihat detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada surat.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada surat.</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -120,6 +137,7 @@
 .activity-row{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #eef2f7}.activity-row:last-child{border-bottom:0}
 .activity-icon{width:38px;height:38px;border-radius:10px;background:#e8f1fa;color:#0f4c81;display:grid;place-items:center;flex:none}
 .chart-container{position:relative;min-height:320px}
+.dashboard-mini-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dashboard-mini-summary span{padding:9px 6px;border-radius:9px;background:#f8fafc;text-align:center;font-size:12px;color:#64748b}.dashboard-mini-summary b{display:block;color:#17233b;font-size:15px}
 @media(max-width:767.98px){.chart-container{min-height:260px}}
 </style>
 @endpush

@@ -5,6 +5,17 @@
 @section('content')
 
 <div class="container py-4">
+    @php
+        $processStage = match ($surat->status) {
+            'menunggu', 'diajukan' => 'Menunggu verifikasi Admin',
+            'diverifikasi' => 'Sudah diverifikasi Admin',
+            'diproses' => 'Sedang ditindaklanjuti',
+            'diteruskan_ke_pimpinan' => 'Diteruskan ke pimpinan',
+            'dikembalikan', 'ditolak' => 'Harus diperbaiki dan dikirim ulang',
+            'selesai', 'terkirim', 'diarsipkan' => 'Proses telah selesai',
+            default => $surat->status_label,
+        };
+    @endphp
 
     <div class="card shadow-sm">
 
@@ -86,6 +97,20 @@
 
                     </td>
 
+                </tr>
+                <tr>
+                    <th>Tahap Proses</th>
+                    <td>{{ $processStage }}</td>
+                </tr>
+                <tr>
+                    <th>Catatan Admin</th>
+                    <td>
+                        @if($surat->catatan_admin)
+                            <div class="alert alert-warning py-2 mb-0">{{ $surat->catatan_admin }}</div>
+                        @else
+                            <span class="text-muted">Belum ada catatan dari Admin.</span>
+                        @endif
+                    </td>
                 </tr>
 
                 @if($surat->file_path)
@@ -175,6 +200,11 @@
             Kembali
 
         </a>
+        @if(in_array($surat->status, ['menunggu', 'dikembalikan', 'ditolak']))
+            <a href="{{ route('umum.surat.edit', $surat->id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil-square me-1"></i>Perbaiki Pengajuan
+            </a>
+        @endif
 
     </div>
 

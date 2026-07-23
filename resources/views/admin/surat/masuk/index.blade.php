@@ -52,7 +52,7 @@
 
             <h3>
 
-                {{ $surat->total() }}
+                {{ $totalSurat }}
 
             </h3>
 
@@ -179,7 +179,7 @@
         <form
             action="{{ route('admin.surat.masuk.index') }}"
             method="GET"
-            class="table-search">
+            class="table-search incoming-filter">
 
             <i class="bi bi-search"></i>
 
@@ -188,6 +188,25 @@
                 name="keyword"
                 value="{{ request('keyword') }}"
                 placeholder="Cari Nomor Surat atau Perihal...">
+
+            <select name="status" aria-label="Filter status">
+                <option value="">Semua Status</option>
+                @foreach($statusTersedia as $status)
+                    <option value="{{ $status }}" @selected(request('status') === $status)>
+                        {{ (new \App\Models\Surat(['status' => $status]))->status_label }}
+                    </option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+
+            @if(request()->filled('keyword') || request()->filled('status'))
+                <a href="{{ route('admin.surat.masuk.index') }}" class="btn btn-outline-secondary" title="Reset filter">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
 
         </form>
 
@@ -241,7 +260,9 @@
 
             </thead>
 
-                            @forelse($surat as $item)
+            <tbody>
+
+                @forelse($surat as $item)
 
                     <tr>
 
@@ -323,7 +344,7 @@
 
                             @if($item->tanggal_surat)
 
-                                {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d M Y') }}
+                                {{ $item->tanggal_surat->translatedFormat('d M Y') }}
 
                             @else
 
@@ -339,77 +360,19 @@
 
                         <td>
  
-                            @switch($item->status)
- 
-                                @case('menunggu')
- 
-                                    <span class="badge bg-warning text-dark">
- 
-                                        <i class="bi bi-hourglass-split me-1"></i>
- 
-                                        Menunggu
- 
-                                    </span>
- 
-                                @break
- 
-                                @case('diverifikasi')
- 
-                                    <span class="badge bg-success">
- 
-                                        <i class="bi bi-check-circle-fill me-1"></i>
- 
-                                        Diverifikasi
- 
-                                    </span>
- 
-                                @break
- 
-                                @case('dikembalikan')
- 
-                                    <span class="badge bg-danger">
- 
-                                        <i class="bi bi-x-circle-fill me-1"></i>
- 
-                                        Dikembalikan
- 
-                                    </span>
- 
-                                @break
- 
-                                @case('diproses')
- 
-                                    <span class="badge bg-info">
- 
-                                        <i class="bi bi-arrow-repeat me-1"></i>
- 
-                                        Diproses
- 
-                                    </span>
- 
-                                @break
- 
-                                @case('selesai')
- 
-                                    <span class="badge bg-primary">
- 
-                                        <i class="bi bi-flag-fill me-1"></i>
- 
-                                        Selesai
- 
-                                    </span>
- 
-                                @break
- 
-                                @default
- 
-                                    <span class="badge bg-secondary">
- 
-                                        {{ $item->status }}
- 
-                                    </span>
- 
-                            @endswitch
+                            @php
+                                $statusIcon = match($item->status) {
+                                    'diajukan', 'menunggu' => 'hourglass-split',
+                                    'diverifikasi' => 'check-circle-fill',
+                                    'dikembalikan', 'ditolak' => 'x-circle-fill',
+                                    'diproses', 'diteruskan_ke_pimpinan' => 'arrow-repeat',
+                                    'selesai', 'diarsipkan' => 'flag-fill',
+                                    default => 'circle-fill',
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $item->status_badge }} {{ in_array($item->status, ['diajukan', 'menunggu']) ? 'text-dark' : '' }}">
+                                <i class="bi bi-{{ $statusIcon }} me-1"></i>{{ $item->status_label }}
+                            </span>
  
                         </td>
 
@@ -452,6 +415,7 @@
  
                                 @endif
 
+                                @if($item->status === 'dikembalikan' && $item->disposisi_count === 0)
                                 <form
                                     action="{{ route('admin.surat.masuk.destroy',$item->id) }}"
                                     method="POST"
@@ -472,6 +436,7 @@
                                     </button>
 
                                 </form>
+                                @endif
 
                             </div>
 
@@ -579,6 +544,26 @@
 
     gap:14px;
 
+}
+
+.incoming-filter{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+}
+
+.incoming-filter input{
+    min-width:300px;
+}
+
+.incoming-filter select{
+    min-width:210px;
+    padding:10px 36px 10px 12px;
+    border:1px solid #dbe2ea;
+    border-radius:12px;
+    background:#fff;
+    color:#334155;
 }
 
 .table-avatar .avatar{
@@ -774,6 +759,16 @@
 }
 
 @media(max-width:768px){
+
+    .incoming-filter{
+        flex-wrap:wrap;
+    }
+
+    .incoming-filter input,
+    .incoming-filter select{
+        width:100%;
+        min-width:0;
+    }
 
     .table-footer{
 

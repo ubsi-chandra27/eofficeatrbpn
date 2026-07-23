@@ -267,7 +267,7 @@
 
                             @if($item->tanggal_surat)
 
-                                {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d M Y') }}
+                                {{ $item->tanggal_surat->translatedFormat('d M Y') }}
 
                             @else
 
@@ -299,7 +299,6 @@
 
                                 </a>
 
-                                @if($item->status === 'draft')
                                 <a
                                     href="{{ route('admin.surat.keluar.edit',$item->id) }}"
                                     class="btn-edit"
@@ -309,6 +308,7 @@
 
                                 </a>
 
+                                @if($item->status === 'draft')
                                 <form
                                     action="{{ route('admin.surat.keluar.destroy',$item->id) }}"
                                     method="POST"

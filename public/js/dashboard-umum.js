@@ -6,6 +6,49 @@
 */
 
 document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    const toggle = document.getElementById("menuToggle");
+    const mobileBreakpoint = 991;
+    const backdrop = document.createElement("button");
+    backdrop.type = "button";
+    backdrop.className = "sidebar-backdrop";
+    backdrop.setAttribute("aria-label", "Tutup menu navigasi");
+    document.body.appendChild(backdrop);
+
+    const closeSidebar = function () {
+        sidebar?.classList.remove("show");
+        backdrop.classList.remove("show");
+        document.body.classList.remove("sidebar-mobile-open");
+        toggle?.setAttribute("aria-expanded", "false");
+        toggle?.setAttribute("aria-label", "Buka menu navigasi");
+    };
+
+    const openSidebar = function () {
+        sidebar?.classList.add("show");
+        backdrop.classList.add("show");
+        document.body.classList.add("sidebar-mobile-open");
+        toggle?.setAttribute("aria-expanded", "true");
+        toggle?.setAttribute("aria-label", "Tutup menu navigasi");
+    };
+
+    toggle?.addEventListener("click", function () {
+        sidebar?.classList.contains("show") ? closeSidebar() : openSidebar();
+    });
+    backdrop.addEventListener("click", closeSidebar);
+    sidebar?.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            if (window.innerWidth <= mobileBreakpoint) closeSidebar();
+        });
+    });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && sidebar?.classList.contains("show")) {
+            closeSidebar();
+            toggle?.focus();
+        }
+    });
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > mobileBreakpoint) closeSidebar();
+    });
 
     /* ==========================================================
        Tooltip Bootstrap

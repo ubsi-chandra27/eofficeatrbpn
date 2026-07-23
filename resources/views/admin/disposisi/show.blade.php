@@ -154,7 +154,7 @@
 
                     <div>
 
-                        {{ optional($disposisi->tanggal_disposisi)->format('d F Y') }}
+                        {{ optional($disposisi->tanggal_disposisi)->translatedFormat('d F Y') }}
 
                     </div>
 
@@ -170,7 +170,7 @@
 
                     <div>
 
-                        {{ optional($disposisi->created_at)->format('d F Y H:i') }}
+                        {{ optional($disposisi->created_at)->translatedFormat('d F Y H:i') }}
 
                     </div>
 
@@ -413,6 +413,7 @@
 
                 </a>
 
+                @if($disposisi->is_editable)
                 <div>
 
                     <a href="{{ route('admin.disposisi.edit',$disposisi->id) }}"
@@ -447,6 +448,9 @@
                     </form>
 
                 </div>
+                @else
+                    <span class="text-muted"><i class="bi bi-lock-fill me-1"></i>Disposisi terkunci karena sudah ditindaklanjuti.</span>
+                @endif
 
             </div>
 
