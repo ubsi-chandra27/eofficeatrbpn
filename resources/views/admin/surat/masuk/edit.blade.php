@@ -266,8 +266,8 @@
                             Menunggu
                         </option>
 
-                        <option value="proses"
-                            {{ old('status', $surat->status) == 'proses' ? 'selected' : '' }}>
+                        <option value="diproses"
+                            {{ old('status', $surat->status) == 'diproses' ? 'selected' : '' }}>
                             Diproses
                         </option>
 
