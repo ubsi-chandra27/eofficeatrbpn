@@ -16,7 +16,7 @@
             $cards = [
                 ['Diajukan', $antrean['diajukan'], 'diajukan', 'warning', 'bi-hourglass-split'],
                 ['Siap ke Pimpinan', $antrean['diverifikasi'], 'diverifikasi', 'success', 'bi-check-circle'],
-                ['Perlu Perbaikan', $antrean['dikembalikan'], 'dikembalikan', 'danger', 'bi-arrow-counterclockwise'],
+                ['Perlu Perbaikan', $antrean['dikembalikan'], 'perbaikan', 'danger', 'bi-arrow-counterclockwise'],
                 ['Ke Pimpinan', $antrean['ke_pimpinan'], 'diteruskan_ke_pimpinan', 'primary', 'bi-send-check'],
             ];
         @endphp

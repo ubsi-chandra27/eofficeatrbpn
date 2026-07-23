@@ -15,16 +15,31 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $statusGroups = [
+            'diajukan' => ['menunggu', 'diajukan'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'perbaikan' => ['dikembalikan', 'ditolak'],
+            'selesai' => ['selesai', 'terkirim', 'diarsipkan'],
+        ];
+
         $statusSurat = Surat::where('jenis_surat', 'masuk')
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
         $antrean = [
-            'diajukan' => (int) ($statusSurat['diajukan'] ?? 0),
+            'diajukan' => (int) collect($statusGroups['diajukan'])->sum(fn ($status) => $statusSurat[$status] ?? 0),
             'diverifikasi' => (int) ($statusSurat['diverifikasi'] ?? 0),
-            'dikembalikan' => (int) ($statusSurat['dikembalikan'] ?? 0),
+            'dikembalikan' => (int) collect($statusGroups['perbaikan'])->sum(fn ($status) => $statusSurat[$status] ?? 0),
             'ke_pimpinan' => (int) ($statusSurat['diteruskan_ke_pimpinan'] ?? 0),
+        ];
+
+        $stats = [
+            'total' => Surat::count(),
+            'diajukan' => (int) Surat::whereIn('status', $statusGroups['diajukan'])->count(),
+            'diproses' => (int) Surat::whereIn('status', $statusGroups['diproses'])->count(),
+            'perbaikan' => (int) Surat::whereIn('status', $statusGroups['perbaikan'])->count(),
+            'selesai' => (int) Surat::whereIn('status', $statusGroups['selesai'])->count(),
         ];
 
         $disposisiStatus = DisposisiTujuan::query()
@@ -43,8 +58,8 @@ class DashboardController extends Controller
         $rekapBulanan = Surat::query()
             ->where('created_at', '>=', $awal)
             ->get(['created_at', 'jenis_surat'])
-            ->groupBy(fn (Surat $surat) => $surat->created_at->format('Y-m'))
-            ->map(fn ($items) => $items->countBy('jenis_surat'));
+            ->groupBy(fn(Surat $surat) => $surat->created_at->format('Y-m'))
+            ->map(fn($items) => $items->countBy('jenis_surat'));
 
         $labels = [];
         $grafikMasuk = [];

@@ -23,12 +23,20 @@ class SuratKeluarController extends Controller
             ->where('user_id', Auth::id())
             ->where('jenis_surat', 'keluar');
         $base = clone $query;
+        $statusGroups = [
+            'diajukan' => ['menunggu', 'diajukan'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'perbaikan' => ['dikembalikan', 'ditolak'],
+            'selesai' => ['terkirim', 'selesai', 'diarsipkan'],
+        ];
         $stats = [
             'total' => (clone $base)->count(),
             'draft' => (clone $base)->where('status', 'draft')->count(),
-            'diajukan' => (clone $base)->whereIn('status', ['diajukan', 'diverifikasi', 'diteruskan_ke_pimpinan'])->count(),
-            'perbaikan' => (clone $base)->where('status', 'dikembalikan')->count(),
-            'selesai' => (clone $base)->whereIn('status', ['terkirim', 'selesai', 'diarsipkan'])->count(),
+            'diajukan' => (clone $base)->whereIn('status', array_merge($statusGroups['diajukan'], $statusGroups['diproses']))->count(),
+            'menunggu' => (clone $base)->whereIn('status', $statusGroups['diajukan'])->count(),
+            'diproses' => (clone $base)->whereIn('status', $statusGroups['diproses'])->count(),
+            'perbaikan' => (clone $base)->whereIn('status', $statusGroups['perbaikan'])->count(),
+            'selesai' => (clone $base)->whereIn('status', $statusGroups['selesai'])->count(),
         ];
 
         if ($request->filled('keyword')) {
@@ -55,9 +63,18 @@ class SuratKeluarController extends Controller
 
         }
 
-        $allowedStatuses = ['draft', 'diajukan', 'diverifikasi', 'dikembalikan', 'diteruskan_ke_pimpinan', 'terkirim', 'selesai', 'diarsipkan'];
-        if ($request->filled('status') && in_array($request->status, $allowedStatuses, true)) {
-            $query->where('status', $request->status);
+        $allowedStatuses = [
+            'draft', 'diajukan', 'menunggu', 'diverifikasi', 'dikembalikan',
+            'ditolak', 'diproses', 'diteruskan_ke_pimpinan', 'terkirim',
+            'selesai', 'diarsipkan',
+        ];
+        if ($request->filled('status')) {
+            $status = $request->string('status')->toString();
+            if (isset($statusGroups[$status])) {
+                $query->whereIn('status', $statusGroups[$status]);
+            } elseif (in_array($status, $allowedStatuses, true)) {
+                $query->where('status', $status);
+            }
         }
 
         $surat = $query

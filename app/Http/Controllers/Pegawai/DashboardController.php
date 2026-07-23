@@ -102,13 +102,20 @@ class DashboardController extends Controller
 
 
 
-        // surat keluar yang benar-benar sedang menunggu verifikasi Admin
+        $statusGroups = [
+            'diajukan' => ['menunggu', 'diajukan'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'perbaikan' => ['dikembalikan', 'ditolak'],
+            'selesai' => ['selesai', 'terkirim', 'diarsipkan'],
+        ];
+
+        // surat keluar yang sedang menunggu verifikasi Admin
         $menunggu = Surat::where(
             'user_id',
             $user->id
         )
         ->where('jenis_surat', 'keluar')
-        ->where('status', 'diajukan')
+        ->whereIn('status', $statusGroups['diajukan'])
         ->count();
 
 

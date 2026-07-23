@@ -19,22 +19,30 @@ class AdminSuratMasukController extends Controller
      */
     public function index(Request $request)
     {
+        $statusGroups = [
+            'diajukan' => ['diajukan', 'menunggu'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'perbaikan' => ['dikembalikan', 'ditolak'],
+            'selesai' => ['selesai', 'terkirim', 'diarsipkan'],
+        ];
         $statusTersedia = [
             'diajukan', 'menunggu', 'diverifikasi', 'dikembalikan',
-            'diproses', 'diteruskan_ke_pimpinan', 'selesai', 'diarsipkan',
+            'ditolak', 'diproses', 'diteruskan_ke_pimpinan', 'selesai',
+            'terkirim', 'diarsipkan',
         ];
-        $status = in_array($request->string('status')->toString(), $statusTersedia, true)
-            ? $request->string('status')->toString()
-            : null;
+        $status = $request->string('status')->toString();
+        $statusFilter = $statusGroups[$status] ?? (
+            in_array($status, $statusTersedia, true) ? [$status] : null
+        );
         $keyword = trim($request->string('keyword')->toString());
         $baseQuery = Surat::where('jenis_surat', 'masuk')->where('status', '!=', 'draft');
 
         $totalSurat = (clone $baseQuery)->count();
-        $menunggu = (clone $baseQuery)->whereIn('status', ['diajukan', 'menunggu'])->count();
+        $menunggu = (clone $baseQuery)->whereIn('status', $statusGroups['diajukan'])->count();
         $disetujui = (clone $baseQuery)->where('status', 'diverifikasi')->count();
-        $ditolak = (clone $baseQuery)->whereIn('status', ['dikembalikan', 'ditolak'])->count();
-        $diproses = (clone $baseQuery)->whereIn('status', ['diproses', 'diteruskan_ke_pimpinan'])->count();
-        $selesai = (clone $baseQuery)->whereIn('status', ['selesai', 'diarsipkan'])->count();
+        $ditolak = (clone $baseQuery)->whereIn('status', $statusGroups['perbaikan'])->count();
+        $diproses = (clone $baseQuery)->whereIn('status', $statusGroups['diproses'])->count();
+        $selesai = (clone $baseQuery)->whereIn('status', $statusGroups['selesai'])->count();
 
         $surat = (clone $baseQuery)
             ->withCount('disposisi')
@@ -46,7 +54,7 @@ class AdminSuratMasukController extends Controller
                         ->orWhere('asal_surat', 'like', "%{$keyword}%");
                 });
             })
-            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($statusFilter, fn ($query) => $query->whereIn('status', $statusFilter))
             ->orderByDesc('tanggal_surat')
             ->orderByDesc('id')
             ->paginate(10)
