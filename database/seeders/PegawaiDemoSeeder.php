@@ -15,15 +15,15 @@ class PegawaiDemoSeeder extends Seeder
     public function run(): void
     {
         $rows = [
-            ['198801010001', 'Budi Santoso', 'budi.demo@eoffice.test', '081234567890', 'Kepala Kantor', 'Sekretariat'],
-            ['198801010002', 'Siti Aminah', 'siti.demo@eoffice.test', '081234567891', 'Sekretaris', 'Subbagian Tata Usaha'],
-            ['198801010003', 'Ahmad Fauzi', 'ahmad.demo@eoffice.test', '081234567892', 'Analis Pertanahan', 'Seksi Penetapan Hak'],
-            ['198801010004', 'Dewi Lestari', 'dewi.demo@eoffice.test', '081234567893', 'Staf Administrasi', 'Seksi Survei dan Pemetaan'],
-            ['198801010005', 'Rudi Hartono', 'rudi.demo@eoffice.test', '081234567894', 'Kepala Subbagian', 'Seksi Pengadaan Tanah'],
+            ['198801010001', 'NIPP-0001', 'Budi Santoso', 'budi.demo@eoffice.test', '081234567890', 'Kepala Kantor', 'Sekretariat'],
+            ['198801010002', 'NIPP-0002', 'Siti Aminah', 'siti.demo@eoffice.test', '081234567891', 'Sekretaris', 'Subbagian Tata Usaha'],
+            ['198801010003', 'NIPP-0003', 'Ahmad Fauzi', 'ahmad.demo@eoffice.test', '081234567892', 'Analis Pertanahan', 'Seksi Penetapan Hak'],
+            ['198801010004', 'NIPP-0004', 'Dewi Lestari', 'dewi.demo@eoffice.test', '081234567893', 'Staf Administrasi', 'Seksi Survei dan Pemetaan'],
+            ['198801010005', 'NIPP-0005', 'Rudi Hartono', 'rudi.demo@eoffice.test', '081234567894', 'Kepala Subbagian', 'Seksi Pengadaan Tanah'],
         ];
 
         DB::transaction(function () use ($rows) {
-            foreach ($rows as [$nip, $name, $email, $phone, $position, $unit]) {
+            foreach ($rows as [$nip, $nipp, $name, $email, $phone, $position, $unit]) {
                 $jabatan = Jabatan::firstOrCreate(['nama' => $position]);
                 $unitKerja = UnitKerja::firstOrCreate(['nama' => $unit]);
                 $user = User::updateOrCreate(
@@ -40,6 +40,7 @@ class PegawaiDemoSeeder extends Seeder
                     ['nip' => $nip],
                     [
                         'user_id' => $user->id,
+                        'nipp' => $nipp,
                         'nama' => $name,
                         'email' => $email,
                         'no_hp' => $phone,

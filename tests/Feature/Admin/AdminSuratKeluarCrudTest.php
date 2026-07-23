@@ -140,6 +140,46 @@ it('menolak penghapusan surat keluar yang bukan draft', function () {
     $this->assertDatabaseHas('surats', ['id' => $surat->id, 'deleted_at' => null]);
 });
 
+it('memverifikasi surat keluar yang diajukan', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $pegawai = User::factory()->create(['role' => 'pegawai']);
+    $surat = adminOutgoingLetter($pegawai, [
+        'nomor_surat' => 'SK-VERIF-001',
+        'status' => 'diajukan',
+    ]);
+
+    $this->actingAs($admin)
+        ->from(route('admin.surat.keluar.show', $surat))
+        ->post(route('admin.surat.keluar.setujui', $surat), [
+            'catatan_admin' => 'Sudah sesuai.',
+        ])
+        ->assertRedirect(route('admin.surat.keluar.show', $surat))
+        ->assertSessionHas('success');
+
+    expect($surat->fresh()->status)->toBe('diverifikasi')
+        ->and($surat->fresh()->catatan_admin)->toBe('Sudah sesuai.');
+});
+
+it('menolak surat keluar yang diajukan dengan catatan admin', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $pegawai = User::factory()->create(['role' => 'pegawai']);
+    $surat = adminOutgoingLetter($pegawai, [
+        'nomor_surat' => 'SK-TOLAK-001',
+        'status' => 'diajukan',
+    ]);
+
+    $this->actingAs($admin)
+        ->from(route('admin.surat.keluar.show', $surat))
+        ->post(route('admin.surat.keluar.tolak', $surat), [
+            'catatan_admin' => 'Tujuan surat perlu diperjelas.',
+        ])
+        ->assertRedirect(route('admin.surat.keluar.show', $surat))
+        ->assertSessionHas('success');
+
+    expect($surat->fresh()->status)->toBe('ditolak')
+        ->and($surat->fresh()->catatan_admin)->toBe('Tujuan surat perlu diperjelas.');
+});
+
 it('menolak tanggal kirim yang lebih awal dari tanggal surat', function () {
     $admin = User::factory()->create(['role' => 'admin']);
 

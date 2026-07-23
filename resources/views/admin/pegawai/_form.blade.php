@@ -4,6 +4,7 @@
     <div class="form-section-title"><span><i class="bi bi-person-vcard"></i></span><div><h4>Identitas Pegawai</h4><p>Data ini sekaligus digunakan pada akun login pegawai.</p></div></div>
     <div class="row g-3">
         <div class="col-md-6"><label class="form-label">NIP <b class="text-danger">*</b></label><input name="nip" value="{{ old('nip',$pegawai->nip ?? '') }}" maxlength="30" class="form-control @error('nip') is-invalid @enderror" required>@error('nip')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+        <div class="col-md-6"><label class="form-label">NIPP</label><input name="nipp" value="{{ old('nipp',$pegawai->nipp ?? '') }}" maxlength="50" class="form-control @error('nipp') is-invalid @enderror" placeholder="Nomor identitas NIPP">@error('nipp')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
         <div class="col-md-6"><label class="form-label">Nama Lengkap <b class="text-danger">*</b></label><input name="nama" value="{{ old('nama',$pegawai->nama ?? '') }}" maxlength="100" class="form-control @error('nama') is-invalid @enderror" required>@error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
         <div class="col-md-6"><label class="form-label">Email <b class="text-danger">*</b></label><input type="email" name="email" value="{{ old('email',$pegawai->email ?? '') }}" class="form-control @error('email') is-invalid @enderror" required>@error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
         <div class="col-md-6"><label class="form-label">Nomor HP</label><input name="no_hp" value="{{ old('no_hp',$pegawai->no_hp ?? '') }}" maxlength="20" placeholder="Contoh: 081234567890" class="form-control @error('no_hp') is-invalid @enderror">@error('no_hp')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
@@ -25,4 +26,3 @@
     </div>
 </div>
 <div class="employee-form-actions"><a href="{{ route('admin.pegawai.index') }}" class="btn btn-light border">Batal</a><button class="btn btn-primary"><i class="bi bi-save me-2"></i>{{ $editing ? 'Simpan Perubahan' : 'Simpan Pegawai' }}</button></div>
-

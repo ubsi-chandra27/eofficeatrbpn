@@ -74,6 +74,50 @@ class DisposisiController extends Controller
         return view('pegawai.disposisi.create', $this->formData());
     }
 
+    public function terkirim(Request $request)
+    {
+        $query = Disposisi::with(['surat', 'tujuans.pegawai.jabatan', 'tujuans.pegawai.unitKerja'])
+            ->where('pengirim_id', Auth::id());
+
+        $base = Disposisi::where('pengirim_id', Auth::id());
+        $stats = [
+            'total' => (clone $base)->count(),
+            'belum' => (clone $base)->whereHas('tujuans', fn ($tujuan) => $tujuan->where('status', 'Belum Dibaca'))->count(),
+            'dibaca' => (clone $base)->whereHas('tujuans', fn ($tujuan) => $tujuan->where('status', 'Sudah Dibaca'))->count(),
+            'selesai' => (clone $base)->whereHas('tujuans', fn ($tujuan) => $tujuan->where('status', 'Selesai'))->count(),
+        ];
+
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($subQuery) use ($keyword) {
+                $subQuery->where('catatan', 'like', "%{$keyword}%")
+                    ->orWhereHas('surat', function ($suratQuery) use ($keyword) {
+                        $suratQuery->where('nomor_surat', 'like', "%{$keyword}%")
+                            ->orWhere('perihal', 'like', "%{$keyword}%");
+                    })
+                    ->orWhereHas('tujuans.pegawai', function ($pegawaiQuery) use ($keyword) {
+                        $pegawaiQuery->where('nama', 'like', "%{$keyword}%")
+                            ->orWhere('nip', 'like', "%{$keyword}%");
+                    });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->whereHas('tujuans', fn ($tujuan) => $tujuan->where('status', $request->status));
+        }
+
+        if ($request->filled('prioritas')) {
+            $query->where('prioritas', $request->prioritas);
+        }
+
+        $dikirim = $query
+            ->latest('tanggal_disposisi')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('pegawai.disposisi.terkirim', compact('dikirim', 'stats'));
+    }
+
     public function store(Request $request)
     {
         $data = $this->validateData($request);

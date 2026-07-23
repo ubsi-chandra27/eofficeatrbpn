@@ -11,7 +11,7 @@
             <div class="profile-cover"></div>
             <div class="profile-content">
                 <span class="profile-avatar">{{ strtoupper(mb_substr($pegawai->nama,0,1)) }}</span>
-                <h3>{{ $pegawai->nama }}</h3><p>NIP {{ $pegawai->nip }}</p>
+                <h3>{{ $pegawai->nama }}</h3><p>NIP {{ $pegawai->nip }}{{ $pegawai->nipp ? ' / NIPP '.$pegawai->nipp : '' }}</p>
                 <span class="account-badge {{ $pegawai->user ? 'active' : 'inactive' }}"><i class="bi bi-{{ $pegawai->user ? 'check-circle-fill' : 'exclamation-circle-fill' }}"></i>{{ $pegawai->user ? 'Akun Login Aktif' : 'Akun Belum Terhubung' }}</span>
                 <div class="profile-placement"><div><small>Jabatan</small><strong>{{ $pegawai->jabatan?->nama ?? 'Belum ditentukan' }}</strong></div><div><small>Unit Kerja</small><strong>{{ $pegawai->unitKerja?->nama ?? 'Belum ditentukan' }}</strong></div></div>
             </div>
@@ -27,6 +27,7 @@
             <div class="detail-grid">
                 @foreach([
                     ['NIP',$pegawai->nip,'person-vcard'],
+                    ['NIPP',$pegawai->nipp ?: 'Belum diisi','card-checklist'],
                     ['Nama Lengkap',$pegawai->nama,'person'],
                     ['Email',$pegawai->email ?: '-','envelope'],
                     ['Nomor HP',$pegawai->no_hp ?: '-','telephone'],

@@ -41,6 +41,7 @@ class AdminPegawaiController extends Controller
                 $query->where(function ($search) use ($keyword) {
                     $search->where('nama', 'like', "%{$keyword}%")
                         ->orWhere('nip', 'like', "%{$keyword}%")
+                        ->orWhere('nipp', 'like', "%{$keyword}%")
                         ->orWhere('email', 'like', "%{$keyword}%")
                         ->orWhere('no_hp', 'like', "%{$keyword}%");
                 });
@@ -82,6 +83,7 @@ class AdminPegawaiController extends Controller
     {
         $data = $request->validate([
             'nip' => 'required|string|max:30|unique:pegawai,nip|unique:users,nip',
+            'nipp' => 'nullable|string|max:50',
             'nama' => 'required|string|max:100',
             'email' => 'required|email|max:255|unique:users,email|unique:pegawai,email',
             'password' => 'required|string|min:8|confirmed',
@@ -154,6 +156,7 @@ class AdminPegawaiController extends Controller
                 Rule::unique('pegawai', 'nip')->ignore($pegawai->id),
                 Rule::unique('users', 'nip')->ignore($pegawai->user_id),
             ],
+            'nipp'            => 'nullable|string|max:50',
             'no_hp'           => ['nullable', 'string', 'max:20', 'regex:/^[0-9+()\\-\\s]+$/'],
             'alamat'          => 'nullable|string|max:1000',
             'jabatan_id'      => 'required|exists:jabatan,id',

@@ -315,6 +315,24 @@ Route::middleware(['auth','role:admin'])
     )
     ->names('surat.keluar');
 
+    Route::prefix('surat-keluar')
+    ->name('surat.keluar.')
+    ->group(function () {
+
+        Route::post(
+            '{id}/setujui',
+            [AdminSuratKeluarController::class, 'setujui']
+        )
+        ->name('setujui');
+
+        Route::post(
+            '{id}/tolak',
+            [AdminSuratKeluarController::class, 'tolak']
+        )
+        ->name('tolak');
+
+    });
+
 
 
     Route::resource(
@@ -367,6 +385,15 @@ Route::middleware(['auth','role:admin'])
     Route::controller(\App\Http\Controllers\Admin\AdminSettingsController::class)->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::put('/', 'update')->name('update');
+        Route::get('/profile', 'profile')->name('profile');
+        Route::get('/security', 'security')->name('security');
+        Route::get('/instansi', 'instansi')->name('instansi');
+        Route::get('/format', 'format')->name('format');
+        Route::put('/format', 'updateFormat')->name('format.update');
+        Route::get('/backup', 'backup')->name('backup');
+        Route::post('/backup/download', 'downloadBackup')->name('backup.download');
+        Route::post('/backup/restore', 'restoreBackup')->name('backup.restore');
+        Route::get('/about', 'about')->name('about');
         Route::patch('/trash/{type}/{id}/restore', 'restore')->name('trash.restore');
     });
 
@@ -405,10 +432,15 @@ Route::middleware(['auth','role:pegawai'])
         'surat-masuk',
         PegawaiSuratMasukController::class
     )
+    ->except(['store'])
     ->parameters([
         'surat-masuk'=>'id'
     ])
     ->names('surat-masuk');
+
+    Route::post('/surat-masuk', [PegawaiSuratMasukController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('surat-masuk.store');
 
 
 
@@ -427,7 +459,12 @@ Route::middleware(['auth','role:pegawai'])
     Route::resource(
         'surat-keluar',
         PegawaiSuratKeluarController::class
-    );
+    )
+    ->except(['store']);
+
+    Route::post('/surat-keluar', [PegawaiSuratKeluarController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('surat-keluar.store');
 
     Route::put('/surat-keluar/{id}/kirim', [PegawaiSuratKeluarController::class, 'kirim'])
         ->name('surat-keluar.kirim');
@@ -447,6 +484,8 @@ Route::middleware(['auth','role:pegawai'])
         ->name('disposisi.create');
     Route::post('/disposisi', [PegawaiDisposisiController::class, 'store'])
         ->name('disposisi.store');
+    Route::get('/disposisi/terkirim', [PegawaiDisposisiController::class, 'terkirim'])
+        ->name('disposisi.terkirim');
     Route::get('/disposisi-terkirim/{id}', [PegawaiDisposisiController::class, 'sentShow'])
         ->name('disposisi.sent.show');
     Route::get('/disposisi-terkirim/{id}/edit', [PegawaiDisposisiController::class, 'edit'])

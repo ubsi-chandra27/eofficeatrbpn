@@ -73,7 +73,6 @@
                 </thead>
                 <tbody>
                 @forelse($users as $user)
-                    @php($nipEfektif = $user->nip ?: $user->pegawai?->nip)
                     <tr>
                         <td>
                             <div class="user-identity">
@@ -95,7 +94,7 @@
                             @if($user->role !== 'umum' || $user->pegawai)
                                 <form action="{{ route('admin.users.updateNip', $user) }}" method="POST" class="nip-form">
                                     @csrf @method('PATCH')
-                                    <input name="nip" value="{{ old('nip', $nipEfektif) }}" class="form-control form-control-sm" placeholder="Belum ada NIP" required>
+                                    <input name="nip" value="{{ old('nip', $user->pegawai?->nip ?? $user->nip) }}" class="form-control form-control-sm" placeholder="Belum ada NIP" required>
                                     <button class="btn btn-sm btn-outline-primary" title="Simpan NIP"><i class="bi bi-check-lg"></i></button>
                                 </form>
                                 @if(!$user->nip && $user->pegawai?->nip)
@@ -107,11 +106,12 @@
                         </td>
                         <td>
                             @if($user->pegawai)
+                                <span class="badge bg-success mb-1">Terhubung</span>
                                 <strong>{{ $user->pegawai->nama }}</strong>
                                 <small class="d-block text-muted">{{ $user->pegawai->jabatan?->nama ?? 'Jabatan belum diisi' }}</small>
                                 <small class="d-block text-muted">{{ $user->pegawai->unitKerja?->nama ?? 'Unit belum diisi' }}</small>
                             @else
-                                <span class="badge bg-warning text-dark">Belum Terhubung</span>
+                                <span class="badge bg-danger">Tidak Terhubung</span>
                             @endif
                         </td>
                         <td>

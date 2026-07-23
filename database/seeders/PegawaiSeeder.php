@@ -28,6 +28,7 @@ class PegawaiSeeder extends Seeder
         Pegawai::insert([
             [
                 'nip' => '198801010001',
+                'nipp' => 'NIPP-0001',
                 'nama' => 'Budi Santoso',
                 'email' => 'budi@atrbpn.com',
                 'no_hp' => '081234567890',
@@ -39,6 +40,7 @@ class PegawaiSeeder extends Seeder
             ],
             [
                 'nip' => '198801010002',
+                'nipp' => 'NIPP-0002',
                 'nama' => 'Siti Aminah',
                 'email' => 'siti@atrbpn.com',
                 'no_hp' => '081234567891',
@@ -50,6 +52,7 @@ class PegawaiSeeder extends Seeder
             ],
             [
                 'nip' => '198801010003',
+                'nipp' => 'NIPP-0003',
                 'nama' => 'Ahmad Fauzi',
                 'email' => 'ahmad@atrbpn.com',
                 'no_hp' => '081234567892',
@@ -61,6 +64,7 @@ class PegawaiSeeder extends Seeder
             ],
             [
                 'nip' => '198801010004',
+                'nipp' => 'NIPP-0004',
                 'nama' => 'Dewi Lestari',
                 'email' => 'dewi@atrbpn.com',
                 'no_hp' => '081234567893',
@@ -72,6 +76,7 @@ class PegawaiSeeder extends Seeder
             ],
             [
                 'nip' => '198801010005',
+                'nipp' => 'NIPP-0005',
                 'nama' => 'Rudi Hartono',
                 'email' => 'rudi@atrbpn.com',
                 'no_hp' => '081234567894',

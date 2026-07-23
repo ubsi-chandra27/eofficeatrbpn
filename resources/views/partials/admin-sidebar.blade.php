@@ -120,7 +120,7 @@
              class="sidebar-sub
              {{ request()->routeIs('admin.pegawai.*') ||
                 request()->routeIs('admin.jabatan.*') ||
-                request()->routeIs('admin.unitkerja.*')
+                request()->routeIs('admin.unit.kerja.*')
                 ? 'show' : '' }}">
 
             <a href="{{ route('admin.pegawai.index') }}"
@@ -141,8 +141,8 @@
 
             </a>
 
-            <a href="{{ route('admin.unitkerja.index') }}"
-               class="{{ request()->routeIs('admin.unitkerja.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.unit.kerja.index') }}"
+               class="{{ request()->routeIs('admin.unit.kerja.*') ? 'active' : '' }}">
 
                 <i class="bi bi-diagram-3-fill"></i>
 

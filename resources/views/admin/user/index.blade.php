@@ -23,8 +23,8 @@
                             <td class="p-4 text-sm font-semibold">{{ $user->name }}</td>
                             <td class="p-4 text-sm text-gray-600">{{ $user->email }}</td>
                             <td class="p-4">
-                                <form action="{{ route('admin.user.updateRole', $user->id) }}" method="POST">
-                                    @csrf @method('PUT')
+                                <form action="{{ route('admin.users.updateRole', $user->id) }}" method="POST">
+                                    @csrf @method('PATCH')
                                     <select name="role" onchange="this.form.submit()" class="text-xs border-gray-200 rounded-lg">
                                         <option value="admin" {{ $user->isRole('admin') ? 'selected' : '' }}>Admin</option>
                                         <option value="pegawai" {{ $user->isRole('pegawai') ? 'selected' : '' }}>Pegawai</option>
@@ -32,7 +32,7 @@
                                 </form>
                             </td>
                             <td class="p-4">
-                                <form action="{{ route('admin.user.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
+                                <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
                                     @csrf @method('DELETE')
                                     <button class="text-red-600 hover:text-red-800 text-xs font-bold uppercase">Hapus</button>
                                 </form>

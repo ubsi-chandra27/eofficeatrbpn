@@ -83,7 +83,7 @@
         <div class="col-md-6">
             <label class="form-label">Status Surat <span class="text-danger">*</span></label>
             <select name="status" class="form-select @error('status') is-invalid @enderror" required>
-                @php($statuses = $editing ? ['draft'=>'Draft','diajukan'=>'Diajukan','diverifikasi'=>'Diverifikasi','diteruskan_ke_pimpinan'=>'Diteruskan ke Pimpinan','terkirim'=>'Terkirim','diarsipkan'=>'Diarsipkan'] : ['draft'=>'Draft','diajukan'=>'Diajukan'])
+                @php($statuses = $editing ? ['draft'=>'Draft','diajukan'=>'Diajukan','diverifikasi'=>'Diverifikasi','ditolak'=>'Ditolak','diteruskan_ke_pimpinan'=>'Diteruskan ke Pimpinan','terkirim'=>'Terkirim','diarsipkan'=>'Diarsipkan'] : ['draft'=>'Draft','diajukan'=>'Diajukan'])
                 @foreach($statuses as $value => $label)<option value="{{ $value }}" @selected(old('status', $current?->status ?? ($defaultStatus ?? 'draft')) === $value)>{{ $label }}</option>@endforeach
             </select>
             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror

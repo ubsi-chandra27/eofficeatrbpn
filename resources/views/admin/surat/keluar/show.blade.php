@@ -24,7 +24,7 @@
 
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
 
         <a href="{{ route('admin.surat.keluar.edit',$surat->id) }}"
            class="btn btn-warning text-white">
@@ -34,6 +34,25 @@
             Edit
 
         </a>
+
+        @if($surat->status === 'diajukan')
+            <form action="{{ route('admin.surat.keluar.setujui', $surat->id) }}" method="POST" onsubmit="return confirm('Setujui dan verifikasi surat keluar ini?')">
+                @csrf
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Setujui
+                </button>
+            </form>
+
+            <form action="{{ route('admin.surat.keluar.tolak', $surat->id) }}" method="POST" onsubmit="const note = prompt('Masukkan catatan penolakan surat keluar:'); if (note === null || note.trim() === '') { alert('Catatan penolakan wajib diisi.'); return false; } this.querySelector('[name=catatan_admin]').value = note.trim(); return true;">
+                @csrf
+                <input type="hidden" name="catatan_admin">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Tolak
+                </button>
+            </form>
+        @endif
 
         <a href="{{ route('admin.surat.keluar.index') }}"
            class="btn btn-light border">
@@ -211,6 +230,11 @@
             <div class="col-md-6 mb-4">
                 <label class="detail-label">Tanggal Kirim</label>
                 <div class="detail-value">{{ $surat->tanggal_kirim?->translatedFormat('d F Y') ?? 'Belum dikirim' }}</div>
+            </div>
+
+            <div class="col-12 mb-4">
+                <label class="detail-label">Catatan Admin</label>
+                <div class="detail-value detail-description">{{ $surat->catatan_admin ?: 'Belum ada catatan admin.' }}</div>
             </div>
 
             {{-- =========================================== --}}

@@ -8,7 +8,10 @@
             <h2><i class="bi bi-send-check-fill text-primary me-2"></i>Disposisi Saya</h2>
             <p class="text-muted mb-0">Baca instruksi, prioritaskan tugas penting, dan tandai pekerjaan yang selesai.</p>
         </div>
-        <a href="{{ route('pegawai.disposisi.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Buat Disposisi</a>
+        <div class="header-actions">
+            <a href="{{ route('pegawai.disposisi.terkirim') }}" class="btn btn-light border"><i class="bi bi-send-check me-2"></i>Disposisi Terkirim</a>
+            <a href="{{ route('pegawai.disposisi.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Buat Disposisi</a>
+        </div>
     </div>
 
     <div class="metric-grid">

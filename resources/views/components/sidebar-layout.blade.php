@@ -111,8 +111,8 @@
 
 
 <x-nav-link 
-    :href="route('pegawai.surat.masuk.index')"
-    :active="request()->routeIs('pegawai.surat.masuk.*')">
+    :href="route('pegawai.surat-masuk.index')"
+    :active="request()->routeIs('pegawai.surat-masuk.*')">
 
     Surat Masuk
 
@@ -122,8 +122,8 @@
 
 
 <x-nav-link 
-    :href="route('pegawai.surat.keluar.index')"
-    :active="request()->routeIs('pegawai.surat.keluar.*')">
+    :href="route('pegawai.surat-keluar.index')"
+    :active="request()->routeIs('pegawai.surat-keluar.*')">
 
     Surat Keluar
 

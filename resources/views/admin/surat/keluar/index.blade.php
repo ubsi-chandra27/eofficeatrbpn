@@ -149,7 +149,7 @@
 
             <select name="status" class="form-select status-filter" onchange="this.form.submit()">
                 <option value="">Semua Status</option>
-                @foreach(['draft' => 'Draft', 'diajukan' => 'Diajukan', 'diverifikasi' => 'Diverifikasi', 'diteruskan_ke_pimpinan' => 'Diteruskan ke Pimpinan', 'terkirim' => 'Terkirim', 'diarsipkan' => 'Diarsipkan'] as $value => $label)
+                @foreach(['draft' => 'Draft', 'diajukan' => 'Diajukan', 'diverifikasi' => 'Diverifikasi', 'ditolak' => 'Ditolak', 'diteruskan_ke_pimpinan' => 'Diteruskan ke Pimpinan', 'terkirim' => 'Terkirim', 'diarsipkan' => 'Diarsipkan'] as $value => $label)
                     <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -307,6 +307,47 @@
                                     <i class="bi bi-pencil-square"></i>
 
                                 </a>
+
+                                @if($item->status === 'diajukan')
+                                <form
+                                    action="{{ route('admin.surat.keluar.setujui',$item->id) }}"
+                                    method="POST"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Setujui dan verifikasi surat keluar ini?')">
+
+                                    @csrf
+
+                                    <button
+                                        type="submit"
+                                        class="btn-verify"
+                                        title="Setujui">
+
+                                        <i class="bi bi-check-circle-fill"></i>
+
+                                    </button>
+
+                                </form>
+
+                                <form
+                                    action="{{ route('admin.surat.keluar.tolak',$item->id) }}"
+                                    method="POST"
+                                    class="d-inline"
+                                    onsubmit="const note = prompt('Masukkan catatan penolakan surat keluar:'); if (note === null || note.trim() === '') { alert('Catatan penolakan wajib diisi.'); return false; } this.querySelector('[name=catatan_admin]').value = note.trim(); return true;">
+
+                                    @csrf
+                                    <input type="hidden" name="catatan_admin">
+
+                                    <button
+                                        type="submit"
+                                        class="btn-reject"
+                                        title="Tolak">
+
+                                        <i class="bi bi-x-circle-fill"></i>
+
+                                    </button>
+
+                                </form>
+                                @endif
 
                                 @if($item->status === 'draft')
                                 <form
@@ -540,6 +581,38 @@
 .btn-edit:hover{
 
     background:#d97706;
+
+    color:#fff;
+
+}
+
+.btn-verify{
+
+    background:#dcfce7;
+
+    color:#15803d;
+
+}
+
+.btn-verify:hover{
+
+    background:#15803d;
+
+    color:#fff;
+
+}
+
+.btn-reject{
+
+    background:#ffe4e6;
+
+    color:#e11d48;
+
+}
+
+.btn-reject:hover{
+
+    background:#e11d48;
 
     color:#fff;
 

@@ -39,6 +39,81 @@ class AdminSettingsController extends Controller
         return view('admin.settings.index', compact('settings', 'trash'));
     }
 
+    public function profile()
+    {
+        return view('pengaturan.profile');
+    }
+
+    public function security()
+    {
+        return view('pengaturan.security');
+    }
+
+    public function instansi()
+    {
+        return view('pengaturan.instansi');
+    }
+
+    public function format()
+    {
+        return view('pengaturan.format-surat', [
+            'formatMasuk' => Setting::getValue('format_masuk', 'SM/{nomor}/{bulan}/{tahun}'),
+            'formatKeluar' => Setting::getValue('format_keluar', 'SK/{nomor}/{bulan}/{tahun}'),
+        ]);
+    }
+
+    public function updateFormat(Request $request)
+    {
+        $data = $request->validate([
+            'format_masuk' => 'required|string|max:120',
+            'format_keluar' => 'required|string|max:120',
+        ]);
+
+        Setting::putValue('format_masuk', $data['format_masuk'], 'letter');
+        Setting::putValue('format_keluar', $data['format_keluar'], 'letter');
+
+        LogAktivitas::create([
+            'user_id' => auth()->id(),
+            'action' => 'Perbarui Format Surat',
+            'description' => 'Memperbarui format nomor surat masuk dan surat keluar.',
+        ]);
+
+        return back()->with('success', 'Format surat berhasil disimpan.');
+    }
+
+    public function backup()
+    {
+        return view('pengaturan.backup');
+    }
+
+    public function downloadBackup()
+    {
+        $schemaPath = database_path('schema.sql');
+        $schema = is_file($schemaPath) ? file_get_contents($schemaPath) : '-- database/schema.sql tidak tersedia.';
+        $content = implode(PHP_EOL, [
+            '-- Backup metadata E-Office ATR/BPN',
+            '-- Dibuat: '.now()->format('Y-m-d H:i:s'),
+            '-- Catatan: file ini berisi snapshot schema yang tersedia di proyek, bukan dump data produksi.',
+            '',
+            $schema,
+        ]);
+
+        return response($content, 200, [
+            'Content-Type' => 'application/sql',
+            'Content-Disposition' => 'attachment; filename="backup_schema_eoffice_atrbpn.sql"',
+        ]);
+    }
+
+    public function restoreBackup()
+    {
+        return back()->with('error', 'Restore database dinonaktifkan dari halaman legacy untuk mencegah perubahan data tidak sengaja.');
+    }
+
+    public function about()
+    {
+        return view('pengaturan.about');
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate([

@@ -13,7 +13,7 @@ use Illuminate\Validation\Rule;
 
 class AdminSuratKeluarController extends Controller
 {
-    private const STATUS = ['draft', 'diajukan', 'diverifikasi', 'diteruskan_ke_pimpinan', 'terkirim', 'diarsipkan'];
+    private const STATUS = ['draft', 'diajukan', 'diverifikasi', 'ditolak', 'diteruskan_ke_pimpinan', 'terkirim', 'diarsipkan'];
 
     public function index(Request $request)
     {
@@ -108,6 +108,70 @@ class AdminSuratKeluarController extends Controller
         }
 
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Surat berhasil diperbarui.');
+    }
+
+    public function setujui(Request $request, $id)
+    {
+        $request->validate([
+            'catatan_admin' => 'nullable|string|max:1000',
+        ]);
+
+        $surat = $this->suratKeluar($id);
+
+        if ($surat->status !== 'diajukan') {
+            return back()->with('error', 'Hanya surat keluar berstatus diajukan yang dapat diverifikasi.');
+        }
+
+        $surat->update([
+            'status' => 'diverifikasi',
+            'catatan_admin' => $request->catatan_admin,
+        ]);
+
+        $this->log($surat, 'Verifikasi Surat Keluar', 'Surat keluar '.$surat->nomor_surat.' disetujui oleh Admin.');
+
+        if ($surat->user_id) {
+            LogAktivitas::create([
+                'user_id' => $surat->user_id,
+                'surat_id' => $surat->id,
+                'action' => 'Surat Keluar Disetujui',
+                'description' => 'Surat keluar Anda telah diverifikasi.' . ($surat->catatan_admin ? ' Catatan: ' . $surat->catatan_admin : ''),
+            ]);
+        }
+
+        return back()->with('success', 'Surat keluar berhasil disetujui.');
+    }
+
+    public function tolak(Request $request, $id)
+    {
+        $request->validate([
+            'catatan_admin' => 'required|string|max:1000',
+        ], [
+            'catatan_admin.required' => 'Catatan penolakan wajib diisi.',
+        ]);
+
+        $surat = $this->suratKeluar($id);
+
+        if ($surat->status !== 'diajukan') {
+            return back()->with('error', 'Hanya surat keluar berstatus diajukan yang dapat ditolak.');
+        }
+
+        $surat->update([
+            'status' => 'ditolak',
+            'catatan_admin' => $request->catatan_admin,
+        ]);
+
+        $this->log($surat, 'Tolak Surat Keluar', 'Surat keluar '.$surat->nomor_surat.' ditolak oleh Admin.');
+
+        if ($surat->user_id) {
+            LogAktivitas::create([
+                'user_id' => $surat->user_id,
+                'surat_id' => $surat->id,
+                'action' => 'Surat Keluar Ditolak',
+                'description' => 'Surat keluar Anda ditolak.' . ($surat->catatan_admin ? ' Catatan: ' . $surat->catatan_admin : ''),
+            ]);
+        }
+
+        return back()->with('success', 'Surat keluar berhasil ditolak.');
     }
 
     public function destroy($id)
