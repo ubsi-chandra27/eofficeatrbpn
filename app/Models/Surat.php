@@ -32,6 +32,9 @@ class Surat extends Model
 
         'asal_surat',
         'tujuan_surat',
+        'kategori_pengajuan',
+        'nomor_kontak',
+        'asal_instansi',
 
         'penandatangan',
 
@@ -118,15 +121,10 @@ class Surat extends Model
     public function getStatusBadgeAttribute()
     {
         return match ($this->status) {
-
-            'menunggu' => 'warning',
-
-            'diproses' => 'info',
-
-            'selesai' => 'success',
-
-            'ditolak' => 'danger',
-
+            'menunggu', 'diajukan' => 'warning',
+            'diverifikasi', 'diproses', 'diteruskan_ke_pimpinan' => 'info',
+            'dikembalikan', 'ditolak' => 'danger',
+            'selesai', 'terkirim', 'diarsipkan' => 'success',
             default => 'secondary',
         };
     }
@@ -141,7 +139,19 @@ class Surat extends Model
      */
     public function getStatusLabelAttribute()
     {
-        return ucfirst($this->status ?? '-');
+        return match ($this->status) {
+            'menunggu' => 'Menunggu Verifikasi',
+            'diajukan' => 'Diajukan',
+            'diverifikasi' => 'Diverifikasi',
+            'diproses' => 'Diproses',
+            'diteruskan_ke_pimpinan' => 'Diteruskan ke Pimpinan',
+            'dikembalikan' => 'Perlu Perbaikan',
+            'ditolak' => 'Ditolak',
+            'selesai' => 'Selesai',
+            'terkirim' => 'Terkirim',
+            'diarsipkan' => 'Diarsipkan',
+            default => ucfirst($this->status ?? '-'),
+        };
     }
 
     /*

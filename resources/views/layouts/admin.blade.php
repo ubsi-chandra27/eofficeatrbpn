@@ -898,6 +898,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('toggleSidebar');
+
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+            if (window.innerWidth > 991) {
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+                document.body.classList.toggle('sidebar-collapse', isCollapsed);
+            } else {
+                sidebar.classList.toggle('show');
+            }
+        });
+    }
+
+    if (sidebar && window.innerWidth <= 991) {
+        sidebar.classList.remove('collapsed');
+        document.body.classList.remove('sidebar-collapse');
+    }
+
+    document.addEventListener('click', (event) => {
+        if (window.innerWidth <= 991 && sidebar?.classList.contains('show')) {
+            const clickedInsideSidebar = sidebar.contains(event.target);
+            const clickedToggle = toggle?.contains(event.target);
+
+            if (!clickedInsideSidebar && !clickedToggle) {
+                sidebar.classList.remove('show');
+            }
+        }
+    });
+
     document.querySelectorAll('select:not([data-native-select])').forEach((select) => {
         if (select.dataset.choicesEnhanced === 'true') return;
         select.dataset.choicesEnhanced = 'true';
