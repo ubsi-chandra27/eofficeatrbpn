@@ -20,11 +20,17 @@ class SuratKeluarController extends Controller
         $query = Surat::where('user_id', Auth::id())
             ->where('jenis_surat', 'keluar');
         $base = clone $query;
+        $statusGroups = [
+            'diajukan' => ['menunggu', 'diajukan'],
+            'diproses' => ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'],
+            'selesai' => ['terkirim', 'selesai', 'diarsipkan'],
+        ];
+
         $stats = [
             'total' => (clone $base)->count(),
-            'draft' => (clone $base)->where('status', 'draft')->count(),
-            'diajukan' => (clone $base)->whereIn('status', ['diajukan', 'diverifikasi'])->count(),
-            'selesai' => (clone $base)->whereIn('status', ['terkirim', 'selesai', 'diarsipkan'])->count(),
+            'menunggu' => (clone $base)->whereIn('status', $statusGroups['diajukan'])->count(),
+            'diproses' => (clone $base)->whereIn('status', $statusGroups['diproses'])->count(),
+            'selesai' => (clone $base)->whereIn('status', $statusGroups['selesai'])->count(),
         ];
 
         if ($request->filled('keyword')) {
@@ -36,28 +42,25 @@ class SuratKeluarController extends Controller
                     'like',
                     '%' . $request->keyword . '%'
                 )
-                ->orWhere(
-                    'perihal',
-                    'like',
-                    '%' . $request->keyword . '%'
-                )
-                ->orWhere(
-                    'tujuan_surat',
-                    'like',
-                    '%' . $request->keyword . '%'
-                );
-
+                    ->orWhere(
+                        'perihal',
+                        'like',
+                        '%' . $request->keyword . '%'
+                    )
+                    ->orWhere(
+                        'tujuan_surat',
+                        'like',
+                        '%' . $request->keyword . '%'
+                    );
             });
-
         }
 
         if ($request->filled('status')) {
-
-            $query->where(
-                'status',
-                $request->status
-            );
-
+            if (isset($statusGroups[$request->status])) {
+                $query->whereIn('status', $statusGroups[$request->status]);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $surat = $query
@@ -79,17 +82,17 @@ class SuratKeluarController extends Controller
     */
 
     public function create()
-{
-    $pimpinans = Pegawai::with('jabatan')
-        ->whereNotNull('jabatan_id')
-        ->orderBy('nama')
-        ->get();
+    {
+        $pimpinans = Pegawai::with('jabatan')
+            ->whereNotNull('jabatan_id')
+            ->orderBy('nama')
+            ->get();
 
-    return view(
-        'pegawai.surat.keluar.create',
-        compact('pimpinans')
-    );
-}
+        return view(
+            'pegawai.surat.keluar.create',
+            compact('pimpinans')
+        );
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -144,7 +147,6 @@ class SuratKeluarController extends Controller
                     'surat-keluar',
                     'public'
                 );
-
         }
 
 
@@ -164,19 +166,19 @@ class SuratKeluarController extends Controller
             'tujuan_surat' => $request->tujuan_surat,
 
             'jabatan_pimpinan_id'
-                => $pimpinan->jabatan_id,
+            => $pimpinan->jabatan_id,
 
             'nama_pimpinan'
-                => $pimpinan->nama,
+            => $pimpinan->nama,
 
             'deskripsi'
-                => $request->deskripsi,
+            => $request->deskripsi,
 
             'file_path'
-                => $file,
+            => $file,
 
             'status'
-                => $request->input('status', 'draft'),
+            => $request->input('status', 'draft'),
 
         ]);
 
@@ -190,7 +192,7 @@ class SuratKeluarController extends Controller
             'action' => 'Membuat Surat Keluar',
 
             'description'
-                => 'Membuat Surat Keluar '
+            => 'Membuat Surat Keluar '
                 . $surat->nomor_surat,
 
         ]);
@@ -240,7 +242,6 @@ class SuratKeluarController extends Controller
                     'error',
                     'Surat yang sudah diproses tidak dapat diedit.'
                 );
-
         }
 
         $pimpinans = Pegawai::with('jabatan')
@@ -272,8 +273,7 @@ class SuratKeluarController extends Controller
     public function update(
         Request $request,
         $id
-    )
-    {
+    ) {
 
         $surat = $this->suratKeluarMilikPegawai($id);
 
@@ -284,31 +284,30 @@ class SuratKeluarController extends Controller
                     'error',
                     'Surat yang sudah diproses tidak dapat diedit.'
                 );
-
         }
 
         $request->validate([
 
             'nomor_surat'
-                => 'required|unique:surats,nomor_surat,' . $surat->id,
+            => 'required|unique:surats,nomor_surat,' . $surat->id,
 
             'tanggal_surat'
-                => 'required|date',
+            => 'required|date',
 
             'perihal'
-                => 'required',
+            => 'required',
 
             'tujuan_surat'
-                => 'required',
+            => 'required',
 
             'pimpinan_pegawai_id'
-                => 'required|exists:pegawai,id',
+            => 'required|exists:pegawai,id',
 
             'deskripsi'
-                => 'nullable',
+            => 'nullable',
 
             'file_path'
-                => 'nullable|mimes:pdf,doc,docx|max:5120',
+            => 'nullable|mimes:pdf,doc,docx|max:5120',
 
         ], [
             'pimpinan_pegawai_id.required' => 'Pimpinan atau penandatangan wajib dipilih.',
@@ -333,41 +332,40 @@ class SuratKeluarController extends Controller
                     ->delete(
                         $surat->file_path
                     );
-
             }
 
             $surat->file_path =
                 $request
-                    ->file('file_path')
-                    ->store(
-                        'surat-keluar',
-                        'public'
-                    );
+                ->file('file_path')
+                ->store(
+                    'surat-keluar',
+                    'public'
+                );
         }
 
 
         $surat->update([
 
             'nomor_surat'
-                => $request->nomor_surat,
+            => $request->nomor_surat,
 
             'tanggal_surat'
-                => $request->tanggal_surat,
+            => $request->tanggal_surat,
 
             'perihal'
-                => $request->perihal,
+            => $request->perihal,
 
             'tujuan_surat'
-                => $request->tujuan_surat,
+            => $request->tujuan_surat,
 
             'jabatan_pimpinan_id'
-                => $pimpinan->jabatan_id,
+            => $pimpinan->jabatan_id,
 
             'nama_pimpinan'
-                => $pimpinan->nama,
+            => $pimpinan->nama,
 
             'deskripsi'
-                => $request->deskripsi,
+            => $request->deskripsi,
 
         ]);
 
@@ -381,7 +379,7 @@ class SuratKeluarController extends Controller
             'action' => 'Mengubah Surat Keluar',
 
             'description'
-                => 'Mengubah Surat '
+            => 'Mengubah Surat '
                 . $surat->nomor_surat,
 
         ]);
@@ -413,7 +411,6 @@ class SuratKeluarController extends Controller
                     'error',
                     'Surat yang sudah diproses tidak dapat dihapus.'
                 );
-
         }
 
         if ($surat->file_path) {
@@ -422,7 +419,6 @@ class SuratKeluarController extends Controller
                 ->delete(
                     $surat->file_path
                 );
-
         }
 
         LogAktivitas::create([
@@ -434,7 +430,7 @@ class SuratKeluarController extends Controller
             'action' => 'Menghapus Surat Keluar',
 
             'description'
-                => 'Menghapus Surat '
+            => 'Menghapus Surat '
                 . $surat->nomor_surat,
 
         ]);
@@ -468,7 +464,6 @@ class SuratKeluarController extends Controller
                     'error',
                     'Surat sudah diproses.'
                 );
-
         }
 
         $surat->update([
@@ -487,7 +482,7 @@ class SuratKeluarController extends Controller
             'action' => 'Mengirim Surat Keluar',
 
             'description'
-                => 'Mengirim Surat '
+            => 'Mengirim Surat '
                 . $surat->nomor_surat,
 
         ]);
@@ -513,5 +508,4 @@ class SuratKeluarController extends Controller
     {
         return in_array($surat->status, ['draft', 'dikembalikan', 'Menunggu'], true);
     }
-
 }

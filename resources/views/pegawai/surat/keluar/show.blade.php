@@ -652,7 +652,7 @@
 
                 </a>
 
-                @if(in_array($surat->status, ['draft', 'dikembalikan', 'Menunggu']))
+                @if(in_array($surat->status, ['draft', 'dikembalikan', 'menunggu', 'Menunggu'], true))
                     <a href="{{ route('pegawai.surat-keluar.edit', $surat->id) }}"
                        class="btn btn-warning">
                         <i class="bi bi-pencil-square"></i>

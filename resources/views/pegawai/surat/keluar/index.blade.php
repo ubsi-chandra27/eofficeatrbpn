@@ -101,7 +101,7 @@
 
                 <h3>
 
-                    {{ $surat->where('status','Menunggu')->count() }}
+                    {{ $stats['menunggu'] ?? 0 }}
 
                 </h3>
 
@@ -125,7 +125,7 @@
 
                 <h3>
 
-                    {{ $surat->where('status','Diproses')->count() }}
+                    {{ $stats['diproses'] ?? 0 }}
 
                 </h3>
 
@@ -149,7 +149,7 @@
 
                 <h3>
 
-                    {{ $surat->where('status','Selesai')->count() }}
+                    {{ $stats['selesai'] ?? 0 }}
 
                 </h3>
 
@@ -244,24 +244,24 @@
                     </option>
 
                     <option
-                        value="Menunggu"
-                        {{ request('status')=='Menunggu' ? 'selected' : '' }}>
+                        value="diajukan"
+                        {{ request('status')=='diajukan' ? 'selected' : '' }}>
 
                         Menunggu
 
                     </option>
 
                     <option
-                        value="Diproses"
-                        {{ request('status')=='Diproses' ? 'selected' : '' }}>
+                        value="diproses"
+                        {{ request('status')=='diproses' ? 'selected' : '' }}>
 
                         Diproses
 
                     </option>
 
                     <option
-                        value="Selesai"
-                        {{ request('status')=='Selesai' ? 'selected' : '' }}>
+                        value="selesai"
+                        {{ request('status')=='selesai' ? 'selected' : '' }}>
 
                         Selesai
 
@@ -349,47 +349,11 @@
 
     <td>
 
-        @if($item->status == 'Menunggu')
+        <span class="badge bg-{{ $item->status_badge }} {{ $item->status_badge === 'warning' ? 'text-dark' : 'text-white' }}">
 
-            <span class="badge bg-warning text-dark">
+            {{ $item->status_label }}
 
-                Menunggu
-
-            </span>
-
-        @elseif($item->status == 'Diproses')
-
-            <span class="badge bg-info text-white">
-
-                Diproses
-
-            </span>
-
-        @elseif($item->status == 'Selesai')
-
-            <span class="badge bg-success">
-
-                Selesai
-
-            </span>
-
-        @elseif($item->status == 'Ditolak')
-
-            <span class="badge bg-danger">
-
-                Ditolak
-
-            </span>
-
-        @else
-
-            <span class="badge bg-secondary">
-
-                {{ $item->status }}
-
-            </span>
-
-        @endif
+        </span>
 
     </td>
 
@@ -408,7 +372,7 @@
 
 
             {{-- EDIT hanya ketika Menunggu --}}
-            @if($item->status == 'Menunggu')
+            @if(in_array($item->status, ['draft', 'dikembalikan', 'menunggu', 'Menunggu'], true))
 
                 <a href="{{ route('pegawai.surat-keluar.edit',$item->id) }}"
                    class="btn btn-sm btn-outline-warning"
@@ -422,7 +386,7 @@
 
 
             {{-- HAPUS hanya ketika Menunggu --}}
-            @if($item->status == 'Menunggu')
+            @if(in_array($item->status, ['draft', 'dikembalikan', 'menunggu', 'Menunggu'], true))
 
                 <form
                     action="{{ route('pegawai.surat-keluar.destroy',$item->id) }}"
