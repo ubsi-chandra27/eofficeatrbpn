@@ -200,6 +200,19 @@ class AdminSuratKeluarController extends Controller
             return back()->with('error', 'Hanya surat draft yang dapat dihapus. Surat lain tetap disimpan sebagai histori.');
         }
         $this->log($surat, 'Hapus Surat Keluar', 'Mengarsipkan surat ' . $surat->nomor_surat);
+
+        if ($surat->user_id) {
+            $pemilik = \App\Models\User::find($surat->user_id);
+            app(\App\Services\SystemNotificationService::class)->notifyUser(
+                $pemilik,
+                'Surat Keluar Dihapus',
+                'Draft surat keluar Anda (' . $surat->nomor_surat . ') telah dihapus oleh Admin.',
+                route('pegawai.surat-keluar.index'),
+                'danger',
+                'bi-trash'
+            );
+        }
+
         $surat->delete();
         return redirect()->route('admin.surat.keluar.index')->with('success', 'Draft surat berhasil dihapus.');
     }

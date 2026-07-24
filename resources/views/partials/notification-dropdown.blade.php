@@ -41,18 +41,27 @@
                     $type = $data['type'] ?? 'info';
                     $icon = $data['icon'] ?? 'bi-bell-fill';
                 @endphp
-                <a
-                    href="{{ route('notifications.open', $notification->id) }}"
-                    class="notification-item {{ is_null($notification->read_at) ? 'unread' : '' }}">
-                    <span class="notification-icon {{ $type }}">
-                        <i class="bi {{ $icon }}"></i>
-                    </span>
-                    <span class="notification-copy">
-                        <strong>{{ $data['title'] ?? 'Notifikasi' }}</strong>
-                        <small>{{ $data['message'] ?? 'Ada pembaruan baru.' }}</small>
-                        <time>{{ $notification->created_at?->diffForHumans() }}</time>
-                    </span>
-                </a>
+                <div class="notification-item {{ is_null($notification->read_at) ? 'unread' : '' }}">
+                    <a href="{{ route('notifications.open', $notification->id) }}" class="notification-link">
+                        <span class="notification-icon {{ $type }}">
+                            <i class="bi {{ $icon }}"></i>
+                        </span>
+                        <span class="notification-copy">
+                            <strong>{{ $data['title'] ?? 'Notifikasi' }}</strong>
+                            <small>{{ $data['message'] ?? 'Ada pembaruan baru.' }}</small>
+                            <time>{{ $notification->created_at?->diffForHumans() }}</time>
+                        </span>
+                    </a>
+                    @if(is_null($notification->read_at))
+                        <form method="POST" action="{{ route('notifications.read', $notification->id) }}" class="notification-read-form">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="notification-read-btn" title="Tandai sudah dibaca">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                    @endif
+                </div>
             @empty
                 <div class="notification-empty">
                     <i class="bi bi-bell"></i>

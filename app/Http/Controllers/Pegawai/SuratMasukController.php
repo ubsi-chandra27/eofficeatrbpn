@@ -247,6 +247,15 @@ class SuratMasukController extends Controller
                 'action' => 'Hapus Surat Masuk',
                 'description' => 'Surat '.$surat->nomor_surat.' dipindahkan ke sampah.',
             ]);
+
+            app(\App\Services\SystemNotificationService::class)->notifyAdmins(
+                'Surat Masuk Dihapus',
+                'Surat masuk ' . $surat->nomor_surat . ' dari ' . $surat->user->name . ' telah dihapus.',
+                route('admin.surat.masuk.index'),
+                'warning',
+                'bi-trash'
+            );
+
             $surat->delete();
         });
 

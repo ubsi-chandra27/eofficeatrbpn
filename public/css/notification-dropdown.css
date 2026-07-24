@@ -94,8 +94,8 @@
     padding: 14px 18px;
     border-bottom: 1px solid #edf2f7;
     color: #334155;
-    text-decoration: none;
     background: #fff;
+    align-items: center;
 }
 
 .notification-item:hover {
@@ -105,6 +105,39 @@
 
 .notification-item.unread {
     background: #eef6ff;
+}
+
+.notification-link {
+    color: inherit;
+    text-decoration: none;
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-link:hover {
+    color: inherit;
+}
+
+.notification-read-form {
+    margin: 0;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.notification-read-btn {
+    border: 0;
+    background: transparent;
+    color: #1769aa;
+    font-size: 16px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.notification-read-btn:hover {
+    background: #eaf3ff;
+    color: #0f4c81;
 }
 
 .notification-icon {

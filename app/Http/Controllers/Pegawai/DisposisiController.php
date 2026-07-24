@@ -221,6 +221,21 @@ class DisposisiController extends Controller
             if ($locked->tujuans()->where('status', '!=', 'Belum Dibaca')->exists()) {
                 return false;
             }
+
+            foreach ($locked->tujuans as $tujuan) {
+                if ($tujuan->pegawai && $tujuan->pegawai->user_id) {
+                    $penerima = \App\Models\User::find($tujuan->pegawai->user_id);
+                    app(\App\Services\SystemNotificationService::class)->notifyUser(
+                        $penerima,
+                        'Disposisi Dihapus',
+                        'Disposisi untuk surat ' . $locked->surat->nomor_surat . ' telah dihapus oleh pengirim.',
+                        route('pegawai.disposisi.index'),
+                        'danger',
+                        'bi-trash'
+                    );
+                }
+            }
+
             $locked->delete();
             return true;
         });

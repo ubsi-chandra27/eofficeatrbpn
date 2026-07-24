@@ -31,4 +31,16 @@ class NotificationController extends Controller
 
         return back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
+
+    public function markAsRead(Request $request, string $id): RedirectResponse
+    {
+        $notification = $request->user()
+            ->notifications()
+            ->whereKey($id)
+            ->firstOrFail();
+
+        $notification->markAsRead();
+
+        return back();
+    }
 }

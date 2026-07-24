@@ -367,6 +367,21 @@ class AdminDisposisiController extends Controller
                 return back()->with('error', 'Disposisi yang sudah dibaca atau selesai tidak dapat dihapus.');
             }
 
+            // Notify pegawai tujuan before delete
+            foreach ($disposisi->tujuans as $tujuan) {
+                if ($tujuan->pegawai && $tujuan->pegawai->user_id) {
+                    $penerima = \App\Models\User::find($tujuan->pegawai->user_id);
+                    app(\App\Services\SystemNotificationService::class)->notifyUser(
+                        $penerima,
+                        'Disposisi Dihapus',
+                        'Disposisi untuk surat ' . $disposisi->surat->nomor_surat . ' telah dihapus oleh Admin.',
+                        route('pegawai.disposisi.index'),
+                        'danger',
+                        'bi-trash'
+                    );
+                }
+            }
+
             // Soft delete menjaga histori surat dan penerima.
             $disposisi->delete();
 

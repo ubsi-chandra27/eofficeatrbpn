@@ -347,6 +347,18 @@ class AdminSuratMasukController extends Controller
             'description' => 'Menghapus surat '.$surat->nomor_surat,
         ]);
 
+        if ($surat->user_id) {
+            $pemilik = \App\Models\User::find($surat->user_id);
+            app(\App\Services\SystemNotificationService::class)->notifyUser(
+                $pemilik,
+                'Surat Masuk Dihapus',
+                'Surat masuk Anda (' . $surat->nomor_surat . ') telah dihapus oleh Admin.',
+                route('pegawai.surat-masuk.index'),
+                'danger',
+                'bi-trash'
+            );
+        }
+
         $surat->delete();
 
         return redirect()

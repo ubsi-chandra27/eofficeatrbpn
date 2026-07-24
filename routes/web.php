@@ -226,6 +226,9 @@ Route::middleware('auth')->group(function(){
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])
         ->name('notifications.read-all');
 
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+
     Route::get('/surat/{surat}/lampiran', SuratLampiranController::class)
         ->whereNumber('surat')
         ->name('surat.lampiran');
