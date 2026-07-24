@@ -35,7 +35,9 @@ class DatabaseSeeder extends Seeder
         if ((bool) env('SEED_DEMO_DATA', false)) {
             $this->call([
                 PegawaiSeeder::class,
+                PegawaiDemoSeeder::class,
                 SuratSeeder::class,
+                SuratPegawaiDemoSeeder::class,
                 DisposisiSeeder::class,
                 PengajuanUmumDemoSeeder::class,
             ]);

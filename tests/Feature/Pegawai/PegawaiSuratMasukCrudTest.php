@@ -3,6 +3,10 @@
 use App\Models\Pegawai;
 use App\Models\Surat;
 use App\Models\User;
+use Database\Seeders\JabatanSeeder;
+use Database\Seeders\PegawaiDemoSeeder;
+use Database\Seeders\SuratPegawaiDemoSeeder;
+use Database\Seeders\UnitKerjaSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,14 +30,47 @@ function incomingLetter(User $user, array $overrides = []): Surat
 it('menampilkan isi tabel surat masuk lengkap dan hanya milik pegawai login', function () {
     $owner = incomingEmployee('PEG-SM-TABLE-001');
     $other = incomingEmployee('PEG-SM-TABLE-002');
-    incomingLetter($owner, ['file_path' => 'surat-masuk/lampiran.pdf']);
+    incomingLetter($owner, [
+        'nomor_agenda' => 'AGD-SM-001',
+        'tujuan_surat' => 'Kantor Pertanahan',
+        'catatan_admin' => 'Catatan contoh dari admin.',
+        'file_path' => 'surat-masuk/lampiran.pdf',
+    ]);
     incomingLetter($other, ['nomor_surat' => 'SM-RAHASIA-002']);
 
     $this->actingAs($owner)->get(route('pegawai.surat-masuk.index'))
         ->assertOk()->assertSee('SM-CRUD-001')->assertSee('Audit surat masuk pegawai')
+        ->assertSee('AGD-SM-001')
         ->assertSee('Kantor Wilayah')->assertSee('Kantor Pertanahan')
         ->assertSee('PDF')->assertSee('Belum dikirim ke Admin')
+        ->assertSee('Catatan contoh dari admin.')
         ->assertDontSee('SM-RAHASIA-002');
+});
+
+it('menyiapkan isi tabel surat masuk untuk semua akun pegawai demo', function () {
+    $this->seed([
+        JabatanSeeder::class,
+        UnitKerjaSeeder::class,
+        PegawaiDemoSeeder::class,
+        SuratPegawaiDemoSeeder::class,
+    ]);
+
+    $pegawaiDemo = Pegawai::whereNotNull('user_id')->whereHas('user', fn ($query) => $query->where('role', 'pegawai'))->get();
+
+    expect($pegawaiDemo)->toHaveCount(5);
+
+    foreach ($pegawaiDemo as $pegawai) {
+        expect(Surat::where('user_id', $pegawai->user_id)->where('jenis_surat', 'masuk')->count())->toBe(5);
+    }
+
+    $pegawai = $pegawaiDemo->first();
+    $this->actingAs($pegawai->user)
+        ->get(route('pegawai.surat-masuk.index'))
+        ->assertOk()
+        ->assertSee('DEMO/PGW/SM/'.$pegawai->nip.'/001')
+        ->assertSee('AGD-PGW-001-'.$pegawai->nip)
+        ->assertSee('Permohonan data pertanahan')
+        ->assertSee('Menunggu Verifikasi');
 });
 
 it('menampilkan halaman tambah edit dan detail surat masuk', function () {

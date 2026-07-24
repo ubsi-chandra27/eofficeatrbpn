@@ -27,24 +27,31 @@ class SuratMasukController extends Controller
             'draft' => (clone $base)->where('status', 'draft')->count(),
             'menunggu_verifikasi' => (clone $base)->whereIn('status', ['diajukan', 'menunggu'])->count(),
             'disetujui' => (clone $base)->whereIn('status', ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan', 'selesai'])->count(),
-            'perbaikan' => (clone $base)->where('status', 'dikembalikan')->count(),
+            'perbaikan' => (clone $base)->whereIn('status', ['dikembalikan', 'ditolak'])->count(),
         ];
 
         if ($request->filled('keyword')) {
             $query->where(function ($q) use ($request) {
                 $q->where('nomor_surat', 'like', '%' . $request->keyword . '%')
+                  ->orWhere('nomor_agenda', 'like', '%' . $request->keyword . '%')
                   ->orWhere('asal_surat', 'like', '%' . $request->keyword . '%')
-                  ->orWhere('perihal', 'like', '%' . $request->keyword . '%');
+                  ->orWhere('tujuan_surat', 'like', '%' . $request->keyword . '%')
+                  ->orWhere('perihal', 'like', '%' . $request->keyword . '%')
+                  ->orWhere('catatan_admin', 'like', '%' . $request->keyword . '%');
             });
         }
 
 
-        $allowedStatuses = ['draft', 'diajukan', 'menunggu', 'diverifikasi', 'dikembalikan', 'diproses', 'diteruskan_ke_pimpinan', 'selesai'];
+        $allowedStatuses = ['draft', 'diajukan', 'menunggu', 'diverifikasi', 'dikembalikan', 'ditolak', 'diproses', 'diteruskan_ke_pimpinan', 'selesai', 'diarsipkan'];
         if ($request->filled('status') && in_array($request->status, $allowedStatuses, true)) {
             $query->where('status', $request->status);
         }
 
-        $suratMasuk = $query->latest()->paginate(10)->withQueryString();
+        $suratMasuk = $query
+            ->orderByDesc('tanggal_surat')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('pegawai.surat.masuk.index', compact('suratMasuk', 'stats'));
     }

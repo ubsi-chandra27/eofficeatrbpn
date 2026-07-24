@@ -203,6 +203,40 @@ Hasil audit:
 - Tombol Escape menutup sidebar.
 - Klik menu pada mobile otomatis menutup sidebar.
 
+## Pembaruan 24 Juli 2026 - Surat Masuk Pegawai
+
+### Masalah
+
+Tabel `Surat Masuk` pada role pegawai belum sesuai ekspektasi ketika digunakan di hosting/demo karena data demo surat masuk pegawai belum otomatis ikut dibuat dari `DatabaseSeeder`. View tabel juga masih terlalu padat sehingga informasi penting seperti nomor agenda dan catatan admin kurang terlihat.
+
+### Perbaikan
+
+- `DatabaseSeeder` sekarang memanggil:
+  - `PegawaiDemoSeeder`
+  - `SuratPegawaiDemoSeeder`
+- `SuratPegawaiDemoSeeder` sekarang membuat 5 surat masuk demo untuk setiap pegawai yang sudah punya akun login, bukan hanya satu pegawai hardcoded.
+- Tabel `resources/views/pegawai/surat/masuk/index.blade.php` dirapikan dan dilengkapi kolom:
+  - No
+  - No Agenda
+  - Nomor Surat
+  - Perihal
+  - Asal & Tujuan
+  - Tanggal
+  - Lampiran
+  - Status Verifikasi
+  - Catatan Admin
+  - Aksi
+- Pencarian di `Pegawai\SuratMasukController` diperluas ke nomor agenda, tujuan surat, dan catatan admin.
+- Filter status surat masuk pegawai diperluas agar mencakup status `ditolak` dan `diarsipkan`.
+- Test `PegawaiSuratMasukCrudTest` ditambah untuk memastikan isi tabel surat masuk pegawai muncul dan data demo tersedia untuk semua pegawai demo.
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Pegawai/SuratMasukController.php`: berhasil.
+- `php -l database/seeders/DatabaseSeeder.php`: berhasil.
+- `php -l database/seeders/SuratPegawaiDemoSeeder.php`: berhasil.
+- `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 53 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -210,11 +244,14 @@ Hasil audit:
 - `app/Http/Controllers/Admin/AdminSettingsController.php`
 - `app/Http/Controllers/Admin/AdminSuratKeluarController.php`
 - `app/Http/Controllers/Admin/AdminPegawaiController.php`
+- `app/Http/Controllers/Pegawai/SuratMasukController.php`
 - `app/Http/Controllers/Pegawai/DisposisiController.php`
 - `app/Models/Pegawai.php`
+- `database/seeders/DatabaseSeeder.php`
 - `database/migrations/2026_07_23_000001_add_nipp_to_pegawai_table.php`
 - `database/seeders/PegawaiDemoSeeder.php`
 - `database/seeders/PegawaiSeeder.php`
+- `database/seeders/SuratPegawaiDemoSeeder.php`
 - `resources/views/admin/pegawai/_form.blade.php`
 - `resources/views/admin/pegawai/index.blade.php`
 - `resources/views/admin/pegawai/show.blade.php`
@@ -227,8 +264,10 @@ Hasil audit:
 - `resources/views/partials/admin-sidebar.blade.php`
 - `resources/views/pegawai/disposisi/index.blade.php`
 - `resources/views/pegawai/disposisi/terkirim.blade.php`
+- `resources/views/pegawai/surat/masuk/index.blade.php`
 - `routes/web.php`
 - `tests/Feature/Admin/AdminSuratKeluarCrudTest.php`
+- `tests/Feature/Pegawai/PegawaiSuratMasukCrudTest.php`
 - `public/build/*` melalui `npm.cmd run build`
 
 ## Cara Verifikasi Manual
@@ -252,6 +291,7 @@ Hasil audit:
 - `/pegawai/dashboard`
 - `/pegawai/disposisi`
 - `/pegawai/disposisi/terkirim`
+- `/pegawai/surat-masuk`
 - `/pegawai/surat-masuk/create`
 - `/pegawai/surat-keluar/create`
 
@@ -269,3 +309,4 @@ Sampai dokumen ini dibuat:
 - Asset production berhasil dibuild.
 - Blade berhasil dikompilasi.
 - Test penuh sebelumnya lulus 142 test / 813 assertion.
+- Pembaruan surat masuk pegawai lulus test khusus `PegawaiSuratMasukCrudTest`.
