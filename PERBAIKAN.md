@@ -880,3 +880,33 @@ Dashboard Umum perlu dipastikan tetap menampilkan section tambahan selain inform
 - `php artisan test --filter=UmumAccessTest`: 18 test lulus, 147 assertion.
 - `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
 - `php artisan test`: 149 test lulus, 922 assertion.
+
+## Pembaruan 24 Juli 2026 - Perbaikan Penerusan Surat Masuk Admin
+
+### Masalah
+
+Pada halaman Detail Surat Masuk Admin, aksi `Teruskan ke Pimpinan` menampilkan error `Tujuan pimpinan pada surat belum diisi.` untuk surat masuk dari umum/pegawai yang tidak memiliki `jabatan_pimpinan_id` atau `nama_pimpinan`. Padahal alur surat masuk admin tidak mewajibkan tujuan pimpinan di form penerimaan; tahap ini hanya mencatat penyaluran administratif.
+
+### Perbaikan
+
+- Menghapus blok validasi yang memaksa `jabatan_pimpinan_id` atau `nama_pimpinan` harus terisi sebelum surat diteruskan.
+- Menambahkan fallback tujuan log menjadi `pimpinan terkait` jika tujuan pimpinan belum diisi.
+- Menambahkan field penerusan ke `$fillable` model `Surat` agar data `diteruskan_oleh`, `diteruskan_pada`, `metode_penerusan`, dan `catatan_pengantar` benar-benar tersimpan.
+- Menambahkan cast `diteruskan_pada` sebagai `datetime`.
+- Menambahkan test regresi agar surat masuk terverifikasi tetap bisa diteruskan walaupun tujuan pimpinan belum diisi.
+
+### File yang Diubah
+
+- `app/Http/Controllers/Admin/AdminSuratMasukController.php`
+- `app/Models/Surat.php`
+- `tests/Feature/Admin/AdminSuratMasukTableTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Admin/AdminSuratMasukController.php`: tidak ada syntax error.
+- `php -l app/Models/Surat.php`: tidak ada syntax error.
+- `php artisan route:list --name=admin.surat.masuk`: 10 route admin surat masuk terdaftar.
+- `php artisan test --filter=AdminSuratMasukTableTest`: 8 test lulus, 49 assertion.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test`: 150 test lulus, 929 assertion.

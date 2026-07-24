@@ -52,6 +52,10 @@ class Surat extends Model
 
         'jabatan_pimpinan_id',
         'nama_pimpinan',
+        'diteruskan_oleh',
+        'diteruskan_pada',
+        'metode_penerusan',
+        'catatan_pengantar',
 
     ];
 
@@ -60,6 +64,7 @@ class Surat extends Model
         'tanggal_surat'  => 'date',
         'tanggal_keluar' => 'date',
         'tanggal_kirim'  => 'date',
+        'diteruskan_pada' => 'datetime',
 
         'is_priority'    => 'boolean',
 

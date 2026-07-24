@@ -173,3 +173,32 @@ it('menolak penghapusan surat masuk yang sudah diproses', function () {
 
     $this->assertDatabaseHas('surats', ['id' => $surat->id, 'deleted_at' => null]);
 });
+
+it('meneruskan surat masuk terverifikasi walaupun tujuan pimpinan belum diisi', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $surat = adminIncomingLetter($admin, [
+        'nomor_surat' => 'SM-TERUSKAN-TANPA-TUJUAN',
+        'status' => 'diverifikasi',
+        'jabatan_pimpinan_id' => null,
+        'nama_pimpinan' => null,
+    ]);
+
+    $this->actingAs($admin)->post(route('admin.surat.masuk.teruskan-pimpinan', $surat), [
+        'metode_penerusan' => 'fisik',
+        'catatan_pengantar' => 'Mohon arahan tindak lanjut.',
+    ])->assertSessionHas('success')
+        ->assertSessionMissing('error');
+
+    $surat->refresh();
+
+    expect($surat->status)->toBe('diteruskan_ke_pimpinan')
+        ->and($surat->diteruskan_oleh)->toBe($admin->id)
+        ->and($surat->catatan_pengantar)->toBe('Mohon arahan tindak lanjut.')
+        ->and($surat->metode_penerusan)->toBe('fisik');
+
+    $this->assertDatabaseHas('log_aktivitas', [
+        'surat_id' => $surat->id,
+        'action' => 'Diteruskan ke Pimpinan',
+        'description' => 'Admin meneruskan surat SM-TERUSKAN-TANPA-TUJUAN kepada pimpinan terkait melalui fisik.',
+    ]);
+});

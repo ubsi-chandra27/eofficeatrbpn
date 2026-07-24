@@ -268,9 +268,9 @@ class AdminSuratMasukController extends Controller
             return back()->with('error', 'Surat harus diverifikasi sebelum diteruskan ke pimpinan.');
         }
 
-        if (!$surat->jabatan_pimpinan_id && !$surat->nama_pimpinan) {
-            return back()->with('error', 'Tujuan pimpinan pada surat belum diisi.');
-        }
+        $tujuanPimpinan = $surat->nama_pimpinan
+            ?: optional($surat->jabatanPimpinan)->nama
+            ?: 'pimpinan terkait';
 
         $surat->update([
             'status' => 'diteruskan_ke_pimpinan',
@@ -285,7 +285,7 @@ class AdminSuratMasukController extends Controller
             'surat_id' => $surat->id,
             'action' => 'Diteruskan ke Pimpinan',
             'description' => 'Admin meneruskan surat ' . $surat->nomor_surat
-                . ' kepada ' . ($surat->nama_pimpinan ?: optional($surat->jabatanPimpinan)->nama)
+                . ' kepada ' . $tujuanPimpinan
                 . ' melalui ' . $request->metode_penerusan . '.',
         ]);
 
