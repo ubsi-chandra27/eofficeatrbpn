@@ -183,24 +183,33 @@
             <p>Tambahan ini membantu pengguna umum memahami informasi penting sebelum membuat pengajuan.</p>
         </div>
         <div class="news-grid">
-            <article>
-                <small>LAYANAN DIGITAL</small>
-                <h4>Pengajuan dapat dipantau dari Surat Saya</h4>
-                <p>Status, catatan admin, lampiran, dan histori proses tersedia di halaman detail pengajuan.</p>
-                <a href="{{ route('umum.surat.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
-            </article>
-            <article>
-                <small>KETENTUAN BERKAS</small>
-                <h4>Pastikan lampiran sesuai format</h4>
-                <p>Gunakan format PDF, DOC, DOCX, JPG, atau PNG dengan ukuran maksimal {{ $informasiLayanan['maksimal_lampiran'] }} MB.</p>
-                <a href="{{ route('umum.layanan.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
-            </article>
-            <article>
-                <small>PELACAKAN</small>
-                <h4>Lacak pengajuan menggunakan nomor referensi</h4>
-                <p>Nomor pengajuan dapat dipakai untuk membuka status dan perkembangan proses administrasi.</p>
-                <a href="{{ route('umum.cari.form') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
-            </article>
+            @forelse($beritaTerbaru as $item)
+                <article>
+                    <small>{{ strtoupper($item->kategori) }}</small>
+                    <h4>{{ $item->judul }}</h4>
+                    <p>{{ $item->excerpt }}</p>
+                    <a href="{{ route('umum.berita.show', $item->id) }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+                </article>
+            @empty
+                <article>
+                    <small>LAYANAN DIGITAL</small>
+                    <h4>Pengajuan dapat dipantau dari Surat Saya</h4>
+                    <p>Status, catatan admin, lampiran, dan histori proses tersedia di halaman detail pengajuan.</p>
+                    <a href="{{ route('umum.surat.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+                </article>
+                <article>
+                    <small>KETENTUAN BERKAS</small>
+                    <h4>Pastikan lampiran sesuai format</h4>
+                    <p>Gunakan format PDF, DOC, DOCX, JPG, atau PNG dengan ukuran maksimal {{ $informasiLayanan['maksimal_lampiran'] }} MB.</p>
+                    <a href="{{ route('umum.layanan.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+                </article>
+                <article>
+                    <small>PELACAKAN</small>
+                    <h4>Lacak pengajuan menggunakan nomor referensi</h4>
+                    <p>Nomor pengajuan dapat dipakai untuk membuka status dan perkembangan proses administrasi.</p>
+                    <a href="{{ route('umum.cari.form') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+                </article>
+            @endforelse
         </div>
     </section>
 

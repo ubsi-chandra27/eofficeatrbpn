@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Umum;
 
 use App\Http\Controllers\Controller;
+use App\Models\Berita;
 use App\Models\LogAktivitas;
 use App\Models\Surat;
 use App\Models\Setting;
@@ -41,7 +42,8 @@ class DashboardController extends Controller
             'telepon_bantuan' => Setting::getValue('public_help_phone', ''),
             'maksimal_lampiran' => (int) Setting::getValue('max_upload_mb', 5),
         ];
+        $beritaTerbaru = Berita::published()->latest('published_at')->limit(3)->get();
 
-        return view('umum.dashboard', compact('statistik', 'suratTerbaru', 'aktivitas', 'informasiLayanan'));
+        return view('umum.dashboard', compact('statistik', 'suratTerbaru', 'aktivitas', 'informasiLayanan', 'beritaTerbaru'));
     }
 }

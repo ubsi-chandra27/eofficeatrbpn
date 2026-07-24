@@ -404,6 +404,8 @@ Route::middleware(['auth','role:admin'])
         Route::patch('/trash/{type}/{id}/restore', 'restore')->name('trash.restore');
     });
 
+    Route::resource('berita', \App\Http\Controllers\Admin\AdminBeritaController::class);
+
 
 });
 
@@ -568,5 +570,8 @@ Route::middleware(['auth', 'role:umum'])
     Route::view('/informasi/visi', 'umum.visi')->name('visi');
     Route::view('/informasi/misi', 'umum.misi')->name('misi');
     Route::view('/informasi/makna-logo', 'umum.makna-logo')->name('makna-logo');
+
+    Route::get('/berita', [\App\Http\Controllers\Umum\BeritaController::class, 'index'])->name('berita.index');
+    Route::get('/berita/{id}', [\App\Http\Controllers\Umum\BeritaController::class, 'show'])->name('berita.show');
 
 });
