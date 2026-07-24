@@ -14,12 +14,16 @@ class DisposisiDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::where('role', 'admin')->first();
-        $letters = Surat::where('jenis_surat', 'masuk')->where('nomor_surat', 'like', 'DEMO/%')->oldest('created_at')->take(5)->get();
-        $employees = Pegawai::whereNotNull('user_id')->orderBy('nama')->get();
+        $systemSender = User::where('role', 'admin')->first()
+            ?? User::whereIn('role', ['pegawai', 'admin'])->orderBy('id')->first();
+        $employees = Pegawai::with(['user', 'unitKerja'])
+            ->whereNotNull('user_id')
+            ->whereHas('user', fn ($query) => $query->where('role', 'pegawai'))
+            ->orderBy('nip')
+            ->get();
 
-        if (! $admin || $letters->isEmpty() || $employees->isEmpty()) {
-            $this->command?->error('Siapkan akun Admin, surat demo, dan pegawai demo terlebih dahulu.');
+        if (! $systemSender || $employees->count() < 2) {
+            $this->command?->error('Siapkan minimal dua akun pegawai demonstrasi sebelum membuat disposisi demo.');
             return;
         }
 
@@ -33,40 +37,86 @@ class DisposisiDemoSeeder extends Seeder
         $priorities = ['Tinggi', 'Sedang', 'Sedang', 'Rendah', 'Tinggi'];
         $statuses = ['Belum Dibaca', 'Sudah Dibaca', 'Selesai', 'Belum Dibaca', 'Selesai'];
 
-        DB::transaction(function () use ($admin, $letters, $employees, $notes, $priorities, $statuses) {
-            $primaryRecipient = $employees->firstWhere('nip', '198801010001') ?? $employees->first();
+        DB::transaction(function () use ($systemSender, $employees, $notes, $priorities, $statuses) {
+            foreach ($employees as $employeeIndex => $employee) {
+                $letters = Surat::where('jenis_surat', 'masuk')
+                    ->where('user_id', $employee->user_id)
+                    ->where('nomor_surat', 'like', 'DEMO/PGW/SM/%')
+                    ->orderBy('tanggal_surat')
+                    ->take(5)
+                    ->get();
 
-            foreach ($letters as $index => $letter) {
-                $disposition = Disposisi::updateOrCreate(
-                    ['surat_id' => $letter->id, 'catatan' => $notes[$index]],
+                if ($letters->isEmpty()) {
+                    continue;
+                }
+
+                foreach ($letters as $index => $letter) {
+                    $status = $statuses[$index % count($statuses)];
+                    $disposition = Disposisi::updateOrCreate(
+                        [
+                            'surat_id' => $letter->id,
+                            'pengirim_id' => $systemSender->id,
+                            'catatan' => $notes[$index % count($notes)],
+                        ],
+                        [
+                            'prioritas' => $priorities[$index % count($priorities)],
+                            'tanggal_disposisi' => now()->subDays(6 - $index + $employeeIndex)->toDateString(),
+                        ]
+                    );
+
+                    DisposisiTujuan::updateOrCreate(
+                        [
+                            'disposisi_id' => $disposition->id,
+                            'pegawai_id' => $employee->id,
+                        ],
+                        [
+                            'status' => $status,
+                            'dibaca_pada' => $status === 'Belum Dibaca' ? null : now()->subHours(6),
+                            'selesai_pada' => $status === 'Selesai' ? now()->subHour() : null,
+                        ]
+                    );
+                }
+            }
+
+            foreach ($employees as $index => $senderEmployee) {
+                $recipientEmployee = $employees[($index + 1) % $employees->count()];
+                $letter = Surat::where('jenis_surat', 'masuk')
+                    ->where('user_id', $senderEmployee->user_id)
+                    ->whereIn('status', ['diverifikasi', 'diproses', 'diteruskan_ke_pimpinan'])
+                    ->where('nomor_surat', 'like', 'DEMO/PGW/SM/%')
+                    ->orderBy('tanggal_surat')
+                    ->first();
+
+                if (! $letter || ! $senderEmployee->user) {
+                    continue;
+                }
+
+                $sentDisposition = Disposisi::updateOrCreate(
                     [
-                        'pengirim_id' => $admin->id,
-                        'prioritas' => $priorities[$index],
-                        'tanggal_disposisi' => now()->subDays(4 - $index)->toDateString(),
+                        'surat_id' => $letter->id,
+                        'pengirim_id' => $senderEmployee->user_id,
+                        'catatan' => 'Mohon tindak lanjuti surat demo dari '.$senderEmployee->nama.'.',
+                    ],
+                    [
+                        'prioritas' => $priorities[$index % count($priorities)],
+                        'tanggal_disposisi' => now()->subDays($index)->toDateString(),
                     ]
                 );
 
-                DisposisiTujuan::where('disposisi_id', $disposition->id)->delete();
-                $status = $statuses[$index];
-                DisposisiTujuan::create([
-                    'disposisi_id' => $disposition->id,
-                    'pegawai_id' => $primaryRecipient->id,
-                    'status' => $status,
-                    'dibaca_pada' => $status === 'Belum Dibaca' ? null : now()->subHours(6),
-                    'selesai_pada' => $status === 'Selesai' ? now()->subHour() : null,
-                ]);
-
-                $secondaryRecipient = $employees[$index % $employees->count()];
-                if ($secondaryRecipient->id !== $primaryRecipient->id) {
-                    DisposisiTujuan::create([
-                        'disposisi_id' => $disposition->id,
-                        'pegawai_id' => $secondaryRecipient->id,
+                DisposisiTujuan::updateOrCreate(
+                    [
+                        'disposisi_id' => $sentDisposition->id,
+                        'pegawai_id' => $recipientEmployee->id,
+                    ],
+                    [
                         'status' => 'Belum Dibaca',
-                    ]);
-                }
+                        'dibaca_pada' => null,
+                        'selesai_pada' => null,
+                    ]
+                );
             }
         });
 
-        $this->command?->info('Lima disposisi demonstrasi dengan status bervariasi berhasil disiapkan.');
+        $this->command?->info('Disposisi demonstrasi masuk dan terkirim berhasil disiapkan untuk pegawai.');
     }
 }

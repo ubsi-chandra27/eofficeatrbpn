@@ -37,11 +37,18 @@ class DisposisiController extends Controller
 
             $keyword = $request->keyword;
 
-            $query->whereHas('disposisi.surat', function ($q) use ($keyword) {
-
-                $q->where('nomor_surat', 'like', "%{$keyword}%")
-                  ->orWhere('perihal', 'like', "%{$keyword}%");
-
+            $query->where(function ($subQuery) use ($keyword) {
+                $subQuery->whereHas('disposisi', function ($disposisiQuery) use ($keyword) {
+                    $disposisiQuery->where('catatan', 'like', "%{$keyword}%")
+                        ->orWhereHas('surat', function ($suratQuery) use ($keyword) {
+                            $suratQuery->where('nomor_surat', 'like', "%{$keyword}%")
+                                ->orWhere('perihal', 'like', "%{$keyword}%");
+                        })
+                        ->orWhereHas('pengirim', function ($pengirimQuery) use ($keyword) {
+                            $pengirimQuery->where('name', 'like', "%{$keyword}%")
+                                ->orWhere('email', 'like', "%{$keyword}%");
+                        });
+                });
             });
         }
 

@@ -237,6 +237,43 @@ Tabel `Surat Masuk` pada role pegawai belum sesuai ekspektasi ketika digunakan d
 - `php -l database/seeders/SuratPegawaiDemoSeeder.php`: berhasil.
 - `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 53 assertion.
 
+## Pembaruan 24 Juli 2026 - Disposisi Pegawai
+
+### Masalah
+
+Menu `Disposisi Pegawai` sudah memiliki route dan halaman, tetapi data demo yang dipanggil dari `DatabaseSeeder` masih memakai seeder lama sehingga tabel disposisi pegawai dapat terlihat kosong setelah aplikasi disiapkan ulang di hosting. Hal ini membuat tampilan tidak sesuai ekspektasi karena pegawai tidak langsung melihat isi tabel disposisi masuk dan disposisi terkirim.
+
+### Perbaikan
+
+- `DatabaseSeeder` sekarang memakai `DisposisiDemoSeeder` agar data demo disposisi benar-benar terhubung ke tabel tujuan disposisi pegawai.
+- `DisposisiDemoSeeder` diperbarui untuk membuat:
+  - disposisi masuk untuk setiap pegawai demo yang punya akun login;
+  - disposisi terkirim dari setiap pegawai demo ke pegawai lain;
+  - variasi status `Belum Dibaca`, `Sudah Dibaca`, dan `Selesai`;
+  - variasi prioritas `Tinggi`, `Sedang`, dan `Rendah`.
+- Halaman `resources/views/pegawai/disposisi/index.blade.php` diberi heading `Tabel Disposisi Masuk` dan jumlah data agar isi tabel lebih jelas.
+- Pencarian disposisi masuk pegawai diperluas ke nomor surat, perihal, instruksi/catatan, nama pengirim, dan email pengirim.
+- Test `PegawaiDisposisiCrudTest` ditambah untuk memastikan tabel disposisi masuk dan disposisi terkirim pegawai demo benar-benar terisi.
+
+### Status CRUD Disposisi Pegawai
+
+- Tambah: tersedia di `/pegawai/disposisi/create` dan route `pegawai.disposisi.store`.
+- Detail disposisi masuk: tersedia di `/pegawai/disposisi/{id}`.
+- Detail disposisi terkirim: tersedia di `/pegawai/disposisi-terkirim/{id}`.
+- Edit disposisi terkirim: tersedia di `/pegawai/disposisi-terkirim/{id}/edit`.
+- Hapus disposisi terkirim: tersedia melalui route `pegawai.disposisi.destroy`.
+- Catatan: edit dan hapus disposisi terkirim dikunci otomatis jika disposisi sudah dibaca penerima, supaya riwayat disposisi tetap aman.
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Pegawai/DisposisiController.php`: berhasil.
+- `php -l database/seeders/DatabaseSeeder.php`: berhasil.
+- `php -l database/seeders/DisposisiDemoSeeder.php`: berhasil.
+- `php artisan route:list --name=pegawai.disposisi`: 12 route terdaftar.
+- `php artisan test --filter=PegawaiDisposisiCrudTest`: 6 test lulus, 49 assertion.
+- `php artisan view:cache` lalu `php artisan view:clear`: berhasil.
+- `php artisan test`: 144 test lulus, 841 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -251,6 +288,7 @@ Tabel `Surat Masuk` pada role pegawai belum sesuai ekspektasi ketika digunakan d
 - `database/migrations/2026_07_23_000001_add_nipp_to_pegawai_table.php`
 - `database/seeders/PegawaiDemoSeeder.php`
 - `database/seeders/PegawaiSeeder.php`
+- `database/seeders/DisposisiDemoSeeder.php`
 - `database/seeders/SuratPegawaiDemoSeeder.php`
 - `resources/views/admin/pegawai/_form.blade.php`
 - `resources/views/admin/pegawai/index.blade.php`
@@ -310,3 +348,5 @@ Sampai dokumen ini dibuat:
 - Blade berhasil dikompilasi.
 - Test penuh sebelumnya lulus 142 test / 813 assertion.
 - Pembaruan surat masuk pegawai lulus test khusus `PegawaiSuratMasukCrudTest`.
+- Pembaruan disposisi pegawai lulus test khusus `PegawaiDisposisiCrudTest`.
+- Test penuh terbaru lulus 144 test / 841 assertion.

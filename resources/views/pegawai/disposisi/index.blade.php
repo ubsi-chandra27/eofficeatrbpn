@@ -24,8 +24,15 @@
     </div>
 
     <div class="data-card">
+        <div class="sent-heading incoming-heading">
+            <div>
+                <h4>Tabel Disposisi Masuk</h4>
+                <p>Daftar disposisi yang ditujukan kepada Anda.</p>
+            </div>
+            <span>{{ $disposisi->total() }} Data</span>
+        </div>
         <form method="GET" class="filter-bar">
-            <div class="search-control"><i class="bi bi-search"></i><input name="keyword" value="{{ request('keyword') }}" placeholder="Cari nomor surat atau perihal"></div>
+            <div class="search-control"><i class="bi bi-search"></i><input name="keyword" value="{{ request('keyword') }}" placeholder="Cari nomor surat, perihal, instruksi, atau pengirim"></div>
             <select name="status">
                 <option value="">Semua status</option>
                 @foreach(['Belum Dibaca', 'Sudah Dibaca', 'Selesai'] as $status)
@@ -89,4 +96,4 @@
     </div>
 </div>
 @endsection
-@push('styles')<style>.sent-heading{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #edf1f5}.sent-heading h4{margin:0}.sent-heading p{margin:3px 0 0;color:#64748b}.sent-heading>span{padding:6px 10px;border-radius:20px;background:#eaf3fb;color:#0f4c81;font-weight:700}.recipient-line{display:block;font-size:13px}.recipient-line+.recipient-line{margin-top:4px}</style>@endpush
+@push('styles')<style>.sent-heading{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #edf1f5}.sent-heading h4{margin:0}.sent-heading p{margin:3px 0 0;color:#64748b}.sent-heading>span{padding:6px 10px;border-radius:20px;background:#eaf3fb;color:#0f4c81;font-weight:700}.incoming-heading{background:#fff}.recipient-line{display:block;font-size:13px}.recipient-line+.recipient-line{margin-top:4px}</style>@endpush

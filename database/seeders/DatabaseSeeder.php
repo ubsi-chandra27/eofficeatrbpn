@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
                 PegawaiDemoSeeder::class,
                 SuratSeeder::class,
                 SuratPegawaiDemoSeeder::class,
-                DisposisiSeeder::class,
+                DisposisiDemoSeeder::class,
                 PengajuanUmumDemoSeeder::class,
             ]);
         }

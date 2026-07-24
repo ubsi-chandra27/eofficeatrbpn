@@ -5,6 +5,11 @@ use App\Models\DisposisiTujuan;
 use App\Models\Pegawai;
 use App\Models\Surat;
 use App\Models\User;
+use Database\Seeders\DisposisiDemoSeeder;
+use Database\Seeders\JabatanSeeder;
+use Database\Seeders\PegawaiDemoSeeder;
+use Database\Seeders\SuratPegawaiDemoSeeder;
+use Database\Seeders\UnitKerjaSeeder;
 
 function dispositionEmployeeAccount(string $nip, string $name): array
 {
@@ -33,6 +38,40 @@ it('menampilkan isi tabel disposisi masuk secara lengkap dan aman per pegawai', 
         ->assertOk()->assertSee('SM-DSP-TABEL-001')->assertSee('Pengujian isi tabel disposisi')
         ->assertSee('Pelajari dokumen')->assertSee('Admin Pengirim')->assertSee('Tinggi')
         ->assertSee('Belum Dibaca');
+});
+
+it('menyiapkan isi tabel disposisi masuk dan terkirim untuk pegawai demo', function () {
+    User::factory()->create(['role' => 'admin', 'name' => 'Admin Demo Disposisi']);
+
+    $this->seed([
+        JabatanSeeder::class,
+        UnitKerjaSeeder::class,
+        PegawaiDemoSeeder::class,
+        SuratPegawaiDemoSeeder::class,
+        DisposisiDemoSeeder::class,
+    ]);
+
+    $pegawai = Pegawai::where('nip', '198801010001')->firstOrFail();
+
+    expect(DisposisiTujuan::where('pegawai_id', $pegawai->id)->count())->toBeGreaterThanOrEqual(5)
+        ->and(Disposisi::where('pengirim_id', $pegawai->user_id)->count())->toBeGreaterThanOrEqual(1);
+
+    $this->actingAs($pegawai->user)
+        ->get(route('pegawai.disposisi.index'))
+        ->assertOk()
+        ->assertSee('Disposisi Saya')
+        ->assertSee('Pelajari isi surat')
+        ->assertSee('Belum Dibaca')
+        ->assertSee('Disposisi Terkirim');
+
+    $this->actingAs($pegawai->user)
+        ->get(route('pegawai.disposisi.terkirim'))
+        ->assertOk()
+        ->assertSee('Disposisi Terkirim')
+        ->assertSee('Mohon tindak lanjuti surat demo')
+        ->assertSee('Detail', false)
+        ->assertSee('Edit', false)
+        ->assertSee('Hapus', false);
 });
 
 it('membuat disposisi kepada pegawai lain dari surat yang dapat diakses', function () {
