@@ -815,3 +815,37 @@ Halaman detail Profil Menteri pada dashboard Umum perlu diisi dengan biodata dan
 - `php artisan test --filter=UmumAccessTest`: 18 test lulus, 139 assertion.
 - `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
 - `php artisan test`: 149 test lulus, 916 assertion.
+
+## Pembaruan 24 Juli 2026 - Isi Profil Wakil Menteri
+
+### Masalah
+
+Halaman detail Profil Wakil Menteri pada dashboard Umum perlu memuat biodata H. Ossy Dermawan, B.S., M.Sc. secara lengkap agar pengguna yang menekan `Lihat selengkapnya` mendapatkan informasi sesuai fungsi halaman.
+
+### Perbaikan
+
+- Mengisi halaman Profil Wakil Menteri dengan data:
+  - nama lengkap H. Ossy Dermawan, B.S., M.Sc.;
+  - kelahiran Jakarta, 9 November 1976;
+  - pendidikan SMAN 8 Jakarta, AFS di Templestowe College Melbourne, Norwich University, dan RSIS NTU Singapura;
+  - pengabdian militer di TNI AD, termasuk operasi di Ambon dan Lebanon;
+  - transisi ke politik dan pelayanan sipil;
+  - Staf Pribadi Presiden RI ke-6 Susilo Bambang Yudhoyono;
+  - kiprah sosial di Klub Bola Voli LavAni serta Museum dan Galeri Seni SBY-Ani;
+  - jabatan politik di DPP Partai Demokrat;
+  - pelantikan sebagai Wakil Menteri ATR/Wakil Kepala BPN pada 21 Oktober 2024.
+- Menampilkan isi dalam panel profil lengkap dan timeline agar halaman tetap rapi, modern, profesional, dan konsisten dengan halaman detail Umum lainnya.
+- Menambahkan test akses Umum agar halaman Profil Wakil Menteri memuat `Ossy Dermawan` dan `Perjalanan Ossy Dermawan`.
+
+### File yang Diubah
+
+- `resources/views/umum/wakil-menteri.blade.php`
+- `tests/Feature/Umum/UmumAccessTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php -l resources/views/umum/wakil-menteri.blade.php`: tidak ada syntax error.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumAccessTest`: 18 test lulus, 141 assertion.
+- `php artisan test`: 149 test lulus, 916 assertion.
