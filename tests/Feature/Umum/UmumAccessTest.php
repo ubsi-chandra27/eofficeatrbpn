@@ -39,6 +39,32 @@ it('menampilkan halaman utama umum tanpa error', function () {
     $this->actingAs($user)->get(route('umum.menteri'))->assertOk();
     $this->actingAs($user)->get(route('umum.wakil'))->assertOk();
     $this->actingAs($user)->get(route('umum.struktur'))->assertOk();
+    $this->actingAs($user)->get(route('umum.profil-instansi'))->assertOk();
+    $this->actingAs($user)->get(route('umum.visi'))->assertOk();
+    $this->actingAs($user)->get(route('umum.misi'))->assertOk();
+    $this->actingAs($user)->get(route('umum.makna-logo'))->assertOk();
+});
+
+it('membuka semua halaman lihat selengkapnya umum sesuai fungsi yang diklik', function () {
+    $user = User::factory()->create(['role' => 'umum']);
+
+    $checks = [
+        'umum.profil-instansi' => ['Profil Instansi', 'Pengajuan lebih terarah'],
+        'umum.menteri' => ['Menteri', 'PIMPINAN ORGANISASI', 'Nusron Wahid', 'Perjalanan Nusron Wahid'],
+        'umum.wakil' => ['Wakil Menteri', 'WAKIL PIMPINAN ORGANISASI'],
+        'umum.struktur' => ['Struktur Organisasi', 'Bagan Organisasi'],
+        'umum.visi' => ['Visi', 'Arah pelayanan organisasi'],
+        'umum.misi' => ['Misi', 'Komitmen pelayanan'],
+        'umum.makna-logo' => ['Makna Logo Kementerian', 'Empat Butir Padi'],
+    ];
+
+    foreach ($checks as $route => $texts) {
+        $response = $this->actingAs($user)->get(route($route))->assertOk();
+
+        foreach ($texts as $text) {
+            $response->assertSee($text);
+        }
+    }
 });
 
 it('membatasi detail dan pencarian surat berdasarkan pemilik', function () {

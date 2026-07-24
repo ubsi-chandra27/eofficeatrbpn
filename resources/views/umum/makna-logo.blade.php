@@ -1,13 +1,20 @@
 @extends('layouts.umum')
 @section('title','Makna Logo Kementerian')
 @section('content')
-<div class="public-info-detail">
+<div class="public-info-detail public-detail-shell">
     <a href="{{ route('umum.dashboard') }}" class="detail-back"><i class="bi bi-arrow-left"></i> Kembali ke Dashboard</a>
 
-    <section class="detail-hero blue">
-        <span class="section-label">IDENTITAS ORGANISASI</span>
-        <h1>Makna lambang kementerian</h1>
-        <p>Setiap unsur pada lambang menggambarkan hubungan antara ruang, tanah, kesejahteraan, pelayanan, dan komitmen pengelolaan agraria yang berintegritas.</p>
+    <section class="detail-hero blue detail-hero-split">
+        <div>
+            <span class="section-label">IDENTITAS ORGANISASI</span>
+            <h1>Makna lambang kementerian</h1>
+            <p>Setiap unsur pada lambang menggambarkan hubungan antara ruang, tanah, kesejahteraan, pelayanan, dan komitmen pengelolaan agraria yang berintegritas.</p>
+        </div>
+        <div class="detail-visual-card">
+            <img src="{{ asset('images/logo-eoffice.svg') }}" alt="Logo E-Office">
+            <strong>ATR/BPN</strong>
+            <span>Identitas visual yang menegaskan pelayanan, kepercayaan, dan tanggung jawab.</span>
+        </div>
     </section>
 
     <section class="logo-detail-grid">
@@ -18,5 +25,7 @@
         <article><i class="bi bi-water"></i><h3>Gelombang Hijau dan Biru</h3><p>Lingkungan yang terjaga serta keterkaitan tugas penataan ruang dengan pemanfaatan tanah dan air.</p></article>
         <article><i class="bi bi-palette-fill"></i><h3>Makna Warna</h3><p>Hijau untuk lingkungan, kuning untuk kemakmuran, biru untuk kebijakan, merah untuk semangat, dan putih untuk kepercayaan.</p></article>
     </section>
+
+    @include('umum.partials.info-navigation')
 </div>
 @endsection

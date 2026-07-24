@@ -1,6 +1,35 @@
 @extends('layouts.umum')
 @section('title', 'Informasi Wakil Menteri')
 @section('content')
-<div class="container py-3 info-detail"><div class="d-flex justify-content-between align-items-center mb-4"><div><h3 class="fw-bold mb-1">Wakil Menteri</h3><p class="text-muted mb-0">Profil unsur wakil pimpinan organisasi.</p></div><a href="{{ route('umum.dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Kembali</a></div><div class="card border-0 shadow-sm overflow-hidden"><div class="row g-0 align-items-stretch"><div class="col-md-5 profile-photo"><img src="{{ asset('images/wakil-menteri.jpg') }}" alt="Foto Wakil Menteri"></div><div class="col-md-7"><div class="card-body p-4 p-lg-5"><span class="badge bg-primary-subtle text-primary mb-3">Wakil Pimpinan Organisasi</span><h4 class="fw-bold">Wakil Menteri</h4><p class="text-muted">Wakil Menteri membantu pelaksanaan tugas Menteri, mendukung koordinasi kebijakan, dan memperkuat pengawasan pelaksanaan program organisasi.</p><div class="alert alert-light border mb-0"><i class="bi bi-info-circle text-primary me-2"></i>Informasi profil ditampilkan berdasarkan data yang tersedia pada sistem.</div></div></div></div></div></div>
+<div class="public-info-detail public-detail-shell">
+    <a href="{{ route('umum.dashboard') }}" class="detail-back"><i class="bi bi-arrow-left"></i> Kembali ke Dashboard</a>
+
+    <section class="profile-detail-card">
+        <div class="profile-detail-photo">
+            <img src="{{ asset('images/wakil-menteri.jpg') }}" alt="Foto Wakil Menteri">
+        </div>
+        <div class="profile-detail-copy">
+            <span class="section-label">WAKIL PIMPINAN ORGANISASI</span>
+            <h1>Wakil Menteri</h1>
+            <p>Wakil Menteri membantu pelaksanaan tugas Menteri, mendukung koordinasi kebijakan, dan memperkuat pengawasan pelaksanaan program organisasi.</p>
+            <div class="info-pill-grid">
+                <span><i class="bi bi-person-check"></i>Mendukung pimpinan</span>
+                <span><i class="bi bi-clipboard-check"></i>Pengawasan program</span>
+                <span><i class="bi bi-graph-up-arrow"></i>Peningkatan layanan</span>
+            </div>
+            <div class="detail-note">
+                <i class="bi bi-info-circle"></i>
+                <span>Informasi profil ditampilkan berdasarkan data yang tersedia pada sistem.</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="detail-content-grid">
+        <article class="detail-panel"><i class="bi bi-briefcase"></i><h3>Membantu pelaksanaan tugas</h3><p>Memberikan dukungan strategis terhadap kebijakan dan kegiatan organisasi.</p></article>
+        <article class="detail-panel"><i class="bi bi-arrow-repeat"></i><h3>Memperkuat koordinasi</h3><p>Mendorong komunikasi lintas unit agar agenda pelayanan berjalan efektif.</p></article>
+        <article class="detail-panel"><i class="bi bi-check2-circle"></i><h3>Mengawal tindak lanjut</h3><p>Mendukung pemantauan program agar setiap layanan dapat diselesaikan dengan baik.</p></article>
+    </section>
+
+    @include('umum.partials.info-navigation')
+</div>
 @endsection
-@push('styles')<style>.info-detail{max-width:980px}.profile-photo{background:#eef3f8}.profile-photo img{width:100%;height:520px;object-fit:contain;object-position:center top}@media(max-width:767px){.profile-photo img{height:430px}}</style>@endpush

@@ -721,3 +721,93 @@ Tampilan Umum, Surat Masuk Pegawai, Surat Keluar Pegawai, dan Disposisi Pegawai 
 - `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
 - `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
 - `php artisan test`: 148 test lulus, 887 assertion.
+
+## Pembaruan 24 Juli 2026 - Isi Halaman Lihat Selengkapnya Umum
+
+### Masalah
+
+Dashboard Umum sudah memiliki tombol `Lihat selengkapnya`, tetapi halaman detail tiap fungsi masih perlu dibuat lebih lengkap, rapi, dan konsisten. Ekspektasi halaman detail adalah saat pengguna klik Profil Instansi, Menteri, Wakil Menteri, Struktur Organisasi, Visi, Misi, atau Makna Logo, halaman yang terbuka berisi informasi sesuai fungsi yang diklik dan tidak error.
+
+### Perbaikan
+
+- Mengisi dan merapikan halaman detail Umum:
+  - Profil Instansi
+  - Profil Menteri
+  - Profil Wakil Menteri
+  - Struktur Organisasi
+  - Visi
+  - Misi
+  - Makna Logo Kementerian
+- Menambahkan gambar pada halaman yang memiliki aset:
+  - Foto Menteri
+  - Foto Wakil Menteri
+  - Gambar Struktur Organisasi
+  - Logo E-Office/ATR-BPN
+- Menambahkan visual/icon profesional untuk halaman yang tidak memiliki gambar khusus:
+  - Profil Instansi
+  - Visi
+  - Misi
+- Menambahkan navigasi cepat `Informasi Lainnya` pada setiap halaman detail agar pengguna bisa berpindah antar fungsi tanpa kembali dulu ke dashboard.
+- Menambahkan CSS halaman detail Umum:
+  - hero split;
+  - profile detail card;
+  - visual card;
+  - large image panel;
+  - process strip;
+  - quick info navigation;
+  - responsive HP/tablet.
+- Menambahkan test untuk memastikan semua halaman `Lihat selengkapnya` Umum bisa dibuka dan isi sesuai fungsi yang diklik.
+
+### File yang Diubah
+
+- `resources/views/umum/profil-instansi.blade.php`
+- `resources/views/umum/menteri.blade.php`
+- `resources/views/umum/wakil-menteri.blade.php`
+- `resources/views/umum/struktur.blade.php`
+- `resources/views/umum/visi.blade.php`
+- `resources/views/umum/misi.blade.php`
+- `resources/views/umum/makna-logo.blade.php`
+- `resources/views/umum/partials/info-navigation.blade.php`
+- `public/css/dashboard-umum.css`
+- `tests/Feature/Umum/UmumAccessTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan route:list --name=umum`: 20 route Umum terdaftar.
+- `php -l` seluruh view detail Umum dan partial navigasi: tidak ada syntax error.
+- `php artisan test --filter=UmumAccessTest`: 18 test lulus, 137 assertion.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- Scan route helper: 394 referensi, 0 missing route.
+- `php artisan test`: 149 test lulus, 912 assertion.
+
+## Pembaruan 24 Juli 2026 - Isi Profil Menteri
+
+### Masalah
+
+Halaman detail Profil Menteri pada dashboard Umum perlu diisi dengan biodata dan riwayat Nusron Wahid, S.S., M.Si. sesuai materi yang diberikan, agar tombol `Lihat selengkapnya` menampilkan informasi yang lengkap dan tidak hanya ringkasan pendek.
+
+### Perbaikan
+
+- Mengisi halaman Profil Menteri dengan data:
+  - nama lengkap Nusron Wahid, S.S., M.Si.;
+  - asal Kudus, Jawa Tengah;
+  - tanggal lahir 12 Oktober 1973;
+  - riwayat pendidikan UI dan IPB;
+  - karier DPR RI, BNP2TKI, Pansus Haji 2024;
+  - pengalaman organisasi GP Ansor dan PBNU;
+  - pelantikan sebagai Menteri ATR/Kepala BPN pada 21 Oktober 2024.
+- Menambahkan panel profil lengkap dan timeline agar isi panjang tetap rapi, modern, dan mudah dibaca.
+- Menambahkan test akses Umum agar halaman Profil Menteri memuat `Nusron Wahid` dan `Perjalanan Nusron Wahid`.
+
+### File yang Diubah
+
+- `resources/views/umum/menteri.blade.php`
+- `public/css/dashboard-umum.css`
+- `tests/Feature/Umum/UmumAccessTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- Menunggu hasil verifikasi setelah perubahan ini dijalankan.
