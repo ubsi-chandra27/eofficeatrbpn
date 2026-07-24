@@ -7,6 +7,7 @@ use App\Models\Surat;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
 use App\Models\Setting;
+use App\Services\SystemNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -164,19 +165,31 @@ class SuratKeluarController extends Controller
             'nama_pimpinan' => $pimpinan->nama, 'file_path' => $newPath,
         ]);
         try {
-            DB::transaction(function () use ($data) {
+            $surat = DB::transaction(function () use ($data) {
                 $surat = Surat::create($data);
                 LogAktivitas::create([
                     'user_id' => Auth::id(), 'surat_id' => $surat->id,
                     'action' => $surat->status === 'diajukan' ? 'Mengirim Surat Keluar' : 'Membuat Surat Keluar',
                     'description' => 'Surat keluar '.$surat->nomor_surat.($surat->status === 'diajukan' ? ' dikirim ke Admin.' : ' disimpan sebagai draft.'),
                 ]);
+
+                return $surat;
             });
         } catch (\Throwable $exception) {
             if ($newPath) {
                 Storage::disk('local')->delete($newPath);
             }
             throw $exception;
+        }
+
+        if ($surat->status === 'diajukan') {
+            app(SystemNotificationService::class)->notifyAdmins(
+                'Surat keluar pegawai baru',
+                'Surat keluar '.$surat->nomor_surat.' dari '.Auth::user()->name.' menunggu verifikasi.',
+                route('admin.surat.keluar.show', $surat->id),
+                'warning',
+                'bi-send-fill'
+            );
         }
 
 
@@ -410,6 +423,14 @@ class SuratKeluarController extends Controller
                 'description' => 'Mengirim surat '.$surat->nomor_surat.' ke Admin.',
             ]);
         });
+
+        app(SystemNotificationService::class)->notifyAdmins(
+            'Surat keluar pegawai dikirim',
+            'Surat keluar '.$surat->nomor_surat.' dari '.Auth::user()->name.' menunggu verifikasi.',
+            route('admin.surat.keluar.show', $surat->id),
+            'warning',
+            'bi-send-fill'
+        );
 
 
         return redirect()

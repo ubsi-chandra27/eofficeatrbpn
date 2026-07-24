@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LogAktivitas;
 use App\Models\Setting;
 use App\Models\Surat;
+use App\Services\SystemNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -85,6 +86,14 @@ class UmumSuratController extends Controller
             throw $exception;
         }
 
+        app(SystemNotificationService::class)->notifyAdmins(
+            'Pengajuan umum baru',
+            'Pengajuan '.$surat->nomor_surat.' dari '.auth()->user()->name.' menunggu verifikasi.',
+            route('admin.surat.masuk.show', $surat->id),
+            'warning',
+            'bi-envelope-plus-fill'
+        );
+
         return redirect()->route('umum.surat.index')->with('success', 'Surat berhasil diajukan dan menunggu verifikasi admin.');
     }
 
@@ -144,6 +153,14 @@ class UmumSuratController extends Controller
         if ($newPath && $oldPath) {
             $oldDisk?->delete($oldPath);
         }
+
+        app(SystemNotificationService::class)->notifyAdmins(
+            'Pengajuan umum diperbaiki',
+            'Pengajuan '.$surat->nomor_surat.' dikirim ulang dan perlu diperiksa.',
+            route('admin.surat.masuk.show', $surat->id),
+            'info',
+            'bi-arrow-repeat'
+        );
 
         return redirect()->route('umum.surat.index')->with('success', 'Perbaikan surat berhasil diajukan kembali.');
     }

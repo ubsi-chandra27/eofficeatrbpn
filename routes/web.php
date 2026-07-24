@@ -26,6 +26,7 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 */
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SuratLampiranController;
 
 
@@ -218,6 +219,12 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware('auth')->group(function(){
+
+    Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])
+        ->name('notifications.open');
+
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])
+        ->name('notifications.read-all');
 
     Route::get('/surat/{surat}/lampiran', SuratLampiranController::class)
         ->whereNumber('surat')

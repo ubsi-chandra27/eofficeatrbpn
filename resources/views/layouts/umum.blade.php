@@ -25,6 +25,9 @@
     <link rel="stylesheet"
           href="{{ asset('css/dashboard-umum.css') }}">
 
+    <link rel="stylesheet"
+          href="{{ asset('css/notification-dropdown.css') }}">
+
     @stack('styles')
 
 </head>
@@ -209,6 +212,8 @@
                     <span>EN</span>
 
                 </div>
+
+                @include('partials.notification-dropdown')
 
                 <div class="user-box">
 

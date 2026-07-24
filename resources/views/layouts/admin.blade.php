@@ -37,6 +37,9 @@
     <link rel="stylesheet"
           href="{{ asset('css/dashboard-admin.css') }}">
 
+    <link rel="stylesheet"
+          href="{{ asset('css/notification-dropdown.css') }}">
+
     <style>
         .main-wrapper {
             width: calc(100% - var(--sidebar-width));
@@ -591,13 +594,7 @@
 
                 {{-- Notifikasi --}}
 
-                <button
-                    class="topbar-icon"
-                    type="button">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                </button>
+                @include('partials.notification-dropdown')
 
                 {{-- User Dropdown --}}
 

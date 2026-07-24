@@ -8,6 +8,7 @@ use App\Models\Disposisi;
 use App\Models\DisposisiTujuan;
 use App\Models\Pegawai;
 use App\Models\Surat;
+use App\Services\SystemNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -152,6 +153,19 @@ class AdminDisposisiController extends Controller
             ]);
 
             DB::commit();
+
+            $disposisi->load(['surat', 'tujuans.pegawai.user']);
+
+            foreach ($disposisi->tujuans as $tujuan) {
+                app(SystemNotificationService::class)->notifyUser(
+                    $tujuan->pegawai?->user,
+                    'Disposisi baru',
+                    'Anda menerima disposisi untuk surat '.$disposisi->surat?->nomor_surat.'.',
+                    route('pegawai.disposisi.show', $tujuan->id),
+                    $disposisi->prioritas === 'Tinggi' ? 'danger' : 'info',
+                    'bi-send-fill'
+                );
+            }
 
             return redirect()
                     ->route('admin.disposisi.index')
@@ -306,6 +320,19 @@ class AdminDisposisiController extends Controller
             }
 
             DB::commit();
+
+            $disposisi->load(['surat', 'tujuans.pegawai.user']);
+
+            foreach ($disposisi->tujuans as $tujuan) {
+                app(SystemNotificationService::class)->notifyUser(
+                    $tujuan->pegawai?->user,
+                    'Disposisi diperbarui',
+                    'Disposisi untuk surat '.$disposisi->surat?->nomor_surat.' telah diperbarui.',
+                    route('pegawai.disposisi.show', $tujuan->id),
+                    'info',
+                    'bi-pencil-square'
+                );
+            }
 
             return redirect()
                 ->route('admin.disposisi.index')

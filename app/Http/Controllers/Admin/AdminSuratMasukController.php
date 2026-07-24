@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use App\Services\SystemNotificationService;
 
 class AdminSuratMasukController extends Controller
 {
@@ -208,6 +209,15 @@ class AdminSuratMasukController extends Controller
                 'action'      => 'Disetujui',
                 'description' => 'Surat Anda telah disetujui.' . ($surat->catatan_admin ? ' Catatan: ' . $surat->catatan_admin : ''),
             ]);
+
+            app(SystemNotificationService::class)->notifyUser(
+                $surat->user,
+                'Surat disetujui',
+                'Surat '.$surat->nomor_surat.' telah diverifikasi admin.',
+                $this->ownerUrl($surat),
+                'success',
+                'bi-check-circle-fill'
+            );
         }
 
         return back()->with('success', 'Surat berhasil disetujui.');
@@ -249,6 +259,15 @@ class AdminSuratMasukController extends Controller
                 'action'      => 'Ditolak',
                 'description' => 'Surat Anda ditolak. Catatan: ' . $surat->catatan_admin,
             ]);
+
+            app(SystemNotificationService::class)->notifyUser(
+                $surat->user,
+                'Surat perlu perbaikan',
+                'Surat '.$surat->nomor_surat.' dikembalikan admin. Cek catatan perbaikan.',
+                $this->ownerUrl($surat),
+                'danger',
+                'bi-exclamation-circle-fill'
+            );
         }
 
         return back()->with('success', 'Surat dikembalikan kepada pegawai untuk diperbaiki.');
@@ -296,6 +315,15 @@ class AdminSuratMasukController extends Controller
                 'action' => 'Diteruskan ke Pimpinan',
                 'description' => 'Surat Anda telah diteruskan oleh admin ke pimpinan.',
             ]);
+
+            app(SystemNotificationService::class)->notifyUser(
+                $surat->user,
+                'Surat diteruskan',
+                'Surat '.$surat->nomor_surat.' telah diteruskan ke pimpinan terkait.',
+                $this->ownerUrl($surat),
+                'info',
+                'bi-send-check-fill'
+            );
         }
 
         return back()->with('success', 'Penerusan surat ke pimpinan berhasil dicatat.');
@@ -328,6 +356,15 @@ class AdminSuratMasukController extends Controller
     private function suratMasuk(int $id): Surat
     {
         return Surat::where('jenis_surat', 'masuk')->findOrFail($id);
+    }
+
+    private function ownerUrl(Surat $surat): ?string
+    {
+        return match ($surat->user?->role) {
+            'umum' => route('umum.surat.show', $surat->id),
+            'pegawai' => route('pegawai.surat-masuk.show', $surat->id),
+            default => null,
+        };
     }
 
     private function rules(?Surat $surat = null): array

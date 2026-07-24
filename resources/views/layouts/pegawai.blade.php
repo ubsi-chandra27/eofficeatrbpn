@@ -45,6 +45,9 @@
         'resources/js/app.js'
     ])
 
+    <link rel="stylesheet"
+          href="{{ asset('css/notification-dropdown.css') }}">
+
     {{-- ========================================================= --}}
     {{-- Dashboard CSS --}}
     {{-- ========================================================= --}}
@@ -437,13 +440,7 @@
 
                 {{-- Notifikasi --}}
 
-                <button
-                    class="topbar-icon"
-                    type="button">
-
-                    <i class="bi bi-bell-fill"></i>
-
-                </button>
+                @include('partials.notification-dropdown')
 
                 {{-- User Dropdown --}}
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LogAktivitas;
 use App\Models\Surat;
 use App\Models\Setting;
+use App\Services\SystemNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -136,6 +137,15 @@ class AdminSuratKeluarController extends Controller
                 'action' => 'Surat Keluar Disetujui',
                 'description' => 'Surat keluar Anda telah diverifikasi.' . ($surat->catatan_admin ? ' Catatan: ' . $surat->catatan_admin : ''),
             ]);
+
+            app(SystemNotificationService::class)->notifyUser(
+                $surat->user,
+                'Surat keluar disetujui',
+                'Surat keluar '.$surat->nomor_surat.' telah diverifikasi admin.',
+                $this->ownerUrl($surat),
+                'success',
+                'bi-check-circle-fill'
+            );
         }
 
         return back()->with('success', 'Surat keluar berhasil disetujui.');
@@ -169,6 +179,15 @@ class AdminSuratKeluarController extends Controller
                 'action' => 'Surat Keluar Ditolak',
                 'description' => 'Surat keluar Anda ditolak.' . ($surat->catatan_admin ? ' Catatan: ' . $surat->catatan_admin : ''),
             ]);
+
+            app(SystemNotificationService::class)->notifyUser(
+                $surat->user,
+                'Surat keluar ditolak',
+                'Surat keluar '.$surat->nomor_surat.' dikembalikan admin. Cek catatan.',
+                $this->ownerUrl($surat),
+                'danger',
+                'bi-x-circle-fill'
+            );
         }
 
         return back()->with('success', 'Surat keluar berhasil ditolak.');
@@ -212,5 +231,12 @@ class AdminSuratKeluarController extends Controller
     private function suratKeluar(int $id): Surat
     {
         return Surat::where('jenis_surat', 'keluar')->findOrFail($id);
+    }
+
+    private function ownerUrl(Surat $surat): ?string
+    {
+        return $surat->user?->role === 'pegawai'
+            ? route('pegawai.surat-keluar.show', $surat->id)
+            : null;
     }
 }

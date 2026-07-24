@@ -8,6 +8,7 @@ use App\Models\Pegawai;
 use App\Models\Setting;
 use App\Models\Surat;
 use App\Services\PegawaiStarterDataService;
+use App\Services\SystemNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +101,7 @@ class SuratMasukController extends Controller
         $data['status'] = $langsungDikirim ? 'diajukan' : 'draft';
 
         try {
-            DB::transaction(function () use ($data, $langsungDikirim) {
+            $surat = DB::transaction(function () use ($data, $langsungDikirim) {
                 $surat = Surat::create($data);
                 LogAktivitas::create([
                     'user_id' => Auth::id(),
@@ -110,6 +111,8 @@ class SuratMasukController extends Controller
                         ? 'Surat '.$surat->nomor_surat.' dikirim ke Admin untuk diverifikasi.'
                         : 'Surat '.$surat->nomor_surat.' disimpan sebagai draft.',
                 ]);
+
+                return $surat;
             });
         } catch (\Throwable $exception) {
             if ($newPath) {
@@ -117,6 +120,16 @@ class SuratMasukController extends Controller
             }
 
             throw $exception;
+        }
+
+        if ($langsungDikirim) {
+            app(SystemNotificationService::class)->notifyAdmins(
+                'Surat masuk pegawai baru',
+                'Surat '.$surat->nomor_surat.' dari '.Auth::user()->name.' menunggu verifikasi.',
+                route('admin.surat.masuk.show', $surat->id),
+                'warning',
+                'bi-envelope-plus-fill'
+            );
         }
 
         return redirect()
@@ -264,6 +277,14 @@ class SuratMasukController extends Controller
             'action' => 'Dikirim untuk Verifikasi',
             'description' => 'Surat '.$surat->nomor_surat.' dikirim ke Admin untuk diverifikasi.',
         ]);
+
+        app(SystemNotificationService::class)->notifyAdmins(
+            'Surat masuk pegawai dikirim',
+            'Surat '.$surat->nomor_surat.' dari '.Auth::user()->name.' menunggu verifikasi.',
+            route('admin.surat.masuk.show', $surat->id),
+            'warning',
+            'bi-send-fill'
+        );
 
         return redirect()
             ->route('pegawai.surat-masuk.index')

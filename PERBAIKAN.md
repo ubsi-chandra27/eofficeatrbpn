@@ -910,3 +910,62 @@ Pada halaman Detail Surat Masuk Admin, aksi `Teruskan ke Pimpinan` menampilkan e
 - `php artisan test --filter=AdminSuratMasukTableTest`: 8 test lulus, 49 assertion.
 - `php artisan view:cache`: Blade templates cached successfully.
 - `php artisan test`: 150 test lulus, 929 assertion.
+
+## Pembaruan 24 Juli 2026 - Notifikasi Real Topbar
+
+### Masalah
+
+Ikon lonceng pada topbar Admin dan Pegawai masih bersifat tampilan, sedangkan Umum belum memiliki dropdown notifikasi. Akibatnya pengguna tidak langsung melihat pembaruan penting seperti pengajuan baru, hasil verifikasi admin, atau disposisi baru dari ikon lonceng.
+
+### Perbaikan
+
+- Menambahkan tabel `notifications` berbasis Laravel database notification.
+- Menambahkan notifikasi reusable `SystemNotification`.
+- Menambahkan service `SystemNotificationService` untuk mengirim notifikasi ke Admin atau user tertentu.
+- Menambahkan controller notifikasi:
+  - membuka notifikasi sekaligus menandai sudah dibaca;
+  - menandai semua notifikasi sebagai sudah dibaca.
+- Mengganti tombol lonceng statis pada layout Admin dan Pegawai menjadi dropdown notifikasi real.
+- Menambahkan dropdown notifikasi pada layout Umum.
+- Menambahkan badge jumlah notifikasi belum dibaca.
+- Menampilkan lima notifikasi terbaru pada dropdown.
+- Menambahkan CSS khusus dropdown notifikasi.
+- Menambahkan notifikasi otomatis untuk:
+  - Admin saat ada pengajuan umum baru;
+  - Admin saat pengajuan umum dikirim ulang setelah perbaikan;
+  - Admin saat pegawai mengirim surat masuk;
+  - Admin saat pegawai mengirim surat keluar;
+  - pemilik surat saat Admin menyetujui, menolak, atau meneruskan surat masuk;
+  - pemilik surat keluar saat Admin menyetujui atau menolak surat keluar;
+  - pegawai tujuan saat Admin membuat atau memperbarui disposisi.
+- Menambahkan test fitur notifikasi agar badge/dropdown dan aksi baca notifikasi terjaga.
+
+### File yang Diubah
+
+- `database/migrations/2026_07_24_000002_create_notifications_table.php`
+- `app/Notifications/SystemNotification.php`
+- `app/Services/SystemNotificationService.php`
+- `app/Http/Controllers/NotificationController.php`
+- `app/Http/Controllers/Umum/UmumSuratController.php`
+- `app/Http/Controllers/Pegawai/SuratMasukController.php`
+- `app/Http/Controllers/Pegawai/SuratKeluarController.php`
+- `app/Http/Controllers/Admin/AdminSuratMasukController.php`
+- `app/Http/Controllers/Admin/AdminSuratKeluarController.php`
+- `app/Http/Controllers/Admin/AdminDisposisiController.php`
+- `resources/views/partials/notification-dropdown.blade.php`
+- `resources/views/layouts/admin.blade.php`
+- `resources/views/layouts/pegawai.blade.php`
+- `resources/views/layouts/umum.blade.php`
+- `public/css/notification-dropdown.css`
+- `routes/web.php`
+- `tests/Feature/NotificationTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php -l` pada seluruh controller/service/notification terkait: tidak ada syntax error.
+- `php artisan route:list --name=notifications`: 2 route notifikasi terdaftar.
+- `php artisan test --filter=NotificationTest`: 3 test lulus, 15 assertion.
+- `php artisan migrate`: migration `create_notifications_table` berhasil dijalankan.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test`: 153 test lulus, 944 assertion.
