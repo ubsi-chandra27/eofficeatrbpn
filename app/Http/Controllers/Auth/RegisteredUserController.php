@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
+use App\Services\PegawaiStarterDataService;
 use App\Services\RegistrationSettings;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -55,12 +56,14 @@ class RegisteredUserController extends Controller
             ]);
 
             if ($request->role === 'pegawai') {
-                Pegawai::create([
+                $pegawai = Pegawai::create([
                     'user_id' => $user->id,
                     'nip' => $request->nip,
                     'nama' => $request->name,
                     'email' => $request->email,
                 ]);
+
+                app(PegawaiStarterDataService::class)->ensureForPegawai($pegawai);
             }
 
             return $user;

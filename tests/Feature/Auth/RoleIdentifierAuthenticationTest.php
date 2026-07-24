@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Pegawai;
+use App\Models\DisposisiTujuan;
+use App\Models\Surat;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -46,7 +48,9 @@ it('membuat akun dan data pegawai ketika pegawai mendaftar', function () {
 
     $user = User::where('email', 'pegawai.baru@example.test')->firstOrFail();
     expect($user->role)->toBe('pegawai')->and($user->nip)->toBe('199901010001');
-    expect(Pegawai::where('user_id', $user->id)->where('nip', $user->nip)->exists())->toBeTrue();
+    $pegawai = Pegawai::where('user_id', $user->id)->where('nip', $user->nip)->firstOrFail();
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBeGreaterThanOrEqual(5)
+        ->and(DisposisiTujuan::where('pegawai_id', $pegawai->id)->count())->toBeGreaterThanOrEqual(5);
 });
 
 it('menolak registrasi staf ketika fitur registrasi staf dinonaktifkan', function () {

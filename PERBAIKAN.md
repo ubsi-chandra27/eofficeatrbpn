@@ -274,6 +274,32 @@ Menu `Disposisi Pegawai` sudah memiliki route dan halaman, tetapi data demo yang
 - `php artisan view:cache` lalu `php artisan view:clear`: berhasil.
 - `php artisan test`: 144 test lulus, 841 assertion.
 
+## Pembaruan 24 Juli 2026 - Data Awal Pegawai Baru
+
+### Masalah
+
+Akun pegawai yang baru register dapat masuk ke menu `Surat Masuk` dan `Disposisi`, tetapi tabelnya kosong karena belum ada surat/disposisi yang dibuat untuk akun tersebut. Seeder manual memang bisa mengisi data, namun akun baru setelah register tetap kosong jika tidak dibuatkan data awal.
+
+### Perbaikan
+
+- Ditambahkan `PegawaiStarterDataService` sebagai satu sumber pembuatan data awal pegawai.
+- Saat pegawai baru register, sistem otomatis menyiapkan:
+  - 5 surat masuk pegawai dengan status bervariasi;
+  - 5 disposisi masuk yang ditujukan kepada pegawai tersebut;
+  - 1 disposisi terkirim jika sudah ada pegawai lain sebagai penerima.
+- `SuratPegawaiDemoSeeder` dan `DisposisiDemoSeeder` sekarang memakai service yang sama agar isi tabel hasil seeder dan hasil register konsisten.
+- Test register pegawai diperluas untuk memastikan pegawai baru langsung punya data `Surat Masuk` dan `Disposisi`.
+
+### Verifikasi
+
+- `php -l app/Services/PegawaiStarterDataService.php`: berhasil.
+- `php -l app/Http/Controllers/Auth/RegisteredUserController.php`: berhasil.
+- `php -l database/seeders/SuratPegawaiDemoSeeder.php`: berhasil.
+- `php -l database/seeders/DisposisiDemoSeeder.php`: berhasil.
+- `php artisan test --filter=RoleIdentifierAuthenticationTest`: 5 test lulus, 26 assertion.
+- `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 53 assertion.
+- `php artisan test --filter=PegawaiDisposisiCrudTest`: 6 test lulus, 49 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -281,9 +307,11 @@ Menu `Disposisi Pegawai` sudah memiliki route dan halaman, tetapi data demo yang
 - `app/Http/Controllers/Admin/AdminSettingsController.php`
 - `app/Http/Controllers/Admin/AdminSuratKeluarController.php`
 - `app/Http/Controllers/Admin/AdminPegawaiController.php`
+- `app/Http/Controllers/Auth/RegisteredUserController.php`
 - `app/Http/Controllers/Pegawai/SuratMasukController.php`
 - `app/Http/Controllers/Pegawai/DisposisiController.php`
 - `app/Models/Pegawai.php`
+- `app/Services/PegawaiStarterDataService.php`
 - `database/seeders/DatabaseSeeder.php`
 - `database/migrations/2026_07_23_000001_add_nipp_to_pegawai_table.php`
 - `database/seeders/PegawaiDemoSeeder.php`
@@ -305,6 +333,7 @@ Menu `Disposisi Pegawai` sudah memiliki route dan halaman, tetapi data demo yang
 - `resources/views/pegawai/surat/masuk/index.blade.php`
 - `routes/web.php`
 - `tests/Feature/Admin/AdminSuratKeluarCrudTest.php`
+- `tests/Feature/Auth/RoleIdentifierAuthenticationTest.php`
 - `tests/Feature/Pegawai/PegawaiSuratMasukCrudTest.php`
 - `public/build/*` melalui `npm.cmd run build`
 
