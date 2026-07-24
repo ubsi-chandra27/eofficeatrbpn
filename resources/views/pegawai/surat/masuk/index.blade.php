@@ -225,18 +225,3 @@
     </div>
 </div>
 @endsection
-
-@push('styles')
-<style>
-    .incoming-metric-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
-    .incoming-filter{grid-template-columns:minmax(280px,1fr) 250px auto auto}
-    .incoming-table{min-width:1320px}
-    .attachment-chip,.priority-chip,.note-chip{display:inline-flex;align-items:center;gap:5px;border-radius:9px;font-size:12px;font-weight:700}
-    .attachment-chip{padding:6px 9px;background:#eaf3fb;color:#0f4c81;text-decoration:none}
-    .priority-chip{margin-top:5px;padding:4px 7px;background:#fee2e2;color:#b91c1c}
-    .note-chip{max-width:220px;padding:6px 9px;background:#fff1f2;color:#be123c}
-    @media(max-width:1200px){.incoming-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    @media(max-width:1000px){.incoming-filter{grid-template-columns:1fr 1fr}.incoming-filter .search-control{grid-column:1/-1}}
-    @media(max-width:700px){.incoming-metric-grid,.incoming-filter{grid-template-columns:1fr}.incoming-filter .search-control{grid-column:auto}}
-</style>
-@endpush

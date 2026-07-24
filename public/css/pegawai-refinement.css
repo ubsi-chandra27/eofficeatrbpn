@@ -1,2 +1,474 @@
-/* Penyelarasan antarmuka seluruh area Pegawai. */
-.content-wrapper{max-width:1440px;margin-inline:auto}.page-header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}.page-header h2{font-size:clamp(1.5rem,2vw,2rem);font-weight:700;margin:0}.page-header p{font-size:.9rem;margin-top:5px}.page-header .btn,.form-card .btn{border-radius:11px;font-weight:600}.form-card,.table-card,.detail-card{border:1px solid #e5eaf0!important;border-radius:18px!important;box-shadow:0 10px 28px rgba(30,55,85,.06)!important}.form-control,.form-select{border-color:#dbe2ea}.table-responsive{scrollbar-width:thin}.table thead th{white-space:nowrap}.table td{vertical-align:middle}.employee-page .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.employee-page .metric-card{display:flex;align-items:center;gap:13px;padding:18px;background:#fff;border:1px solid #e5eaf0;border-radius:15px}.employee-page .metric-icon{width:43px;height:43px;border-radius:11px;display:grid;place-items:center;font-size:20px}.employee-page .metric-card strong,.employee-page .metric-card small{display:block}.employee-page .metric-card strong{font-size:23px}.employee-page .metric-card small{color:#718096;font-size:11px}.employee-page .data-card{background:#fff;border:1px solid #e5eaf0;border-radius:17px;overflow:hidden;box-shadow:0 8px 25px rgba(39,61,89,.04)}.employee-page .filter-bar{display:grid;grid-template-columns:minmax(240px,1fr) 210px auto auto;gap:9px;padding:18px;border-bottom:1px solid #edf1f5}.employee-page .search-control{position:relative}.employee-page .search-control i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#8491a3}.employee-page .search-control input{padding-left:40px}.employee-page .filter-bar input,.employee-page .filter-bar select{height:44px;border:1px solid #dbe2ea;border-radius:10px;width:100%;font-size:13px}.employee-page .compact-table th{background:#f8fafc;padding:13px;font-size:11px;text-transform:uppercase;letter-spacing:.35px;color:#536174}.employee-page .compact-table td{padding:13px;font-size:12px;border-color:#edf1f5}.employee-page .cell-title,.employee-page .cell-meta{display:block}.employee-page .cell-title{font-weight:650;color:#25334a}.employee-page .cell-meta{font-size:10px;color:#8491a3;margin-top:3px}.employee-page .row-actions{display:flex;justify-content:flex-end;gap:6px}.employee-page .row-actions form{margin:0}.employee-page .row-actions .btn{width:34px;height:34px;padding:0;border-radius:9px;display:grid;place-items:center}.employee-page .empty-state{text-align:center;padding:48px 20px;color:#8491a3}.employee-page .empty-state i{font-size:42px}.employee-page .empty-state h5{font-weight:700;color:#526174;margin:9px 0 4px}.employee-page .data-footer{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-top:1px solid #edf1f5;color:#718096;font-size:12px}.employee-page .data-footer .pagination{margin:0}.sidebar-user .avatar,.topbar-user .avatar,.user-dropdown-avatar{overflow:hidden}@media(max-width:1000px){.employee-page .metric-grid{grid-template-columns:repeat(2,1fr)}.employee-page .filter-bar{grid-template-columns:1fr 1fr}.employee-page .search-control{grid-column:1/-1}}@media(max-width:700px){.page-header{align-items:flex-start;flex-direction:column}.page-header>.btn{width:100%}.employee-page .metric-grid,.employee-page .filter-bar{grid-template-columns:1fr}.employee-page .search-control{grid-column:auto}.employee-page .data-footer{flex-direction:column;gap:10px}}
+/* ==========================================================
+   E-OFFICE ATR/BPN
+   Penyelarasan Antarmuka Area Pegawai
+========================================================== */
+
+:root {
+    --employee-primary: #0f4c81;
+    --employee-primary-soft: #eaf3fb;
+    --employee-border: #e5eaf0;
+    --employee-border-soft: #edf1f5;
+    --employee-muted: #718096;
+    --employee-muted-2: #8491a3;
+    --employee-heading: #25334a;
+    --employee-bg: #ffffff;
+    --employee-soft-bg: #f8fafc;
+    --employee-danger-soft: #fff1f2;
+    --employee-danger: #be123c;
+    --employee-shadow: 0 10px 28px rgba(30, 55, 85, .06);
+    --employee-shadow-soft: 0 8px 25px rgba(39, 61, 89, .04);
+}
+
+/* ==========================================================
+   Layout Umum Pegawai
+========================================================== */
+
+.content-wrapper {
+    max-width: 1440px;
+    margin-inline: auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.page-header h2 {
+    margin: 0;
+    color: #1f2a44;
+    font-size: clamp(1.55rem, 2vw, 2rem);
+    font-weight: 750;
+    letter-spacing: -.35px;
+}
+
+.page-header p {
+    margin-top: 5px;
+    font-size: .92rem;
+}
+
+.page-header .btn,
+.form-card .btn {
+    border-radius: 12px;
+    font-weight: 650;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.form-card,
+.table-card,
+.detail-card {
+    border: 1px solid var(--employee-border) !important;
+    border-radius: 18px !important;
+    box-shadow: var(--employee-shadow) !important;
+}
+
+.form-control,
+.form-select {
+    border-color: #dbe2ea;
+}
+
+.table-responsive {
+    scrollbar-width: thin;
+}
+
+.table thead th,
+.table td {
+    vertical-align: middle;
+}
+
+.table thead th {
+    white-space: nowrap;
+}
+
+.sidebar-user .avatar,
+.topbar-user .avatar,
+.user-dropdown-avatar {
+    overflow: hidden;
+}
+
+/* ==========================================================
+   Halaman Data Pegawai: Metric, Filter, Table
+========================================================== */
+
+.employee-page .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.employee-page .metric-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-height: 84px;
+    padding: 18px;
+    background: var(--employee-bg);
+    border: 1px solid var(--employee-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(30, 55, 85, .035);
+}
+
+.employee-page .metric-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.employee-page .metric-card strong,
+.employee-page .metric-card small {
+    display: block;
+}
+
+.employee-page .metric-card strong {
+    color: #18253c;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.employee-page .metric-card small {
+    margin-top: 5px;
+    color: var(--employee-muted);
+    font-size: 12px;
+}
+
+.employee-page .data-card {
+    overflow: hidden;
+    background: var(--employee-bg);
+    border: 1px solid var(--employee-border);
+    border-radius: 18px;
+    box-shadow: var(--employee-shadow-soft);
+}
+
+.employee-page .filter-bar {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 210px auto auto;
+    gap: 10px;
+    padding: 18px;
+    border-bottom: 1px solid var(--employee-border-soft);
+}
+
+.employee-page .search-control {
+    position: relative;
+}
+
+.employee-page .search-control i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    color: var(--employee-muted-2);
+    transform: translateY(-50%);
+}
+
+.employee-page .search-control input {
+    padding-left: 42px;
+}
+
+.employee-page .filter-bar input,
+.employee-page .filter-bar select {
+    width: 100%;
+    height: 46px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    color: #24324a;
+    font-size: 13px;
+}
+
+.employee-page .filter-bar .btn {
+    min-height: 46px;
+    border-radius: 12px;
+}
+
+.employee-page .compact-table th {
+    padding: 14px 13px;
+    background: var(--employee-soft-bg);
+    color: #536174;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .38px;
+    text-transform: uppercase;
+}
+
+.employee-page .compact-table td {
+    padding: 14px 13px;
+    border-color: var(--employee-border-soft);
+    color: #475569;
+    font-size: 12px;
+}
+
+.employee-page .compact-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.employee-page .cell-title,
+.employee-page .cell-meta {
+    display: block;
+}
+
+.employee-page .cell-title {
+    color: var(--employee-heading);
+    font-weight: 700;
+}
+
+.employee-page .cell-meta {
+    margin-top: 4px;
+    color: var(--employee-muted-2);
+    font-size: 10.5px;
+    line-height: 1.45;
+}
+
+.employee-page .row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.employee-page .row-actions form {
+    margin: 0;
+}
+
+.employee-page .row-actions .btn {
+    width: 35px;
+    height: 35px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 10px;
+}
+
+.employee-page .empty-state {
+    text-align: center;
+    padding: 52px 20px;
+    color: var(--employee-muted-2);
+}
+
+.employee-page .empty-state i {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 42px;
+}
+
+.employee-page .empty-state h5 {
+    margin: 9px 0 5px;
+    color: #526174;
+    font-weight: 750;
+}
+
+.employee-page .empty-state p {
+    margin-bottom: 14px;
+}
+
+.employee-page .data-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 15px 18px;
+    border-top: 1px solid var(--employee-border-soft);
+    color: var(--employee-muted);
+    font-size: 12px;
+}
+
+.employee-page .data-footer .pagination {
+    margin: 0;
+}
+
+/* ==========================================================
+   Surat Masuk dan Surat Keluar Pegawai
+========================================================== */
+
+.incoming-metric-grid,
+.outgoing-metric-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.incoming-filter,
+.outgoing-filter {
+    grid-template-columns: minmax(280px, 1fr) 245px auto auto !important;
+}
+
+.incoming-table {
+    min-width: 1320px;
+}
+
+.outgoing-table {
+    min-width: 1380px;
+}
+
+.attachment-chip,
+.priority-chip,
+.note-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.25;
+}
+
+.attachment-chip {
+    padding: 6px 10px;
+    background: var(--employee-primary-soft);
+    color: var(--employee-primary);
+    text-decoration: none;
+}
+
+.attachment-chip:hover {
+    background: #dceffd;
+    color: #08365d;
+}
+
+.priority-chip {
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.note-chip {
+    max-width: 220px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--employee-danger-soft);
+    color: var(--employee-danger);
+}
+
+.needs-revision {
+    background: #fffafa;
+}
+
+/* ==========================================================
+   Disposisi Pegawai
+========================================================== */
+
+.sent-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--employee-border-soft);
+}
+
+.sent-heading h4 {
+    margin: 0;
+    color: #1f2a44;
+    font-weight: 750;
+}
+
+.sent-heading p {
+    margin: 4px 0 0;
+    color: #64748b;
+}
+
+.sent-heading > span {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--employee-primary-soft);
+    color: var(--employee-primary);
+    font-weight: 750;
+}
+
+.incoming-heading {
+    background: #fff;
+}
+
+.disposition-table {
+    min-width: 1120px;
+}
+
+.sent-disposition-table {
+    min-width: 1180px;
+}
+
+.recipient-line {
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
+.recipient-line + .recipient-line {
+    margin-top: 4px;
+}
+
+.disposition-unread {
+    background: #fffaf0;
+}
+
+/* ==========================================================
+   Responsif
+========================================================== */
+
+@media (max-width: 1200px) {
+    .incoming-metric-grid,
+    .outgoing-metric-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 1000px) {
+    .employee-page .metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .employee-page .filter-bar,
+    .incoming-filter,
+    .outgoing-filter {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .employee-page .search-control,
+    .incoming-filter .search-control,
+    .outgoing-filter .search-control {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-header > .btn,
+    .header-actions,
+    .header-actions .btn {
+        width: 100%;
+    }
+
+    .employee-page .metric-grid,
+    .employee-page .filter-bar,
+    .incoming-metric-grid,
+    .outgoing-metric-grid,
+    .incoming-filter,
+    .outgoing-filter {
+        grid-template-columns: 1fr !important;
+    }
+
+    .employee-page .search-control,
+    .incoming-filter .search-control,
+    .outgoing-filter .search-control {
+        grid-column: auto;
+    }
+
+    .employee-page .data-footer,
+    .sent-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

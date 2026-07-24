@@ -201,9 +201,3 @@
     </div>
 </div>
 @endsection
-
-@push('styles')
-<style>
-.outgoing-metric-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.outgoing-filter{grid-template-columns:minmax(280px,1fr) 230px auto auto}.outgoing-table{min-width:1380px}.attachment-chip,.note-chip{display:inline-flex;align-items:center;gap:5px;border-radius:9px;font-size:12px;font-weight:700}.attachment-chip{padding:6px 9px;background:#eaf3fb;color:#0f4c81;text-decoration:none}.note-chip{max-width:210px;margin-top:6px;padding:6px 9px;background:#fff1f2;color:#be123c}.needs-revision{background:#fffafa}@media(max-width:1200px){.outgoing-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:1000px){.outgoing-filter{grid-template-columns:1fr 1fr}.outgoing-filter .search-control{grid-column:1/-1}}@media(max-width:700px){.outgoing-metric-grid,.outgoing-filter{grid-template-columns:1fr}.outgoing-filter .search-control{grid-column:auto}}
-</style>
-@endpush

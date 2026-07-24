@@ -669,3 +669,55 @@ Tampilan Dashboard Umum sempat terlalu kuat mengarah ke gaya landing page refere
 - `php artisan view:cache`: Blade templates cached successfully.
 - `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
 - `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
+
+## Pembaruan 24 Juli 2026 - Rapikan Umum dan Menu Persuratan Pegawai
+
+### Masalah
+
+Tampilan Umum, Surat Masuk Pegawai, Surat Keluar Pegawai, dan Disposisi Pegawai masih perlu dirapikan ulang agar ukuran font, kartu, filter, tabel, badge, dan tombol aksi lebih seragam. Style khusus Pegawai juga masih bercampur dalam Blade sehingga sulit dirawat. Audit tambahan menemukan redirect verifikasi email masih memakai route `dashboard`, padahal route aktif adalah `dashboard.index`.
+
+### Perbaikan
+
+- CSS Pegawai dirapikan ulang di `public/css/pegawai-refinement.css` dengan struktur:
+  - layout dan header halaman;
+  - metric card;
+  - filter bar;
+  - compact table;
+  - action button;
+  - empty state;
+  - Surat Masuk/Keluar;
+  - Disposisi;
+  - responsive HP/tablet.
+- Style inline pada halaman:
+  - `pegawai/surat/masuk/index.blade.php`;
+  - `pegawai/surat/keluar/index.blade.php`;
+  - `pegawai/disposisi/index.blade.php`;
+  dipindahkan ke CSS pusat agar lebih rapi.
+- Tabel Disposisi Pegawai diberi class khusus untuk lebar dan highlight baris belum dibaca yang lebih halus.
+- Dashboard/area Umum dipoles ulang agar warna tetap konsisten dengan E-Office/ATR-BPN, tetapi tetap modern dan profesional.
+- Redirect verifikasi email diperbaiki dari `route('dashboard')` menjadi `route('dashboard.index')`.
+
+### File yang Diubah
+
+- `app/Http/Controllers/Auth/EmailVerificationNotificationController.php`
+- `public/css/dashboard-umum.css`
+- `public/css/pegawai-refinement.css`
+- `resources/views/pegawai/surat/masuk/index.blade.php`
+- `resources/views/pegawai/surat/keluar/index.blade.php`
+- `resources/views/pegawai/disposisi/index.blade.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php -l` pada controller verifikasi email dan tiga view Pegawai: tidak ada syntax error.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan route:list --name=pegawai.surat-masuk`: 9 route terdaftar.
+- `php artisan route:list --name=pegawai.surat-keluar`: 9 route terdaftar.
+- `php artisan route:list --name=pegawai.disposisi`: 12 route terdaftar.
+- Scan route helper: 387 referensi, 0 missing route.
+- `php artisan test --filter=PegawaiSuratMasukCrudTest`: 8 test lulus, 63 assertion.
+- `php artisan test --filter=PegawaiSuratKeluarCrudTest`: 6 test lulus, 44 assertion.
+- `php artisan test --filter=PegawaiDisposisiCrudTest`: 7 test lulus, 57 assertion.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
+- `php artisan test`: 148 test lulus, 887 assertion.

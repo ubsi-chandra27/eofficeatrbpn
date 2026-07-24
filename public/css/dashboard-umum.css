@@ -2563,6 +2563,108 @@ body.umum-landing-skin{
     }
 }
 
+/* ==========================================================
+   PUBLIC FINAL POLISH
+   Penyelarasan akhir warna dan ukuran area Umum.
+========================================================== */
+
+.umum-landing-skin {
+    --public-primary: #0f4c81;
+    --public-primary-2: #1769aa;
+    --public-primary-soft: #eaf3fb;
+    --public-border: #dce8f6;
+    --public-text: #17233b;
+    --public-muted: #607087;
+    --public-shadow: 0 18px 46px rgba(14, 56, 104, .10);
+}
+
+.umum-landing-skin .public-topbar,
+.umum-landing-skin .dashboard-card,
+.umum-landing-skin .intro-card,
+.umum-landing-skin .organization-info,
+.umum-landing-skin .vision-card,
+.umum-landing-skin .mission-card,
+.umum-landing-skin .logo-meaning-section,
+.umum-landing-skin .requirements-panel,
+.umum-landing-skin .service-panel,
+.umum-landing-skin .status-guide,
+.umum-landing-skin .faq-section,
+.umum-landing-skin .latest-news-section {
+    border-color: var(--public-border);
+    box-shadow: var(--public-shadow);
+}
+
+.umum-landing-skin .public-brand-top,
+.umum-landing-skin .user-box,
+.umum-landing-skin .menu-toggle,
+.umum-landing-skin .language-pill {
+    box-shadow: 0 14px 34px rgba(12, 33, 62, .10);
+}
+
+.umum-landing-skin .welcome-panel {
+    background:
+        linear-gradient(112deg, rgba(15, 76, 129, .98), rgba(23, 105, 170, .92)),
+        radial-gradient(circle at 86% 20%, rgba(255, 255, 255, .22), transparent 13rem);
+}
+
+.umum-landing-skin .welcome-panel::after {
+    background: linear-gradient(180deg, #d72f3f 0 52%, #ffffff 52% 100%);
+}
+
+.umum-landing-skin .hub-card,
+.umum-landing-skin .news-grid article,
+.umum-landing-skin .detail-panel,
+.umum-landing-skin .logo-detail-grid article,
+.umum-landing-skin .mission-detail-list article {
+    border-color: var(--public-border);
+}
+
+.umum-landing-skin .hub-card > i,
+.umum-landing-skin .detail-panel i,
+.umum-landing-skin .logo-detail-grid i,
+.umum-landing-skin .service-row > i {
+    background: var(--public-primary-soft);
+    color: var(--public-primary);
+}
+
+.umum-landing-skin .hub-card span,
+.umum-landing-skin .detail-link,
+.umum-landing-skin .mission-detail-list b {
+    background: var(--public-primary);
+}
+
+.umum-landing-skin .section-label,
+.umum-landing-skin .hub-heading small,
+.umum-landing-skin .news-grid small,
+.umum-landing-skin .leader-card small,
+.umum-landing-skin .structure-card small {
+    color: var(--public-primary-2);
+}
+
+.umum-landing-skin .hub-heading h3,
+.umum-landing-skin .intro-copy h3,
+.umum-landing-skin .organization-heading h4,
+.umum-landing-skin .vision-card h4,
+.umum-landing-skin .mission-card h4,
+.umum-landing-skin .logo-meaning-heading h4,
+.umum-landing-skin .info-heading h4,
+.umum-landing-skin .status-guide h4,
+.umum-landing-skin .faq-section h4,
+.umum-landing-skin .news-grid h4,
+.umum-landing-skin .detail-panel h3,
+.umum-landing-skin .logo-detail-grid h3,
+.umum-landing-skin .mission-detail-list h3 {
+    color: var(--public-text);
+}
+
+.umum-landing-skin .hub-heading p,
+.umum-landing-skin .news-grid p,
+.umum-landing-skin .detail-panel p,
+.umum-landing-skin .logo-detail-grid p,
+.umum-landing-skin .mission-detail-list p {
+    color: var(--public-muted);
+}
+
 .umum-landing-skin .detail-hub-section,
 .umum-landing-skin .latest-news-section{
     margin:30px 0;
