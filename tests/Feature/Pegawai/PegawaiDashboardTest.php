@@ -116,3 +116,42 @@ it('tidak menghitung disposisi prioritas tinggi yang telah selesai sebagai peker
         ->assertViewHas('prioritasTinggi', 0)
         ->assertViewHas('disposisiAktif', 0);
 });
+
+it('mengisi tabel dashboard pegawai baru dengan data awal ketika belum punya surat atau disposisi', function () {
+    $user = dashboardPegawaiUser('198812120104');
+
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBe(0)
+        ->and(DisposisiTujuan::where('pegawai_id', $user->pegawai->id)->count())->toBe(0);
+
+    $this->actingAs($user)->get(route('pegawai.dashboard'))
+        ->assertOk()
+        ->assertSee('Disposisi Terbaru')
+        ->assertSee('Surat Masuk Terbaru')
+        ->assertSee('DEMO/PGW/SM/'.$user->nip.'/001')
+        ->assertSee('Pelajari isi surat')
+        ->assertSee('Permohonan data pertanahan')
+        ->assertDontSee('Belum ada disposisi')
+        ->assertDontSee('Belum ada surat masuk');
+
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBeGreaterThanOrEqual(5)
+        ->and(DisposisiTujuan::where('pegawai_id', $user->pegawai->id)->count())->toBeGreaterThanOrEqual(5);
+});
+
+it('melengkapi disposisi dashboard pegawai lama yang sudah punya surat tetapi belum punya disposisi', function () {
+    $user = dashboardPegawaiUser('198812120105');
+    Surat::factory()->masuk()->create([
+        'user_id' => $user->id,
+        'nomor_surat' => 'SM-LAMA-TANPA-DISPOSISI',
+        'status' => 'draft',
+    ]);
+
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBe(1)
+        ->and(DisposisiTujuan::where('pegawai_id', $user->pegawai->id)->count())->toBe(0);
+
+    $this->actingAs($user)->get(route('pegawai.dashboard'))
+        ->assertOk()
+        ->assertSee('Disposisi Terbaru')
+        ->assertDontSee('Belum ada disposisi');
+
+    expect(DisposisiTujuan::where('pegawai_id', $user->pegawai->id)->count())->toBeGreaterThanOrEqual(5);
+});

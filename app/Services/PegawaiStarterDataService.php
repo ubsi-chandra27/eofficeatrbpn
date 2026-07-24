@@ -11,6 +11,20 @@ use Illuminate\Support\Facades\DB;
 
 class PegawaiStarterDataService
 {
+    public function needsStarterData(Pegawai $pegawai): bool
+    {
+        if (! $pegawai->user_id) {
+            return false;
+        }
+
+        $hasSuratMasuk = Surat::where('user_id', $pegawai->user_id)
+            ->where('jenis_surat', 'masuk')
+            ->exists();
+        $hasDisposisiMasuk = DisposisiTujuan::where('pegawai_id', $pegawai->id)->exists();
+
+        return ! $hasSuratMasuk || ! $hasDisposisiMasuk;
+    }
+
     public function ensureForPegawai(Pegawai $pegawai): void
     {
         if (! $pegawai->user_id) {

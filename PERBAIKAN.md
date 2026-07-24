@@ -357,6 +357,70 @@ Form `Surat Masuk` pegawai masih memuat bagian tujuan/pimpinan seperti `Jabatan 
 - `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 56 assertion.
 - `php artisan test --filter=PegawaiSuratMasukVerificationTest`: 5 test lulus, 37 assertion.
 
+## Pembaruan 24 Juli 2026 - Isi Tabel Dashboard Pegawai
+
+### Masalah
+
+Dashboard pegawai dapat menampilkan tabel `Disposisi Terbaru` dan `Surat Masuk Terbaru` kosong untuk akun pegawai yang dibuat sebelum data awal otomatis diterapkan. Akibatnya akun seperti pegawai baru/lama yang belum punya relasi surat atau disposisi tetap melihat pesan kosong pada dashboard.
+
+### Perbaikan
+
+- `Pegawai\DashboardController` sekarang memastikan data awal pegawai tersedia saat dashboard dibuka, tetapi hanya jika akun tersebut benar-benar belum punya surat masuk dan belum punya disposisi.
+- Data asli pegawai yang sudah ada tidak ditimpa dan tidak ditambah ulang secara sembarangan.
+- Tabel dashboard otomatis terisi dari `PegawaiStarterDataService`:
+  - `Disposisi Terbaru`
+  - `Surat Masuk Terbaru`
+- Test dashboard pegawai ditambah untuk memastikan akun pegawai baru yang kosong langsung melihat isi tabel.
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Pegawai/DashboardController.php`: berhasil.
+- `php artisan test --filter=PegawaiDashboardTest`: 3 test lulus, 31 assertion.
+
+## Pembaruan 24 Juli 2026 - Audit Ulang Data Tabel Akun Pegawai
+
+### Masalah
+
+Perlu dipastikan lagi bahwa akun pegawai baru maupun akun pegawai yang sudah terdaftar tidak melihat tabel kosong pada halaman penting pegawai. Sebelumnya backfill data awal hanya dijalankan dari dashboard dan hanya saat surat masuk serta disposisi sama-sama kosong.
+
+### Perbaikan
+
+- `PegawaiStarterDataService` sekarang memiliki pengecekan `needsStarterData()` untuk mendeteksi kekurangan data per akun pegawai.
+- Backfill data awal dijalankan jika salah satu data belum tersedia:
+  - belum punya surat masuk; atau
+  - belum punya disposisi masuk.
+- Pengaman data awal sekarang dipanggil dari:
+  - `Pegawai\DashboardController`
+  - `Pegawai\SuratMasukController@index`
+  - `Pegawai\DisposisiController@index`
+  - `Pegawai\DisposisiController@terkirim`
+- Dengan ini, akun pegawai baru atau akun lama yang langsung membuka Dashboard, Surat Masuk, atau Disposisi tetap mendapat isi tabel.
+- Data lama/manual tidak dihapus dan tidak ditimpa.
+
+### Audit Data Lokal
+
+Setelah menjalankan `SuratPegawaiDemoSeeder` dan `DisposisiDemoSeeder`, isi tabel akun pegawai lokal:
+
+- Budi Santoso: 10 surat masuk, 22 disposisi masuk, 1 disposisi terkirim.
+- Siti Aminah: 5 surat masuk, 6 disposisi masuk, 1 disposisi terkirim.
+- Ahmad Fauzi: 5 surat masuk, 7 disposisi masuk, 1 disposisi terkirim.
+- Dewi Lestari: 5 surat masuk, 7 disposisi masuk, 1 disposisi terkirim.
+- Rudi Hartono: 5 surat masuk, 7 disposisi masuk, 1 disposisi terkirim.
+- mario: 6 surat masuk, 7 disposisi masuk, 1 disposisi terkirim.
+- putri: 5 surat masuk, 6 disposisi masuk, 1 disposisi terkirim.
+- triyantiabigail: 5 surat masuk, 6 disposisi masuk, 1 disposisi terkirim.
+- anna: 5 surat masuk, 6 disposisi masuk, 1 disposisi terkirim.
+
+### Verifikasi
+
+- `php -l app/Services/PegawaiStarterDataService.php`: berhasil.
+- `php -l app/Http/Controllers/Pegawai/DashboardController.php`: berhasil.
+- `php -l app/Http/Controllers/Pegawai/SuratMasukController.php`: berhasil.
+- `php -l app/Http/Controllers/Pegawai/DisposisiController.php`: berhasil.
+- `php artisan test --filter=PegawaiDashboardTest`: 4 test lulus, 38 assertion.
+- `php artisan test --filter=PegawaiSuratMasukCrudTest`: 8 test lulus, 63 assertion.
+- `php artisan test --filter=PegawaiDisposisiCrudTest`: 7 test lulus, 57 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -367,6 +431,7 @@ Form `Surat Masuk` pegawai masih memuat bagian tujuan/pimpinan seperti `Jabatan 
 - `app/Http/Controllers/Auth/RegisteredUserController.php`
 - `app/Http/Controllers/Pegawai/SuratMasukController.php`
 - `app/Http/Controllers/Pegawai/DisposisiController.php`
+- `app/Http/Controllers/Pegawai/DashboardController.php`
 - `app/Models/Pegawai.php`
 - `app/Services/PegawaiStarterDataService.php`
 - `app/Services/UmumStarterDataService.php`
@@ -397,6 +462,8 @@ Form `Surat Masuk` pegawai masih memuat bagian tujuan/pimpinan seperti `Jabatan 
 - `tests/Feature/Auth/RoleIdentifierAuthenticationTest.php`
 - `tests/Feature/Auth/RegistrationTest.php`
 - `tests/Feature/Pegawai/PegawaiSuratMasukCrudTest.php`
+- `tests/Feature/Pegawai/PegawaiDashboardTest.php`
+- `tests/Feature/Pegawai/PegawaiDisposisiCrudTest.php`
 - `public/build/*` melalui `npm.cmd run build`
 
 ## Cara Verifikasi Manual

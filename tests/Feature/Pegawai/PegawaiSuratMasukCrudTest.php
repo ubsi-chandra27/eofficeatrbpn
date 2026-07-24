@@ -89,6 +89,21 @@ it('menampilkan halaman tambah edit dan detail surat masuk', function () {
         ->assertSee('Hapus');
 });
 
+it('mengisi tabel surat masuk pegawai kosong saat halaman surat masuk dibuka langsung', function () {
+    $user = incomingEmployee('PEG-SM-EMPTY-INDEX');
+
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBe(0);
+
+    $this->actingAs($user)->get(route('pegawai.surat-masuk.index'))
+        ->assertOk()
+        ->assertSee('DEMO/PGW/SM/'.$user->nip.'/001')
+        ->assertSee('Permohonan data pertanahan')
+        ->assertDontSee('Belum ada surat masuk');
+
+    expect(Surat::where('user_id', $user->id)->where('jenis_surat', 'masuk')->count())->toBeGreaterThanOrEqual(5);
+});
+
+
 it('memperbarui data dan mengganti lampiran secara atomik', function () {
     Storage::fake('local');
     $user = incomingEmployee();

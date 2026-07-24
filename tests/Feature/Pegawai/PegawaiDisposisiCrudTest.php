@@ -98,6 +98,22 @@ it('membuat disposisi kepada pegawai lain dari surat yang dapat diakses', functi
         ->assertOk()->assertSee('Mohon siapkan telaah');
 });
 
+it('mengisi tabel disposisi pegawai kosong saat halaman disposisi dibuka langsung', function () {
+    [$user, $pegawai] = dispositionEmployeeAccount('PEG-DSP-EMPTY-INDEX', 'Pegawai Kosong Disposisi');
+
+    expect(DisposisiTujuan::where('pegawai_id', $pegawai->id)->count())->toBe(0);
+
+    $this->actingAs($user)->get(route('pegawai.disposisi.index'))
+        ->assertOk()
+        ->assertSee('Disposisi Saya')
+        ->assertSee('Pelajari isi surat')
+        ->assertSee('Belum Dibaca')
+        ->assertDontSee('Belum ada disposisi');
+
+    expect(DisposisiTujuan::where('pegawai_id', $pegawai->id)->count())->toBeGreaterThanOrEqual(5);
+});
+
+
 it('menampilkan detail dan memperbarui disposisi terkirim yang belum dibaca', function () {
     [$sender] = dispositionEmployeeAccount('PEG-DSP-EDIT-01', 'Pengirim Edit');
     [, $recipient] = dispositionEmployeeAccount('PEG-DSP-EDIT-02', 'Penerima Edit');

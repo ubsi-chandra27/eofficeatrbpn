@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Pegawai;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogAktivitas;
+use App\Models\Pegawai;
 use App\Models\Setting;
 use App\Models\Surat;
+use App\Services\PegawaiStarterDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,12 @@ class SuratMasukController extends Controller
      */
     public function index(Request $request)
     {
+        $pegawai = Pegawai::where('user_id', Auth::id())->first();
+        $starterData = app(PegawaiStarterDataService::class);
+        if ($pegawai && $starterData->needsStarterData($pegawai)) {
+            $starterData->ensureForPegawai($pegawai);
+        }
+
         $query = Surat::where('jenis_surat', 'masuk')
             ->where('user_id', Auth::id());
         $base = clone $query;

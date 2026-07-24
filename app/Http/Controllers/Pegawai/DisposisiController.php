@@ -7,6 +7,7 @@ use App\Models\Disposisi;
 use App\Models\DisposisiTujuan;
 use App\Models\Pegawai;
 use App\Models\Surat;
+use App\Services\PegawaiStarterDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class DisposisiController extends Controller
     public function index(Request $request)
     {
         $pegawai = $this->pegawaiLogin();
+        $this->ensureStarterData($pegawai);
         $query = DisposisiTujuan::with(['disposisi.surat', 'disposisi.pengirim'])
             ->where('pegawai_id', $pegawai->id)
             ->whereHas('disposisi');
@@ -83,6 +85,7 @@ class DisposisiController extends Controller
 
     public function terkirim(Request $request)
     {
+        $this->ensureStarterData($this->pegawaiLogin());
         $query = Disposisi::with(['surat', 'tujuans.pegawai.jabatan', 'tujuans.pegawai.unitKerja'])
             ->where('pengirim_id', Auth::id());
 
@@ -296,6 +299,14 @@ class DisposisiController extends Controller
     private function pegawaiLogin(): Pegawai
     {
         return Pegawai::where('user_id', Auth::id())->firstOrFail();
+    }
+
+    private function ensureStarterData(Pegawai $pegawai): void
+    {
+        $starterData = app(PegawaiStarterDataService::class);
+        if ($starterData->needsStarterData($pegawai)) {
+            $starterData->ensureForPegawai($pegawai);
+        }
     }
 
     private function formData(?Disposisi $current = null): array

@@ -8,6 +8,7 @@ use App\Models\Surat;
 use App\Models\DisposisiTujuan;
 use App\Models\Pegawai;
 use App\Models\LogAktivitas;
+use App\Services\PegawaiStarterDataService;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -43,6 +44,11 @@ class DashboardController extends Controller
                 'Data pegawai belum terhubung dengan akun login.'
             );
 
+        }
+
+        $starterData = app(PegawaiStarterDataService::class);
+        if ($starterData->needsStarterData($pegawai)) {
+            $starterData->ensureForPegawai($pegawai);
         }
 
 
