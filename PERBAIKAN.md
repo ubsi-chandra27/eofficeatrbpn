@@ -810,4 +810,8 @@ Halaman detail Profil Menteri pada dashboard Umum perlu diisi dengan biodata dan
 
 ### Verifikasi
 
-- Menunggu hasil verifikasi setelah perubahan ini dijalankan.
+- `php -l resources/views/umum/menteri.blade.php`: tidak ada syntax error.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumAccessTest`: 18 test lulus, 139 assertion.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test`: 149 test lulus, 916 assertion.

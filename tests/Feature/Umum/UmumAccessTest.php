@@ -51,7 +51,7 @@ it('membuka semua halaman lihat selengkapnya umum sesuai fungsi yang diklik', fu
     $checks = [
         'umum.profil-instansi' => ['Profil Instansi', 'Pengajuan lebih terarah'],
         'umum.menteri' => ['Menteri', 'PIMPINAN ORGANISASI', 'Nusron Wahid', 'Perjalanan Nusron Wahid'],
-        'umum.wakil' => ['Wakil Menteri', 'WAKIL PIMPINAN ORGANISASI'],
+        'umum.wakil' => ['Wakil Menteri', 'WAKIL PIMPINAN ORGANISASI', 'Ossy Dermawan', 'Perjalanan Ossy Dermawan'],
         'umum.struktur' => ['Struktur Organisasi', 'Bagan Organisasi'],
         'umum.visi' => ['Visi', 'Arah pelayanan organisasi'],
         'umum.misi' => ['Misi', 'Komitmen pelayanan'],
