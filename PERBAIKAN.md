@@ -849,3 +849,34 @@ Halaman detail Profil Wakil Menteri pada dashboard Umum perlu memuat biodata H. 
 - `php artisan view:cache`: Blade templates cached successfully.
 - `php artisan test --filter=UmumAccessTest`: 18 test lulus, 141 assertion.
 - `php artisan test`: 149 test lulus, 916 assertion.
+
+## Pembaruan 24 Juli 2026 - Penguatan Section Panduan Dashboard Umum
+
+### Masalah
+
+Dashboard Umum perlu dipastikan tetap menampilkan section tambahan selain informasi/pembaruan terbaru, yaitu panduan dokumen pengajuan, panel jam layanan dan ketentuan lampiran, perlindungan data, panduan status, serta bantuan FAQ seperti contoh tampilan yang diberikan.
+
+### Perbaikan
+
+- Memastikan dashboard Umum memuat section:
+  - `Dokumen sesuai jenis pengajuan`;
+  - `Jam Layanan`;
+  - `Ketentuan Lampiran`;
+  - `Kontak Bantuan`;
+  - `Perlindungan Data`;
+  - `Arti status pengajuan`;
+  - `Pertanyaan yang sering diajukan`.
+- Menambahkan assertion test pada halaman utama Umum agar section tersebut tidak hilang saat perubahan berikutnya atau saat cache hosting dibuat ulang.
+
+### File yang Diubah
+
+- `tests/Feature/Umum/UmumAccessTest.php`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php -l resources/views/umum/dashboard.blade.php`: tidak ada syntax error.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumAccessTest`: 18 test lulus, 147 assertion.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test`: 149 test lulus, 922 assertion.

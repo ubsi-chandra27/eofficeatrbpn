@@ -31,7 +31,13 @@ it('menampilkan halaman utama umum tanpa error', function () {
         ->assertSee('MISI')
         ->assertSee('Makna lambang kementerian')
         ->assertSee('Empat Butir Padi')
-        ->assertSee('Gelombang Hijau dan Biru');
+        ->assertSee('Gelombang Hijau dan Biru')
+        ->assertSee('Dokumen sesuai jenis pengajuan')
+        ->assertSee('Permohonan Informasi')
+        ->assertSee('Ketentuan Lampiran')
+        ->assertSee('Perlindungan Data')
+        ->assertSee('Arti status pengajuan')
+        ->assertSee('Pertanyaan yang sering diajukan');
     $this->actingAs($user)->get(route('umum.surat.index'))->assertOk();
     $this->actingAs($user)->get(route('umum.surat.create'))->assertOk();
     $this->actingAs($user)->get(route('umum.cari.form'))->assertOk();
