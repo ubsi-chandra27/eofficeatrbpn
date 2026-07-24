@@ -78,7 +78,10 @@ it('menampilkan halaman tambah edit dan detail surat masuk', function () {
     $surat = incomingLetter($user);
 
     $this->actingAs($user)->get(route('pegawai.surat-masuk.create'))
-        ->assertOk()->assertSee('Catat Surat Masuk');
+        ->assertOk()->assertSee('Tambah Surat Masuk')
+        ->assertSee('Nomor Agenda')
+        ->assertDontSee('Jabatan Pimpinan')
+        ->assertDontSee('Nama Pimpinan');
     $this->actingAs($user)->get(route('pegawai.surat-masuk.edit', $surat))
         ->assertOk()->assertSee('Edit Surat Masuk')->assertSee('SM-CRUD-001');
     $this->actingAs($user)->get(route('pegawai.surat-masuk.show', $surat))

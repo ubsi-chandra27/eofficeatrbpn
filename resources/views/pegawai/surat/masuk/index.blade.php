@@ -10,7 +10,7 @@
             <p class="text-muted mb-0">Catat surat, pantau approval Admin, dan kelola perbaikannya.</p>
         </div>
         <a href="{{ route('pegawai.surat-masuk.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Catat Surat Masuk
+            <i class="bi bi-plus-circle me-2"></i>Tambah Surat Masuk
         </a>
     </div>
 
@@ -208,7 +208,7 @@
                                     @if(request()->hasAny(['keyword', 'status']))
                                         <a href="{{ route('pegawai.surat-masuk.index') }}" class="btn btn-outline-primary btn-sm">Hapus Filter</a>
                                     @else
-                                        <a href="{{ route('pegawai.surat-masuk.create') }}" class="btn btn-primary btn-sm">Catat Surat Masuk</a>
+                                        <a href="{{ route('pegawai.surat-masuk.create') }}" class="btn btn-primary btn-sm">Tambah Surat Masuk</a>
                                     @endif
                                 </div>
                             </td>

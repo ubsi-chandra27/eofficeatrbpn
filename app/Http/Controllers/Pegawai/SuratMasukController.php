@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Pegawai;
 
 use App\Http\Controllers\Controller;
-use App\Models\Jabatan;
 use App\Models\LogAktivitas;
 use App\Models\Setting;
 use App\Models\Surat;
@@ -61,9 +60,7 @@ class SuratMasukController extends Controller
      */
     public function create()
     {
-        $jabatan = Jabatan::orderBy('nama')->get();
-
-        return view('pegawai.surat.masuk.create', compact('jabatan'));
+        return view('pegawai.surat.masuk.create');
     }
 
     /**
@@ -73,12 +70,11 @@ class SuratMasukController extends Controller
     {
         $data = $request->validate([
             'nomor_surat' => 'required|string|max:100|unique:surats,nomor_surat',
+            'nomor_agenda' => 'nullable|string|max:100',
             'tanggal_surat' => 'required|date',
             'perihal' => 'required|string|max:500',
             'asal_surat' => 'required|string|max:255',
             'tujuan_surat' => 'required|string|max:255',
-            'jabatan_pimpinan_id' => 'nullable|exists:jabatan,id',
-            'nama_pimpinan' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:2000',
             'file_path' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
             'submit_action' => 'required|in:draft,submit',
@@ -152,9 +148,7 @@ class SuratMasukController extends Controller
             ->with('error', 'Surat yang sudah diproses tidak dapat diedit.');
     }
 
-    $jabatan = Jabatan::orderBy('nama')->get();
-
-    return view('pegawai.surat.masuk.edit', compact('surat', 'jabatan'));
+    return view('pegawai.surat.masuk.edit', compact('surat'));
 }
     /**
      * Update surat
@@ -171,12 +165,11 @@ class SuratMasukController extends Controller
 
     $data = $request->validate([
         'nomor_surat'   => 'required|string|max:100|unique:surats,nomor_surat,' . $surat->id,
+        'nomor_agenda'  => 'nullable|string|max:100',
         'tanggal_surat' => 'required|date',
         'asal_surat'    => 'required|string|max:255',
         'tujuan_surat'  => 'required|string|max:255',
         'perihal'       => 'required|string|max:500',
-        'jabatan_pimpinan_id' => 'nullable|exists:jabatan,id',
-        'nama_pimpinan' => 'nullable|string|max:255',
         'deskripsi'     => 'nullable|string|max:2000',
         'file_path'     => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:'.((int) Setting::getValue('max_upload_mb', 5) * 1024),
     ]);

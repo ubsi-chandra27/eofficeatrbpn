@@ -40,10 +40,12 @@ it('menampilkan formulir catat surat masuk dengan pilihan draft dan kirim ke adm
     $this->actingAs($pegawai)
         ->get(route('pegawai.surat-masuk.create'))
         ->assertOk()
-        ->assertSee('Catat Surat Masuk')
+        ->assertSee('Tambah Surat Masuk')
         ->assertSee('Simpan Draft')
         ->assertSee('Simpan & Kirim ke Admin')
-        ->assertSee('asal_surat', false);
+        ->assertSee('asal_surat', false)
+        ->assertDontSee('Jabatan Pimpinan')
+        ->assertDontSee('Nama Pimpinan');
 });
 
 it('menyimpan draft tanpa memasukkannya ke antrean verifikasi admin', function () {

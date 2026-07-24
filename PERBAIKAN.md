@@ -326,6 +326,37 @@ Akun umum yang baru register dapat membuka menu `Surat Saya` / `Pengajuan Saya`,
 - `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
 - `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
 
+## Pembaruan 24 Juli 2026 - Form Surat Masuk Pegawai
+
+### Masalah
+
+Form `Surat Masuk` pegawai masih memuat bagian tujuan/pimpinan seperti `Jabatan Pimpinan` dan `Nama Pimpinan`, sehingga terasa seperti form surat keluar. Judul/tombol juga masih memakai istilah `Catat Surat Masuk`, sementara ekspektasi tampilan adalah form tambah surat masuk yang jelas dan tidak memakai penandatangan/pimpinan.
+
+### Perbaikan
+
+- Form tambah surat masuk diubah menjadi `Tambah Surat Masuk`.
+- Form edit surat masuk dirapikan agar hanya berisi data yang relevan untuk surat masuk:
+  - Nomor Surat
+  - Nomor Agenda
+  - Tanggal Surat
+  - Asal Surat / Pengirim
+  - Perihal
+  - Tujuan Surat
+  - Deskripsi / Catatan
+  - Lampiran
+- Field `Jabatan Pimpinan` dan `Nama Pimpinan` dihapus dari form tambah/edit surat masuk.
+- Validasi `SuratMasukController` disesuaikan: tidak lagi menerima field pimpinan untuk surat masuk, dan sekarang menerima `nomor_agenda`.
+- Tombol di halaman daftar diubah menjadi `Tambah Surat Masuk`.
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Pegawai/SuratMasukController.php`: berhasil.
+- `php -l resources/views/pegawai/surat/masuk/create.blade.php`: berhasil.
+- `php -l resources/views/pegawai/surat/masuk/edit.blade.php`: berhasil.
+- `php artisan route:list --name=pegawai.surat-masuk`: 9 route terdaftar.
+- `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 56 assertion.
+- `php artisan test --filter=PegawaiSuratMasukVerificationTest`: 5 test lulus, 37 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -359,6 +390,8 @@ Akun umum yang baru register dapat membuka menu `Surat Saya` / `Pengajuan Saya`,
 - `resources/views/pegawai/disposisi/index.blade.php`
 - `resources/views/pegawai/disposisi/terkirim.blade.php`
 - `resources/views/pegawai/surat/masuk/index.blade.php`
+- `resources/views/pegawai/surat/masuk/create.blade.php`
+- `resources/views/pegawai/surat/masuk/edit.blade.php`
 - `routes/web.php`
 - `tests/Feature/Admin/AdminSuratKeluarCrudTest.php`
 - `tests/Feature/Auth/RoleIdentifierAuthenticationTest.php`
