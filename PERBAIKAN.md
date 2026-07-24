@@ -300,6 +300,32 @@ Akun pegawai yang baru register dapat masuk ke menu `Surat Masuk` dan `Disposisi
 - `php artisan test --filter=PegawaiSuratMasukCrudTest`: 7 test lulus, 53 assertion.
 - `php artisan test --filter=PegawaiDisposisiCrudTest`: 6 test lulus, 49 assertion.
 
+## Pembaruan 24 Juli 2026 - Data Awal Akun Umum
+
+### Masalah
+
+Akun umum yang baru register dapat membuka menu `Surat Saya` / `Pengajuan Saya`, tetapi tabelnya kosong jika belum pernah membuat pengajuan. Akun umum lama bisa diisi lewat `PengajuanUmumDemoSeeder`, namun akun baru setelah register belum otomatis mendapatkan data awal untuk kebutuhan demo/pengujian.
+
+### Perbaikan
+
+- Ditambahkan `UmumStarterDataService` sebagai satu sumber pembuatan data awal akun umum.
+- Saat akun umum baru register, sistem otomatis menyiapkan 4 pengajuan demo dengan status bervariasi:
+  - `Diajukan`
+  - `Diproses`
+  - `Perlu Perbaikan`
+  - `Selesai`
+- `PengajuanUmumDemoSeeder` sekarang memakai service yang sama agar isi tabel hasil seeder dan hasil register konsisten.
+- Test register umum diperluas untuk memastikan akun umum baru langsung punya data `Pengajuan Saya`.
+
+### Verifikasi
+
+- `php -l app/Services/UmumStarterDataService.php`: berhasil.
+- `php -l app/Http/Controllers/Auth/RegisteredUserController.php`: berhasil.
+- `php -l database/seeders/PengajuanUmumDemoSeeder.php`: berhasil.
+- `php artisan test --filter=RegistrationTest`: 2 test lulus, 6 assertion.
+- `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -312,11 +338,13 @@ Akun pegawai yang baru register dapat masuk ke menu `Surat Masuk` dan `Disposisi
 - `app/Http/Controllers/Pegawai/DisposisiController.php`
 - `app/Models/Pegawai.php`
 - `app/Services/PegawaiStarterDataService.php`
+- `app/Services/UmumStarterDataService.php`
 - `database/seeders/DatabaseSeeder.php`
 - `database/migrations/2026_07_23_000001_add_nipp_to_pegawai_table.php`
 - `database/seeders/PegawaiDemoSeeder.php`
 - `database/seeders/PegawaiSeeder.php`
 - `database/seeders/DisposisiDemoSeeder.php`
+- `database/seeders/PengajuanUmumDemoSeeder.php`
 - `database/seeders/SuratPegawaiDemoSeeder.php`
 - `resources/views/admin/pegawai/_form.blade.php`
 - `resources/views/admin/pegawai/index.blade.php`
@@ -334,6 +362,7 @@ Akun pegawai yang baru register dapat masuk ke menu `Surat Masuk` dan `Disposisi
 - `routes/web.php`
 - `tests/Feature/Admin/AdminSuratKeluarCrudTest.php`
 - `tests/Feature/Auth/RoleIdentifierAuthenticationTest.php`
+- `tests/Feature/Auth/RegistrationTest.php`
 - `tests/Feature/Pegawai/PegawaiSuratMasukCrudTest.php`
 - `public/build/*` melalui `npm.cmd run build`
 

@@ -8,6 +8,7 @@ use App\Models\LogAktivitas;
 use App\Models\Pegawai;
 use App\Services\PegawaiStarterDataService;
 use App\Services\RegistrationSettings;
+use App\Services\UmumStarterDataService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,6 +65,10 @@ class RegisteredUserController extends Controller
                 ]);
 
                 app(PegawaiStarterDataService::class)->ensureForPegawai($pegawai);
+            }
+
+            if ($request->role === 'umum') {
+                app(UmumStarterDataService::class)->ensureForUser($user);
             }
 
             return $user;
