@@ -557,5 +557,9 @@ Route::middleware(['auth', 'role:umum'])
     Route::view('/informasi/menteri', 'umum.menteri')->name('menteri');
     Route::view('/informasi/wakil-menteri', 'umum.wakil-menteri')->name('wakil');
     Route::view('/informasi/struktur-organisasi', 'umum.struktur')->name('struktur');
+    Route::view('/informasi/profil-instansi', 'umum.profil-instansi')->name('profil-instansi');
+    Route::view('/informasi/visi', 'umum.visi')->name('visi');
+    Route::view('/informasi/misi', 'umum.misi')->name('misi');
+    Route::view('/informasi/makna-logo', 'umum.makna-logo')->name('makna-logo');
 
 });

@@ -421,6 +421,55 @@ Setelah menjalankan `SuratPegawaiDemoSeeder` dan `DisposisiDemoSeeder`, isi tabe
 - `php artisan test --filter=PegawaiSuratMasukCrudTest`: 8 test lulus, 63 assertion.
 - `php artisan test --filter=PegawaiDisposisiCrudTest`: 7 test lulus, 57 assertion.
 
+## Pembaruan 24 Juli 2026 - Tampilan dan CRUD Surat Keluar Pegawai
+
+### Masalah
+
+Halaman `Surat Keluar` pegawai masih padat dan informasi CRUD kurang mudah dibaca. Pencarian juga belum mencakup semua informasi penting seperti `kode_surat` dan nama penandatangan.
+
+### Perbaikan
+
+- Tampilan tabel `Surat Keluar` pegawai dirapikan dengan kolom:
+  - No
+  - Nomor & Kode
+  - Perihal
+  - Tujuan
+  - Penandatangan
+  - Tanggal
+  - Lampiran
+  - Status & Catatan
+  - Aksi
+- Aksi CRUD dibuat lebih jelas:
+  - Detail
+  - Edit
+  - Kirim ke Admin
+  - Hapus
+  - Lock indicator untuk surat yang sedang diproses.
+- Empty state diperjelas dan diberi tombol `Tambah Surat Keluar`.
+- Filter status diperjelas dengan status grup:
+  - Draft
+  - Menunggu Admin
+  - Sedang Diproses
+  - Perlu Perbaikan
+  - Selesai
+  - Terkirim
+  - Diarsipkan
+- Pencarian `SuratKeluarController` diperluas ke:
+  - nomor surat
+  - kode surat
+  - perihal
+  - tujuan surat
+  - nama penandatangan
+
+### Verifikasi
+
+- `php -l app/Http/Controllers/Pegawai/SuratKeluarController.php`: berhasil.
+- `php -l resources/views/pegawai/surat/keluar/index.blade.php`: berhasil.
+- `php -l resources/views/pegawai/surat/keluar/_form.blade.php`: berhasil.
+- `php -l resources/views/pegawai/surat/keluar/show.blade.php`: berhasil.
+- `php artisan route:list --name=pegawai.surat-keluar`: 9 route terdaftar.
+- `php artisan test --filter=PegawaiSuratKeluarCrudTest`: 6 test lulus, 44 assertion.
+
 ## File yang Diubah
 
 - `PROGRES-AUDIT.md`
@@ -430,6 +479,7 @@ Setelah menjalankan `SuratPegawaiDemoSeeder` dan `DisposisiDemoSeeder`, isi tabe
 - `app/Http/Controllers/Admin/AdminPegawaiController.php`
 - `app/Http/Controllers/Auth/RegisteredUserController.php`
 - `app/Http/Controllers/Pegawai/SuratMasukController.php`
+- `app/Http/Controllers/Pegawai/SuratKeluarController.php`
 - `app/Http/Controllers/Pegawai/DisposisiController.php`
 - `app/Http/Controllers/Pegawai/DashboardController.php`
 - `app/Models/Pegawai.php`
@@ -457,6 +507,7 @@ Setelah menjalankan `SuratPegawaiDemoSeeder` dan `DisposisiDemoSeeder`, isi tabe
 - `resources/views/pegawai/surat/masuk/index.blade.php`
 - `resources/views/pegawai/surat/masuk/create.blade.php`
 - `resources/views/pegawai/surat/masuk/edit.blade.php`
+- `resources/views/pegawai/surat/keluar/index.blade.php`
 - `routes/web.php`
 - `tests/Feature/Admin/AdminSuratKeluarCrudTest.php`
 - `tests/Feature/Auth/RoleIdentifierAuthenticationTest.php`
@@ -508,3 +559,113 @@ Sampai dokumen ini dibuat:
 - Pembaruan surat masuk pegawai lulus test khusus `PegawaiSuratMasukCrudTest`.
 - Pembaruan disposisi pegawai lulus test khusus `PegawaiDisposisiCrudTest`.
 - Test penuh terbaru lulus 144 test / 841 assertion.
+
+## Pembaruan 24 Juli 2026 - Tampilan Umum Bergaya Landing Page
+
+### Masalah
+
+Tampilan role `Umum` masih memakai pola dashboard/sidebar penuh. Ekspektasi baru adalah tampilan publik yang terasa seperti landing page modern: header besar, kontrol menu hamburger, kartu informasi lebih lega, dan nuansa visual yang mirip contoh referensi tanpa mengubah isi/fitur di dalam halaman.
+
+### Perbaikan
+
+- Layout Umum diperbarui dengan:
+  - brand/topbar publik;
+  - pill bahasa `ID/EN` sebagai elemen visual;
+  - tombol hamburger bundar untuk membuka/tutup sidebar drawer;
+  - sidebar tetap memakai menu lama, tetapi tampil sebagai drawer/overlay.
+- CSS Umum diperbarui dengan skin landing page:
+  - hero dashboard lebih besar;
+  - aksen biru, putih, dan merah;
+  - kartu statistik, pengumuman, organisasi, visi/misi, persyaratan, status, dan FAQ dibuat lebih rounded dan modern;
+  - responsive tetap mendukung tampilan HP/tablet.
+- Isi data, controller, route, query, tabel, dan proses pengajuan tidak diubah.
+
+### File yang Diubah
+
+- `resources/views/layouts/umum.blade.php`
+- `public/css/dashboard-umum.css`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
+
+## Pembaruan 24 Juli 2026 - Kanal Informasi Umum dan Berita Terbaru
+
+### Masalah
+
+Dashboard Umum sudah memiliki beberapa informasi organisasi, tetapi belum semua bagian memiliki halaman detail `Lihat selengkapnya`. Bagian yang belum lengkap adalah profil instansi, visi, misi, dan makna logo kementerian. Tampilan juga belum memiliki section berita/pengumuman terbaru sebagai ringkasan informasi layanan.
+
+### Perbaikan
+
+- Menambahkan route detail Umum:
+  - `umum.profil-instansi`
+  - `umum.visi`
+  - `umum.misi`
+  - `umum.makna-logo`
+- Menambahkan halaman detail:
+  - Profil Instansi
+  - Visi
+  - Misi
+  - Makna Logo Kementerian
+- Menambahkan section `Kanal Informasi` pada dashboard Umum dengan kartu:
+  - Profil Instansi
+  - Profil Menteri
+  - Profil Wakil Menteri
+  - Struktur Organisasi
+  - Visi
+  - Misi
+  - Makna Logo Kementerian
+- Semua tombol memakai teks `Lihat selengkapnya` dan diarahkan ke route masing-masing.
+- Menambahkan section `Berita & Pengumuman Terbaru` berbasis informasi layanan yang sudah ada:
+  - pemantauan pengajuan;
+  - ketentuan lampiran;
+  - pelacakan nomor referensi.
+
+### File yang Diubah
+
+- `routes/web.php`
+- `resources/views/umum/dashboard.blade.php`
+- `resources/views/umum/profil-instansi.blade.php`
+- `resources/views/umum/visi.blade.php`
+- `resources/views/umum/misi.blade.php`
+- `resources/views/umum/makna-logo.blade.php`
+- `public/css/dashboard-umum.css`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php artisan route:list --name=umum`: 20 route Umum terdaftar, termasuk route informasi baru.
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.
+
+## Pembaruan 24 Juli 2026 - Penyamaan Warna dan Ukuran Dashboard Umum
+
+### Masalah
+
+Tampilan Dashboard Umum sempat terlalu kuat mengarah ke gaya landing page referensi: hero terlalu besar, kartu informasi terlalu berwarna, dan ukuran antar elemen belum seragam. Ekspektasi akhir adalah tetap terasa modern seperti referensi, tetapi warna dan kerapian harus konsisten dengan tampilan E-Office pada role lain.
+
+### Perbaikan
+
+- Warna Dashboard Umum disamakan kembali ke palet utama aplikasi:
+  - biru E-Office;
+  - putih;
+  - abu lembut;
+  - aksen merah secukupnya pada hero.
+- Ukuran topbar, logo, avatar, tombol menu, hero, statistik, kartu kanal informasi, berita, dan halaman detail dibuat lebih proporsional.
+- Kartu `Kanal Informasi` tetap memakai gaya modern dengan tombol `Lihat selengkapnya`, tetapi tidak lagi memakai warna-warni ekstrem.
+- Section `Berita & Pengumuman Terbaru` tetap dipertahankan sebagai versi ringan berbasis informasi layanan yang sudah ada, sehingga aman untuk hosting tanpa tabel/modul admin baru.
+
+### File yang Diubah
+
+- `public/css/dashboard-umum.css`
+- `PERBAIKAN.md`
+
+### Verifikasi
+
+- `php artisan view:cache`: Blade templates cached successfully.
+- `php artisan test --filter=UmumDashboardTest`: 3 test lulus, 29 assertion.
+- `php artisan test --filter=UmumAccessTest`: 17 test lulus, 112 assertion.

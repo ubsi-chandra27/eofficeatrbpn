@@ -19,6 +19,65 @@
 
     <section class="service-announcement"><span><i class="bi bi-megaphone-fill"></i></span><div><small>PENGUMUMAN</small><h5>{{ $informasiLayanan['judul_pengumuman'] }}</h5><p>{{ $informasiLayanan['isi_pengumuman'] }}</p></div></section>
 
+    <section class="detail-hub-section">
+        <div class="hub-heading">
+            <span class="section-label">KANAL INFORMASI</span>
+            <h3>Informasi resmi dalam satu halaman</h3>
+            <p>Pilih informasi yang ingin Anda lihat lebih lengkap.</p>
+        </div>
+        <div class="detail-hub-grid">
+            <a href="{{ route('umum.profil-instansi') }}" class="hub-card blue">
+                <i class="bi bi-building-check"></i>
+                <small>PROFIL</small>
+                <h4>Profil Instansi</h4>
+                <p>Kenali ruang layanan administrasi digital dan fungsi utamanya.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.menteri') }}" class="hub-card orange">
+                <i class="bi bi-person-badge"></i>
+                <small>PIMPINAN</small>
+                <h4>Profil Menteri</h4>
+                <p>Informasi singkat mengenai unsur pimpinan organisasi.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.wakil') }}" class="hub-card green">
+                <i class="bi bi-person-vcard"></i>
+                <small>WAKIL PIMPINAN</small>
+                <h4>Profil Wakil Menteri</h4>
+                <p>Informasi singkat mengenai unsur wakil pimpinan organisasi.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.struktur') }}" class="hub-card navy">
+                <i class="bi bi-diagram-3"></i>
+                <small>ORGANISASI</small>
+                <h4>Struktur Organisasi</h4>
+                <p>Lihat susunan unit dan hubungan koordinasi organisasi.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.visi') }}" class="hub-card teal">
+                <i class="bi bi-eye"></i>
+                <small>ARAH</small>
+                <h4>Visi</h4>
+                <p>Pahami arah besar pelayanan organisasi kepada masyarakat.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.misi') }}" class="hub-card red">
+                <i class="bi bi-list-check"></i>
+                <small>KOMITMEN</small>
+                <h4>Misi</h4>
+                <p>Lihat komitmen pelayanan yang menjadi dasar kerja organisasi.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ route('umum.makna-logo') }}" class="hub-card gold">
+                <i class="bi bi-palette"></i>
+                <small>IDENTITAS</small>
+                <h4>Makna Logo Kementerian</h4>
+                <p>Pelajari arti simbol dan warna pada lambang kementerian.</p>
+                <span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span>
+            </a>
+        </div>
+    </section>
+
     @if($statistik['total'] === 0)
         <div class="dashboard-card latest-submission-card mb-3">
             <div class="card-heading"><div><h5>Pengajuan Terbaru</h5><small>Pengajuan terakhir milik Anda akan tampil di sini</small></div><a href="{{ route('umum.surat.index') }}">Lihat semua</a></div>
@@ -82,19 +141,19 @@
     <section class="organization-info">
         <div class="organization-heading"><div><span class="section-label">INFORMASI ORGANISASI</span><h4>Kenali pimpinan dan struktur organisasi</h4><p>Informasi ringkas mengenai unsur pimpinan dan susunan organisasi.</p></div></div>
         <div class="organization-grid">
-            <a href="{{ route('umum.menteri') }}" class="leader-card"><img src="{{ asset('images/menteri.jpg') }}" alt="Foto Menteri"><div><small>PIMPINAN</small><h5>Menteri</h5><span>Lihat profil <i class="bi bi-arrow-right"></i></span></div></a>
-            <a href="{{ route('umum.wakil') }}" class="leader-card"><img src="{{ asset('images/wakil-menteri.jpg') }}" alt="Foto Wakil Menteri"><div><small>WAKIL PIMPINAN</small><h5>Wakil Menteri</h5><span>Lihat profil <i class="bi bi-arrow-right"></i></span></div></a>
-            <a href="{{ route('umum.struktur') }}" class="structure-card"><div class="structure-preview"><img src="{{ asset('images/struktur-organisasi.png') }}" alt="Bagan Struktur Organisasi"></div><div><small>ORGANISASI</small><h5>Struktur Organisasi</h5><p>Lihat susunan unit dan hubungan koordinasi organisasi.</p><span>Lihat struktur <i class="bi bi-arrow-right"></i></span></div></a>
+            <a href="{{ route('umum.menteri') }}" class="leader-card"><img src="{{ asset('images/menteri.jpg') }}" alt="Foto Menteri"><div><small>PIMPINAN</small><h5>Menteri</h5><span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span></div></a>
+            <a href="{{ route('umum.wakil') }}" class="leader-card"><img src="{{ asset('images/wakil-menteri.jpg') }}" alt="Foto Wakil Menteri"><div><small>WAKIL PIMPINAN</small><h5>Wakil Menteri</h5><span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span></div></a>
+            <a href="{{ route('umum.struktur') }}" class="structure-card"><div class="structure-preview"><img src="{{ asset('images/struktur-organisasi.png') }}" alt="Bagan Struktur Organisasi"></div><div><small>ORGANISASI</small><h5>Struktur Organisasi</h5><p>Lihat susunan unit dan hubungan koordinasi organisasi.</p><span>Lihat selengkapnya <i class="bi bi-arrow-right"></i></span></div></a>
         </div>
     </section>
 
     <section class="vision-mission-section">
-        <div class="vision-card"><span class="section-label">VISI</span><i class="bi bi-eye-fill"></i><h4>Arah pelayanan organisasi</h4><p>Terwujudnya penataan ruang dan pengelolaan pertanahan yang terpercaya dan berstandar dunia dalam melayani masyarakat untuk mendukung Indonesia maju yang berdaulat, mandiri, dan berkepribadian berlandaskan gotong royong.</p></div>
-        <div class="mission-card"><span class="section-label">MISI</span><h4>Komitmen pelayanan</h4><ol><li><b>01</b><span>Menyelenggarakan penataan ruang dan pengelolaan pertanahan yang produktif, berkelanjutan, dan berkeadilan.</span></li><li><b>02</b><span>Menyelenggarakan pelayanan pertanahan dan penataan ruang yang berstandar dunia.</span></li></ol></div>
+        <div class="vision-card"><span class="section-label">VISI</span><i class="bi bi-eye-fill"></i><h4>Arah pelayanan organisasi</h4><p>Terwujudnya penataan ruang dan pengelolaan pertanahan yang terpercaya dan berstandar dunia dalam melayani masyarakat untuk mendukung Indonesia maju yang berdaulat, mandiri, dan berkepribadian berlandaskan gotong royong.</p><a href="{{ route('umum.visi') }}" class="detail-link">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a></div>
+        <div class="mission-card"><span class="section-label">MISI</span><h4>Komitmen pelayanan</h4><ol><li><b>01</b><span>Menyelenggarakan penataan ruang dan pengelolaan pertanahan yang produktif, berkelanjutan, dan berkeadilan.</span></li><li><b>02</b><span>Menyelenggarakan pelayanan pertanahan dan penataan ruang yang berstandar dunia.</span></li></ol><a href="{{ route('umum.misi') }}" class="detail-link">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a></div>
     </section>
 
     <section class="logo-meaning-section">
-        <div class="logo-meaning-heading"><div><span class="section-label">IDENTITAS ORGANISASI</span><h4>Makna lambang kementerian</h4><p>Setiap unsur menggambarkan hubungan antara ruang, tanah, kesejahteraan, dan pelayanan yang berintegritas.</p></div><div class="emblem-preview"><i class="bi bi-globe-asia-australia"></i><span>ATR/BPN</span></div></div>
+        <div class="logo-meaning-heading"><div><span class="section-label">IDENTITAS ORGANISASI</span><h4>Makna lambang kementerian</h4><p>Setiap unsur menggambarkan hubungan antara ruang, tanah, kesejahteraan, dan pelayanan yang berintegritas.</p><a href="{{ route('umum.makna-logo') }}" class="detail-link">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a></div><div class="emblem-preview"><i class="bi bi-globe-asia-australia"></i><span>ATR/BPN</span></div></div>
         <div class="meaning-grid">
             <article><i class="bi bi-flower1"></i><div><h6>Empat Butir Padi</h6><p>Kemakmuran dan kesejahteraan melalui empat tujuan pertanahan: kemakmuran, keadilan, keberlanjutan, dan harmoni sosial.</p></div></article>
             <article><i class="bi bi-globe2"></i><div><h6>Lingkaran Bumi</h6><p>Bumi sebagai sumber penghidupan manusia yang berhubungan langsung dengan tanah, air, dan sumber daya alam.</p></div></article>
@@ -116,6 +175,34 @@
     </section>
 
     <section class="status-guide"><div><span class="section-label">PANDUAN STATUS</span><h4>Arti status pengajuan</h4></div><div class="guide-items"><span><i class="dot warning"></i><b>Diajukan</b> menunggu pemeriksaan</span><span><i class="dot info"></i><b>Diproses</b> sedang ditindaklanjuti</span><span><i class="dot danger"></i><b>Perlu Perbaikan</b> cek catatan admin</span><span><i class="dot success"></i><b>Selesai</b> proses telah berakhir</span></div></section>
+
+    <section class="latest-news-section">
+        <div class="hub-heading">
+            <span class="section-label">BERITA & PENGUMUMAN</span>
+            <h3>Informasi terbaru layanan</h3>
+            <p>Tambahan ini membantu pengguna umum memahami informasi penting sebelum membuat pengajuan.</p>
+        </div>
+        <div class="news-grid">
+            <article>
+                <small>LAYANAN DIGITAL</small>
+                <h4>Pengajuan dapat dipantau dari Surat Saya</h4>
+                <p>Status, catatan admin, lampiran, dan histori proses tersedia di halaman detail pengajuan.</p>
+                <a href="{{ route('umum.surat.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+            </article>
+            <article>
+                <small>KETENTUAN BERKAS</small>
+                <h4>Pastikan lampiran sesuai format</h4>
+                <p>Gunakan format PDF, DOC, DOCX, JPG, atau PNG dengan ukuran maksimal {{ $informasiLayanan['maksimal_lampiran'] }} MB.</p>
+                <a href="{{ route('umum.layanan.index') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+            </article>
+            <article>
+                <small>PELACAKAN</small>
+                <h4>Lacak pengajuan menggunakan nomor referensi</h4>
+                <p>Nomor pengajuan dapat dipakai untuk membuka status dan perkembangan proses administrasi.</p>
+                <a href="{{ route('umum.cari.form') }}">Lihat selengkapnya <i class="bi bi-arrow-right"></i></a>
+            </article>
+        </div>
+    </section>
 
     <section class="faq-section"><div class="info-heading"><span class="section-label">BANTUAN</span><h4>Pertanyaan yang sering diajukan</h4></div><div class="accordion accordion-flush" id="publicFaq">
         @foreach([

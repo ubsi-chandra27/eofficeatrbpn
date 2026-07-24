@@ -57,6 +57,16 @@ class SuratKeluarController extends Controller
                     'tujuan_surat',
                     'like',
                     '%' . $request->keyword . '%'
+                )
+                ->orWhere(
+                    'kode_surat',
+                    'like',
+                    '%' . $request->keyword . '%'
+                )
+                ->orWhere(
+                    'nama_pimpinan',
+                    'like',
+                    '%' . $request->keyword . '%'
                 );
 
             });

@@ -29,7 +29,7 @@
 
 </head>
 
-<body>
+<body class="umum-landing-skin">
 
 <div class="wrapper">
 
@@ -160,20 +160,27 @@
         {{-- TOPBAR --}}
         {{-- ========================= --}}
 
-        <header class="topbar">
+        <header class="topbar public-topbar">
 
             <div class="topbar-left">
 
-                <button class="menu-toggle"
-                        id="menuToggle"
-                        type="button"
-                        aria-controls="sidebar"
-                        aria-expanded="false"
-                        aria-label="Buka menu navigasi">
+                <a href="{{ route('umum.dashboard') }}" class="public-brand-top" aria-label="Kembali ke dashboard umum">
 
-                    <i class="bi bi-list"></i>
+                    <span class="public-brand-mark">
 
-                </button>
+                        <i class="bi bi-buildings-fill"></i>
+
+                    </span>
+
+                    <span>
+
+                        <strong>{{ \App\Models\Setting::getValue('app_name','E-Office') }}</strong>
+
+                        <small>{{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}</small>
+
+                    </span>
+
+                </a>
 
                 <div>
 
@@ -183,7 +190,7 @@
 
                     </h3>
 
-                    <small class="text-muted">
+                    <small class="text-muted public-page-subtitle">
 
                         {{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}
 
@@ -194,6 +201,14 @@
             </div>
 
             <div class="topbar-right">
+
+                <div class="language-pill" aria-label="Pilihan bahasa tampilan">
+
+                    <span class="active">ID</span>
+
+                    <span>EN</span>
+
+                </div>
 
                 <div class="user-box">
 
@@ -224,6 +239,17 @@
                     </div>
 
                 </div>
+
+                <button class="menu-toggle"
+                        id="menuToggle"
+                        type="button"
+                        aria-controls="sidebar"
+                        aria-expanded="false"
+                        aria-label="Buka menu navigasi">
+
+                    <i class="bi bi-list"></i>
+
+                </button>
 
             </div>
 
