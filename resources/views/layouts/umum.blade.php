@@ -2,7 +2,6 @@
 <html lang="id">
 
 <head>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
     <meta charset="UTF-8">
 
@@ -12,64 +11,249 @@
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
 
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+
     <title>
 
-        @yield('title') | {{ \App\Models\Setting::getValue('app_name','E-Office') }}
+        @yield('title','Dashboard')
+
+        | {{ \App\Models\Setting::getValue('app_name', 'E-Office') }}
 
     </title>
 
-    {{-- Laravel --}}
-    @vite(['resources/css/app.css','resources/js/app.js'])
+    {{-- ========================================================= --}}
+    {{-- Laravel Assets --}}
+    {{-- ========================================================= --}}
 
+    @vite([
+        'resources/css/app.css',
+        'resources/js/app.js'
+    ])
+
+    {{-- ========================================================= --}}
     {{-- Dashboard CSS --}}
+    {{-- ========================================================= --}}
+
+    <link rel="stylesheet"
+          href="{{ asset('css/dashboard-admin.css') }}">
+          
     <link rel="stylesheet"
           href="{{ asset('css/dashboard-umum.css') }}">
 
     <link rel="stylesheet"
           href="{{ asset('css/notification-dropdown.css') }}">
 
+    <style>
+        .main-wrapper {
+            width: calc(100% - var(--sidebar-width));
+            min-width: 0;
+            flex: none;
+        }
+        body.sidebar-collapse .main-wrapper {
+            width: calc(100% - var(--sidebar-collapse));
+        }
+        .content, .content-wrapper { width: 100%; min-width: 0; max-width: 100%; }
+        @media (max-width: 991px) {
+            .main-wrapper, body.sidebar-collapse .main-wrapper {
+                width: 100%;
+            }
+        }
+        /* Sidebar admin: compact, konsisten, dan tetap nyaman digulir. */
+        .sidebar { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.24); border-radius: 10px; }
+        .sidebar-logo { min-height: 112px; padding: 22px 20px; }
+        .sidebar-logo .logo-text { min-width: 0; }
+        .sidebar-logo .logo-text h3,
+        .sidebar-logo .logo-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-user { margin: 18px 18px 10px; padding: 15px; border-radius: 16px; }
+        .sidebar-user > div:last-child { min-width: 0; }
+        .sidebar-user h6 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-menu { padding: 0 14px 24px; }
+        .sidebar-menu .menu-title { margin: 21px 12px 9px; font-size: 10px; letter-spacing: 1.25px; }
+        .sidebar-menu a { min-height: 48px; gap: 13px; margin-bottom: 4px; padding: 11px 14px; border-radius: 12px; text-decoration: none; }
+        .sidebar-menu a > span:not(.menu-badge) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-menu a i { width: 22px; font-size: 18px; }
+        .sidebar-menu a.active::before { left: -14px; top: 8px; height: 32px; width: 4px; }
+        .sidebar-menu .menu-badge { margin-left: auto; min-width: 23px; height: 23px; padding: 0 7px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; font-weight: 800; background: #fbbf24; color: #422006; }
+        .sidebar-menu .menu-badge-danger { background: #fecaca; color: #991b1b; }
+        .sidebar-menu a.active .menu-badge { box-shadow: inset 0 0 0 1px rgba(15,76,129,.12); }
+        .sidebar-footer { margin-top: 18px; padding-top: 16px; }
+        .btn-logout { min-height: 46px; padding: 11px 14px; background: rgba(220,53,69,.92); box-shadow: none; }
+        .sidebar.collapsed .sidebar-logo { padding-inline: 12px; }
+        .sidebar.collapsed .sidebar-user { margin-inline: 12px; }
+        .sidebar.collapsed .sidebar-menu { padding-inline: 10px; }
+        .sidebar.collapsed .sidebar-menu a { padding: 12px; }
+        .sidebar.collapsed .sidebar-menu .menu-badge { position: absolute; top: 4px; right: 4px; display: inline-flex; min-width: 18px; height: 18px; padding: 0 5px; font-size: 9px; }
+
+        .topbar { height: auto; min-height: var(--topbar-height); padding-top: 13px; padding-bottom: 13px; }
+        .topbar-left { min-width: 0; }
+        .page-title { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+        .page-title h4 { margin: 0; line-height: 1.18; }
+        .page-title .welcome-text { display: block; margin: 0; color: var(--gray-500); font-size: 13px; line-height: 1.4; white-space: nowrap; }
+        @media (max-width: 1200px) {
+            .page-title h4 { font-size: 21px; }
+            .topbar-date { display: none; }
+        }
+        @media (max-width: 768px) {
+            .topbar { padding-top: 14px; padding-bottom: 14px; }
+            .page-title { gap: 5px; }
+            .page-title .welcome-text { white-space: normal; }
+        }
+
+        .choices { margin-bottom: 0; }
+        .choices__inner {
+            min-height: 48px;
+            padding: 7px 12px;
+            border: 1px solid #dbe2ea;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .is-focused .choices__inner,
+        .is-open .choices__inner {
+            border-color: #0F4C81;
+            box-shadow: 0 0 0 .2rem rgba(15, 76, 129, .15);
+        }
+        .choices__list--dropdown,
+        .choices__list[aria-expanded] { z-index: 1060; }
+        .choices__list--dropdown .choices__list,
+        .choices__list[aria-expanded] .choices__list {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .choices__input { border-radius: 8px; }
+
+        .choices {
+            width: 100%;
+            font-size: 1rem;
+        }
+        .choices__inner {
+            width: 100%;
+            min-height: 48px !important;
+            height: auto !important;
+            padding: 7px 12px !important;
+            overflow: hidden;
+        }
+        .choices[data-type*="select-one"] .choices__inner {
+            padding-bottom: 7px !important;
+            height: 48px !important;
+            min-height: 48px !important;
+        }
+        .choices__list--single {
+            padding: 5px 28px 5px 2px !important;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .choices__list--multiple {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 0 !important;
+        }
+        .choices__list--multiple .choices__item {
+            display: inline-flex !important;
+            align-items: center;
+            max-width: 100%;
+            min-height: 32px !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 5px 10px !important;
+            border-radius: 8px !important;
+            font-size: .85rem !important;
+            line-height: 1.25 !important;
+            white-space: normal;
+            word-break: break-word;
+        }
+        .choices__list--multiple .choices__button {
+            width: 20px !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            margin: 0 0 0 6px !important;
+            padding: 0 !important;
+            border-left: 0 !important;
+            background-size: 8px !important;
+        }
+        .choices__input {
+            min-width: 120px;
+            min-height: 34px !important;
+            height: 34px !important;
+            margin: 0 !important;
+            padding: 5px 8px !important;
+            background: #f8fafc !important;
+        }
+        .choices__list--dropdown,
+        .choices__list[aria-expanded] {
+            border-radius: 10px;
+            overflow: hidden;
+            max-height: 270px !important;
+        }
+        .choices__list--dropdown .choices__list,
+        .choices__list[aria-expanded] .choices__list {
+            max-height: 220px !important;
+            overflow-y: auto !important;
+        }
+        .choices__list--dropdown .choices__item,
+        .choices__list[aria-expanded] .choices__item {
+            min-height: auto !important;
+            height: auto !important;
+            padding: 10px 14px !important;
+            line-height: 1.35 !important;
+        }
+    </style>
+
     @stack('styles')
 
 </head>
 
-<body class="umum-landing-skin">
+<body>
 
-<div class="wrapper">
+<div class="admin-layout">
 
     {{-- ========================= --}}
     {{-- SIDEBAR --}}
     {{-- ========================= --}}
 
-    <aside class="sidebar" id="sidebar" aria-label="Menu utama Masyarakat Umum">
+    <aside
+        class="sidebar"
+        id="sidebar"
+        aria-label="Menu utama Masyarakat Umum">
 
-        <div class="sidebar-header">
+        {{-- ===================================================== --}}
+        {{-- LOGO --}}
+        {{-- ===================================================== --}}
 
-            <div class="logo-circle">
+        <div class="sidebar-logo">
+
+            <div class="logo-icon">
 
                 <i class="bi bi-buildings-fill"></i>
 
             </div>
 
-            <div>
+            <div class="logo-text">
 
-                <h4 class="mb-0">
+                <h3>
 
-                    {{ \App\Models\Setting::getValue('app_name','E-Office') }}
+                    {{ strtoupper(\App\Models\Setting::getValue('app_name', 'E-Office')) }}
 
-                </h4>
+                </h3>
 
                 <small>
 
-                    {{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}
+                    {{ \App\Models\Setting::getValue('app_subtitle', 'Administrasi Digital') }}
 
                 </small>
 
             </div>
 
-            <button class="sidebar-close"
-                    id="closeSidebar"
-                    type="button"
-                    aria-label="Tutup menu navigasi">
+            <button
+                class="sidebar-close"
+                id="closeSidebar"
+                type="button"
+                aria-label="Tutup menu navigasi">
 
                 <i class="bi bi-x-lg"></i>
 
@@ -77,11 +261,47 @@
 
         </div>
 
-        <div class="sidebar-menu">
+        {{-- ===================================================== --}}
+        {{-- USER --}}
+        {{-- ===================================================== --}}
 
-            <span class="sidebar-title">
+        <div class="sidebar-user">
 
-                Dashboard
+            <div class="avatar">
+                @if(auth()->user()->profile_photo_path)
+                    <img src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                @else
+                    {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
+                @endif
+            </div>
+
+            <div>
+
+                <h6 class="mb-0">
+
+                    {{ auth()->user()->name }}
+
+                </h6>
+
+                <small>
+
+                    Masyarakat Umum
+
+                </small>
+
+            </div>
+
+        </div>
+
+        {{-- ===================================================== --}}
+        {{-- MENU --}}
+        {{-- ===================================================== --}}
+
+        <nav class="sidebar-menu">
+
+            <span class="menu-title">
+
+                DASHBOARD
 
             </span>
 
@@ -90,13 +310,15 @@
 
                 <i class="bi bi-speedometer2"></i>
 
-                Dashboard
+                <span>
+                    Dashboard
+                </span>
 
             </a>
 
-            <span class="sidebar-title">
+            <span class="menu-title">
 
-                Persuratan
+                PERSURATAN
 
             </span>
 
@@ -105,7 +327,9 @@
 
                 <i class="bi bi-envelope-paper-fill"></i>
 
-                Surat Saya
+                <span>
+                    Surat Saya
+                </span>
 
             </a>
 
@@ -114,7 +338,9 @@
 
                 <i class="bi bi-search"></i>
 
-                Cari Berkas
+                <span>
+                    Cari Berkas
+                </span>
 
             </a>
 
@@ -123,13 +349,15 @@
 
                 <i class="bi bi-journal-bookmark-fill"></i>
 
-                Layanan
+                <span>
+                    Layanan
+                </span>
 
             </a>
 
-            <span class="sidebar-title">
+            <span class="menu-title">
 
-                Akun
+                AKUN
 
             </span>
 
@@ -137,104 +365,82 @@
 
                 <i class="bi bi-person-circle"></i>
 
-                Profil Saya
+                <span>
+                    Profil Saya
+                </span>
 
             </a>
 
-            <form action="{{ route('logout') }}"
-                  method="POST"
-                  class="mt-3">
+            <div class="sidebar-footer">
 
-                @csrf
+                <form
+                    action="{{ route('logout') }}"
+                    method="POST">
 
-                <button type="submit"
-                        class="logout-btn">
+                    @csrf
 
-                    <i class="bi bi-box-arrow-right"></i>
+                    <button
+                        type="submit"
+                        class="btn-logout">
 
-                    Logout
+                        <i class="bi bi-box-arrow-right"></i>
 
-                </button>
+                        <span>
 
-            </form>
+                            Logout
 
-        </div>
+                        </span>
 
-    </aside>
+                    </button>
 
-    {{-- ========================= --}}
-    {{-- MAIN --}}
-    {{-- ========================= --}}
-
-    <main class="main-content">
-
-        {{-- ========================= --}}
-        {{-- TOPBAR --}}
-        {{-- ========================= --}}
-
-        <header class="topbar public-topbar">
-
-            <div class="topbar-left">
-
-                <a href="{{ route('umum.dashboard') }}" class="public-brand-top" aria-label="Kembali ke dashboard umum">
-
-                    <span class="public-brand-mark">
-
-                        <i class="bi bi-buildings-fill"></i>
-
-                    </span>
-
-                    <span>
-
-                        <strong>{{ \App\Models\Setting::getValue('app_name','E-Office') }}</strong>
-
-                        <small>{{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}</small>
-
-                    </span>
-
-                </a>
-
-                <div>
-
-                    <h3 class="mb-0">
-
-                        @yield('title')
-
-                    </h3>
-
-                    <small class="text-muted public-page-subtitle">
-
-                        {{ \App\Models\Setting::getValue('app_subtitle','Administrasi Digital') }}
-
-                    </small>
-
-                </div>
+                </form>
 
             </div>
 
-            <div class="topbar-right">
+        </nav>
 
-                <div class="language-pill" aria-label="Pilihan bahasa tampilan">
+    </aside>
 
-                    <span class="active">ID</span>
+    {{-- ========================================================= --}}
+    {{-- MAIN WRAPPER --}}
+    {{-- ========================================================= --}}
 
-                    <span>EN</span>
+    <div class="main-wrapper">
+                {{-- ========================================================= --}}
+        {{-- TOPBAR --}}
+        {{-- ========================================================= --}}
 
-                </div>
+        <header class="topbar">
 
-                @include('partials.notification-dropdown')
+            {{-- ========================= --}}
+            {{-- LEFT --}}
+            {{-- ========================= --}}
 
-                <div class="user-box">
+            <div class="topbar-left">
 
-                    <div class="avatar">
-                        @if(auth()->user()->profile_photo_path)
-                            <img src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
-                        @else
-                            {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
-                        @endif
-                    </div>
+                <button
+                    class="toggle-sidebar"
+                    id="toggleSidebar"
+                    type="button"
+                    aria-controls="sidebar"
+                    aria-expanded="false"
+                    aria-label="Buka menu navigasi">
 
-                    <div>
+                    <i class="bi bi-list"></i>
+
+                </button>
+
+                <div class="page-title">
+
+                    <h4>
+
+                        @yield('title','Dashboard')
+
+                    </h4>
+
+                    <div class="welcome-text">
+
+                        Selamat datang kembali,
 
                         <strong>
 
@@ -242,59 +448,440 @@
 
                         </strong>
 
-                        <small>
-
-                            Masyarakat Umum
-
-                        </small>
-
                     </div>
 
                 </div>
 
-                <button class="menu-toggle"
-                        id="menuToggle"
-                        type="button"
-                        aria-controls="sidebar"
-                        aria-expanded="false"
-                        aria-label="Buka menu navigasi">
+            </div>
 
-                    <i class="bi bi-list"></i>
+            {{-- ========================= --}}
+            {{-- RIGHT --}}
+            {{-- ========================= --}}
 
-                </button>
+            <div class="topbar-right">
+
+                {{-- Tanggal --}}
+
+                <div class="topbar-date">
+
+                    <i class="bi bi-calendar-event"></i>
+
+                    <span>
+
+                        {{ now()->translatedFormat('l, d F Y') }}
+
+                    </span>
+
+                </div>
+
+                {{-- Notifikasi --}}
+
+                @include('partials.notification-dropdown')
+
+                {{-- User Dropdown --}}
+
+                <div class="dropdown">
+
+                    <button
+                        class="topbar-user border-0 bg-transparent"
+                        data-bs-toggle="dropdown"
+                        type="button">
+
+                        <div class="avatar">
+                            @if(auth()->user()->profile_photo_path)
+                                <img src="{{ asset('storage/'.auth()->user()->profile_photo_path) }}" alt="Foto profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                            @else
+                                {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
+                            @endif
+                        </div>
+
+                        <div class="text-start">
+
+                            <strong>
+
+                                {{ auth()->user()->name }}
+
+                            </strong>
+
+                            <small>
+
+                                Masyarakat Umum
+
+                            </small>
+
+                        </div>
+
+                        <i class="bi bi-chevron-down ms-2"></i>
+
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+
+                        <li class="user-dropdown-header">
+
+                            <div class="user-dropdown-avatar">
+
+                                {{ strtoupper(substr(auth()->user()->name ?? 'U',0,1)) }}
+
+                            </div>
+
+                            <h6>
+
+                                {{ auth()->user()->name }}
+
+                            </h6>
+
+                            <small>
+
+                                {{ auth()->user()->email }}
+
+                            </small>
+
+                        </li>
+
+                        <li>
+
+                            <a
+                                class="dropdown-item"
+                                href="{{ route('profile.edit') }}">
+
+                                <i class="bi bi-person-circle"></i>
+
+                                Profil Saya
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <hr class="dropdown-divider">
+
+                        </li>
+
+                        <li>
+
+                            <form
+                                action="{{ route('logout') }}"
+                                method="POST">
+
+                                @csrf
+
+                                <button
+                                    class="dropdown-item"
+                                    type="submit">
+
+                                    <i class="bi bi-box-arrow-right"></i>
+
+                                    Logout
+
+                                </button>
+
+                            </form>
+
+                        </li>
+
+                    </ul>
+
+                </div>
 
             </div>
 
         </header>
 
-        {{-- ========================= --}}
+        {{-- ========================================================= --}}
         {{-- CONTENT --}}
-        {{-- ========================= --}}
+        {{-- ========================================================= --}}
 
-        <section class="page-content">
+        <main class="content">
 
-            @yield('content')
+            <div class="content-wrapper umum-landing-skin">
+                {{-- ========================================================= --}}
+                {{-- BREADCRUMB --}}
+                {{-- ========================================================= --}}
 
-        </section>
+                @hasSection('breadcrumb')
 
-        {{-- ========================= --}}
-        {{-- FOOTER --}}
-        {{-- ========================= --}}
+                    <nav
+                        aria-label="breadcrumb"
+                        class="mb-4">
 
-        <footer class="footer">
-            <div>&copy; {{ date('Y') }} {{ \App\Models\Setting::getValue('app_name','E-Office') }}</div>
-            <div>Layanan administrasi dan persuratan digital</div>
-        </footer>
+                        <ol class="breadcrumb">
 
-    </main>
+                            @yield('breadcrumb')
+
+                        </ol>
+
+                    </nav>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- SUCCESS --}}
+                {{-- ========================================================= --}}
+
+                @if(session('success'))
+
+                    <div
+                        class="alert alert-success alert-dismissible fade show">
+
+                        <i class="bi bi-check-circle-fill"></i>
+
+                        <div class="flex-grow-1">
+
+                            {{ session('success') }}
+
+                        </div>
+
+                        <button
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            type="button">
+
+                        </button>
+
+                    </div>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- ERROR --}}
+                {{-- ========================================================= --}}
+
+                @if(session('error'))
+
+                    <div
+                        class="alert alert-danger alert-dismissible fade show">
+
+                        <i class="bi bi-x-circle-fill"></i>
+
+                        <div class="flex-grow-1">
+
+                            {{ session('error') }}
+
+                        </div>
+
+                        <button
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            type="button">
+
+                        </button>
+
+                    </div>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- WARNING --}}
+                {{-- ========================================================= --}}
+
+                @if(session('warning'))
+
+                    <div
+                        class="alert alert-warning alert-dismissible fade show">
+
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+
+                        <div class="flex-grow-1">
+
+                            {{ session('warning') }}
+
+                        </div>
+
+                        <button
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            type="button">
+
+                        </button>
+
+                    </div>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- INFO --}}
+                {{-- ========================================================= --}}
+
+                @if(session('info'))
+
+                    <div
+                        class="alert alert-info alert-dismissible fade show">
+
+                        <i class="bi bi-info-circle-fill"></i>
+
+                        <div class="flex-grow-1">
+
+                            {{ session('info') }}
+
+                        </div>
+
+                        <button
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            type="button">
+
+                        </button>
+
+                    </div>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- VALIDATION ERROR --}}
+                {{-- ========================================================= --}}
+
+                @if($errors->any())
+
+                    <div class="alert alert-warning">
+
+                        <i class="bi bi-exclamation-circle-fill"></i>
+
+                        <div class="flex-grow-1">
+
+                            <strong>
+
+                                Terdapat kesalahan input.
+
+                            </strong>
+
+                            <ul class="mt-2 mb-0">
+
+                                @foreach($errors->all() as $error)
+
+                                    <li>
+
+                                        {{ $error }}
+
+                                    </li>
+
+                                @endforeach
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                @endif
+
+                {{-- ========================================================= --}}
+                {{-- PAGE CONTENT --}}
+                {{-- ========================================================= --}}
+
+                <div class="fade-up">
+
+                    @yield('content')
+
+                </div>
+            </div>
+
+            {{-- ========================= --}}
+            {{-- FOOTER --}}
+            {{-- ========================= --}}
+
+            <footer class="footer mt-4">
+                <div>&copy; {{ date('Y') }} {{ \App\Models\Setting::getValue('app_name','E-Office') }}</div>
+                <div>Layanan administrasi dan persuratan digital</div>
+            </footer>
+
+        </main>
+
+    </div>
 
 </div>
 
-{{-- Dashboard JS --}}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('toggleSidebar');
+    const closeButton = document.getElementById('closeSidebar');
+    const mobileBreakpoint = 991;
+    const backdrop = document.createElement('button');
+    backdrop.type = 'button';
+    backdrop.className = 'sidebar-backdrop';
+    backdrop.setAttribute('aria-label', 'Tutup menu navigasi');
+    document.body.appendChild(backdrop);
+
+    const closeMobileSidebar = () => {
+        sidebar?.classList.remove('show');
+        backdrop.classList.remove('show');
+        document.body.classList.remove('sidebar-mobile-open');
+        toggle?.setAttribute('aria-expanded', 'false');
+        toggle?.setAttribute('aria-label', 'Buka menu navigasi');
+    };
+
+    const openMobileSidebar = () => {
+        sidebar?.classList.add('show');
+        backdrop.classList.add('show');
+        document.body.classList.add('sidebar-mobile-open');
+        toggle?.setAttribute('aria-expanded', 'true');
+        toggle?.setAttribute('aria-label', 'Tutup menu navigasi');
+        window.setTimeout(() => closeButton?.focus(), 250);
+    };
+
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+            if (window.innerWidth > mobileBreakpoint) {
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+                document.body.classList.toggle('sidebar-collapse', isCollapsed);
+                toggle.setAttribute('aria-expanded', String(!isCollapsed));
+            } else {
+                sidebar.classList.contains('show') ? closeMobileSidebar() : openMobileSidebar();
+            }
+        });
+    }
+
+    if (sidebar && window.innerWidth <= mobileBreakpoint) {
+        sidebar.classList.remove('collapsed');
+        document.body.classList.remove('sidebar-collapse');
+    }
+
+    closeButton?.addEventListener('click', () => {
+        closeMobileSidebar();
+        toggle?.focus();
+    });
+    backdrop.addEventListener('click', () => {
+        closeMobileSidebar();
+        toggle?.focus();
+    });
+    sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+        if (window.innerWidth <= mobileBreakpoint) closeMobileSidebar();
+    }));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && sidebar?.classList.contains('show')) {
+            closeMobileSidebar();
+            toggle?.focus();
+        }
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > mobileBreakpoint) closeMobileSidebar();
+    });
+
+    document.querySelectorAll('select:not([data-native-select])').forEach((select) => {
+        if (select.dataset.choicesEnhanced === 'true') return;
+        select.dataset.choicesEnhanced = 'true';
+
+        new Choices(select, {
+            searchEnabled: true,
+            searchPlaceholderValue: 'Ketik untuk mencari...',
+            noResultsText: 'Data tidak ditemukan',
+            noChoicesText: 'Tidak ada pilihan',
+            itemSelectText: 'Pilih',
+            shouldSort: false,
+            searchResultLimit: 100,
+            renderChoiceLimit: -1,
+            removeItemButton: select.multiple,
+            allowHTML: false,
+        });
+    });
+});
+</script>
+
 <script src="{{ asset('js/dashboard-umum.js') }}"></script>
 
 @stack('scripts')
 
 </body>
-
 </html>
