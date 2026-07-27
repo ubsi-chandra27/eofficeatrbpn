@@ -246,6 +246,16 @@
 
             </div>
 
+            <button
+                class="sidebar-close"
+                id="closeSidebar"
+                type="button"
+                aria-label="Tutup menu navigasi">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
         </div>
 
         {{-- ===================================================== --}}
@@ -903,6 +913,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('toggleSidebar');
+    const closeButton = document.getElementById('closeSidebar');
     const mobileBreakpoint = 991;
     const backdrop = document.createElement('button');
     backdrop.type = 'button';
@@ -924,6 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('sidebar-mobile-open');
         toggle?.setAttribute('aria-expanded', 'true');
         toggle?.setAttribute('aria-label', 'Tutup menu navigasi');
+        window.setTimeout(() => closeButton?.focus(), 250);
     };
 
     if (toggle && sidebar) {
@@ -943,7 +955,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('sidebar-collapse');
     }
 
-    backdrop.addEventListener('click', closeMobileSidebar);
+    closeButton?.addEventListener('click', () => {
+        closeMobileSidebar();
+        toggle?.focus();
+    });
+    backdrop.addEventListener('click', () => {
+        closeMobileSidebar();
+        toggle?.focus();
+    });
     sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
         if (window.innerWidth <= mobileBreakpoint) closeMobileSidebar();
     }));

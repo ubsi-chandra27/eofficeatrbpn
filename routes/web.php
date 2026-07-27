@@ -536,6 +536,10 @@ Route::middleware(['auth', 'role:umum'])
         [UmumDashboardController::class,'index'])
         ->name('dashboard');
 
+    Route::get('/profil',
+        [ProfileController::class, 'edit'])
+        ->name('profile.index');
+
     Route::get('/surat/{id}/download',
         [UmumSuratController::class, 'download'])
         ->whereNumber('id')

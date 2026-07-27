@@ -8,6 +8,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const sidebar = document.getElementById("sidebar");
     const toggle = document.getElementById("menuToggle");
+    const closeButton = document.getElementById("closeSidebar");
     const mobileBreakpoint = 991;
     const backdrop = document.createElement("button");
     backdrop.type = "button";
@@ -29,10 +30,17 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.add("sidebar-mobile-open");
         toggle?.setAttribute("aria-expanded", "true");
         toggle?.setAttribute("aria-label", "Tutup menu navigasi");
+        window.setTimeout(function () {
+            closeButton?.focus();
+        }, 220);
     };
 
     toggle?.addEventListener("click", function () {
         sidebar?.classList.contains("show") ? closeSidebar() : openSidebar();
+    });
+    closeButton?.addEventListener("click", function () {
+        closeSidebar();
+        toggle?.focus();
     });
     backdrop.addEventListener("click", closeSidebar);
     sidebar?.querySelectorAll("a").forEach(function (link) {

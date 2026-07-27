@@ -20,6 +20,15 @@ use App\Models\DisposisiTujuan;
 
 class ProfileController extends Controller
 {
+    private function profileRouteFor(User $user): string
+    {
+        return match ($user->role) {
+            'umum' => 'umum.profile.index',
+            'pegawai' => 'pegawai.profile.index',
+            default => 'profile.edit',
+        };
+    }
+
     public function pegawaiIndex(Request $request): View
     {
         $user = $request->user();
@@ -122,7 +131,7 @@ class ProfileController extends Controller
 
         LogAktivitas::create(['user_id' => $user->id, 'action' => 'Perbarui Profil', 'description' => 'Informasi profil akun diperbarui.']);
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route($this->profileRouteFor($user))->with('status', 'profile-updated');
     }
 
     /** Update the authenticated user's password. */
@@ -139,7 +148,7 @@ class ProfileController extends Controller
 
         LogAktivitas::create(['user_id' => $request->user()->id, 'action' => 'Ubah Password', 'description' => 'Password akun berhasil diperbarui.']);
 
-        return Redirect::route('profile.edit')->with('status', 'password-updated');
+        return Redirect::route($this->profileRouteFor($request->user()))->with('status', 'password-updated');
     }
 
     public function updatePhoto(Request $request): RedirectResponse
@@ -154,7 +163,7 @@ class ProfileController extends Controller
         if ($oldPhoto) Storage::disk('public')->delete($oldPhoto);
         LogAktivitas::create(['user_id' => $user->id, 'action' => 'Ubah Foto Profil', 'description' => 'Foto profil akun berhasil diperbarui.']);
 
-        return Redirect::route('profile.edit')->with('status', 'photo-updated');
+        return Redirect::route($this->profileRouteFor($user))->with('status', 'photo-updated');
     }
 
     public function destroyPhoto(Request $request): RedirectResponse
@@ -166,7 +175,7 @@ class ProfileController extends Controller
             LogAktivitas::create(['user_id' => $user->id, 'action' => 'Hapus Foto Profil', 'description' => 'Foto profil akun dihapus.']);
         }
 
-        return Redirect::route('profile.edit')->with('status', 'photo-deleted');
+        return Redirect::route($this->profileRouteFor($user))->with('status', 'photo-deleted');
     }
 
     /**

@@ -66,6 +66,15 @@
 
             </div>
 
+            <button class="sidebar-close"
+                    id="closeSidebar"
+                    type="button"
+                    aria-label="Tutup menu navigasi">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
         </div>
 
         <div class="sidebar-menu">
@@ -124,7 +133,7 @@
 
             </span>
 
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
+            <a href="{{ route('umum.profile.index') }}" class="{{ request()->routeIs('umum.profile.*', 'profile.edit') ? 'active' : '' }}">
 
                 <i class="bi bi-person-circle"></i>
 
@@ -232,8 +241,6 @@
                             {{ auth()->user()->name }}
 
                         </strong>
-
-                        <br>
 
                         <small>
 

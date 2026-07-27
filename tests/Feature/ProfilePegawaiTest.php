@@ -21,7 +21,7 @@ it('menyinkronkan kontak akun dengan data pegawai', function () {
     $this->actingAs($user)->patch(route('profile.update'), [
         'name' => 'Pegawai Diperbarui', 'email' => 'pegawai.update@example.test',
         'phone' => '0812 0000 1111', 'address' => 'Alamat pegawai diperbarui',
-    ])->assertRedirect(route('profile.edit'));
+    ])->assertRedirect(route('pegawai.profile.index'));
 
     $user->refresh(); $pegawai->refresh();
     expect($user->phone)->toBe('0812 0000 1111')->and($pegawai->no_hp)->toBe($user->phone)
